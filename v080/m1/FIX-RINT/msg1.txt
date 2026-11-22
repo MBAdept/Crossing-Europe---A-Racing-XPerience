@@ -1,0 +1,11 @@
+v0.8.0 FIX-RINT: Tunnelausfahrt – Schnee/Nässe bleiben beim Wetter, sanftes Nachglühen (F-01), Tönungswächter (B-02)
+
+- environment_rig: ce_snow/ce_wet folgen nicht mehr der Tunnelrampe der Kamera (3 Bilder schneefreie
+  Landschaft nach der Ausfahrt); das Nachglühen hat ein eigenes Gesetz 1 − (1 − c)^(1 + 0,9 × Stärke),
+  das nichts ausbrennt, was nicht schon fast weiß war, und fällt bei Schnee weg.
+- Render-Prüfung tunnel_bridge ausfahrt_schnee/ausfahrt_trocken: Arcade und Modern derselben Schritte,
+  reines Weiß höchstens Arcade + 5 Punkte, Schnee mindestens 0,5 × Arcade.
+- test_props: baked/leaves/billboard müssen mit der Tönung multiplizieren (Kommentare zählen nicht).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

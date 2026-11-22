@@ -1,0 +1,7 @@
+v0.8.0 AS5aR2: docs/modelle.md Abschnitt 22 - Nacharbeit der Stadthäuser, Messungen vorher/nachher
+
+Ladenlicht, Fernstufe, lod1 ohne Alpha-Test, Blattkarten, Geranien; geprüfte und abgelehnte Befunde; Budgettabelle
+aller 23 Stadthäuser nach dem Neu-Export; Messungen vorher/nachher und was nicht erreicht ist.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

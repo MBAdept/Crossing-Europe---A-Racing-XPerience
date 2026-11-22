@@ -67,3 +67,28 @@ m004/m005 wald2/stadt2 (E), m006 mutation no VPBR_STATIC (E), m007 DEV deck stag
   31 shader cache files left. Reported in bericht_teil6 deviations. o0484/p050 now TMPDIR=$S/tmp_ab.
 - light gates done (validate OK, keys OK, audio_qc 98/0); p060 reduced to geometry+determinism.
 - o0483 structures final OK (countdown, zieltor, grenze, blitz). p095 added (scripts2 + moderncheck2 on final code).
+
+## 14:50 UTC
+- note 8 retry: warm_step() (track generation in 6-segment pieces with progress in cache "_gen", sign + lane caches
+  filled piece by piece up to WARM_BUDGET_MS 1.0) -> $S/station_warm.gd via sh/edit_warm.py; unit test via
+  sh/edit_warm_test.py (14/14 on snap_F = dd7d984 + change). Queue: o051 jobpath (snap_F), o052 deck run (snap_F),
+  o059 applies to worktree only if jobpath differing=0, no script errors, station max < 2.0 ms. Then commit + doc
+  (sh/doc_warm.py <md> <max> <avg>).
+- clip1 viewed (better: wet reflections). Commits since: 92dbff2 (§17.9), dd7d984 (laternen comment).
+
+## 16:05 UTC
+- warm variants: 1.0 ms budget -> station max 2.076/avg 0.115, jobpath 0 diff (APPLIED, commit b903797 incl. doc + test);
+  0.7 ms -> 8.7 ms (not enough throughput, rejected). Queued o071/o072/o079: WARM_AHEAD_M 1200 (debug prints in snap_F),
+  applied only if max < 2.076 and jobpath 0.
+- p060 done: geometry OK, determinism OK (byte-equal, 0 changed files). p070 perf running.
+
+## 16:45 UTC
+- 9b02f05: WARM_AHEAD_M 1200 + warm_step 1.0 -> station max 1.36 / avg 0.11, all 9 canopies ready, jobpath 0 diff. Pushed.
+- p070 perf done (bericht_perf.md), p075 base deck done, p080 builds (191.1 / 200.9 MB) + smoke linux/gles/windows OK.
+- running: p090 run_tests #2 (final code), then p095 (scripts2, moderncheck2), p096 (structures + structures_licht).
+- report drafts nearly complete; remaining placeholders: T2, MC2, STRUCT, S2, HEAD.
+
+## 17:25 UTC – FERTIG
+- final: 9b02f05 pushed. run_tests #2 803/0, check_scripts 330/0, modern-check 6/6 + GLES OK, structures 7/7 on final,
+  builds 191.1/200.9 MB, smoke linux/gles/windows OK. User folder untouched since the rc_snap fix.
+- deliver/RINT-M2/bericht.md assembled (sh/assemble.py); runner stopped; snapshots and tmp folders removed.

@@ -1,0 +1,9 @@
+v0.8.0 R7a (WIP): Folgen des Sichtkorridors – Stadtzaun je Stück, Testvorlagen
+
+city.gd: ein Zaunstück fällt weg, sobald eines seiner Enden oder seine Mitte
+im Kurvenkorridor liegt (der Korridor läuft an den Kurvenenden aus).
+test_props: die Vorlage steht am Kurvenanfang (dort kreuzen die Sichtlinien
+der schnellen Anfahrt die Innenseite); Kommentar in test_structures.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

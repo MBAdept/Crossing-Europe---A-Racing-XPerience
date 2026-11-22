@@ -1,0 +1,51 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/tree_pine_b",
+ "model": {
+  "kind": "tree",
+  "object": {"width_m": 7, "height_m": 18},
+  "extent_m": {"left": 3.66, "right": 3.72},
+  "aabb": [-3.663, -0.55, -3.267, 3.72, 16.823, 3.377],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 1959,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/tree_pine_b/lod0_body.res",
+      "classes": ["vpbr", "leaves"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 200,
+    "tris": 880,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/tree_pine_b/lod1_body.res",
+      "classes": ["vpbr", "leaves"]
+     }
+    ]
+   }
+  ],
+  "shadow": {"mesh": "props/tree_pine_b/shadow.res", "tris": 192},
+  "textures": {"leaves": "props/tree_pine/leaves.png"},
+  "impostor": {
+   "texture": "props/tree_pine_b/impostor.png",
+   "size_m": [7.883, 17.102],
+   "anchor_x": 0.4964
+  },
+  "variant_of": "props/tree_pine",
+  "cards": {"lod0": 36, "lod1": 36},
+  "auto_lod": false,
+  "tags": ["prop", "tree"],
+  "bytes": 96041,
+  "hash": "ec65c30fbad502a8b0d4d8cdea0612962c2d92c2"
+ },
+ "sets": {}
+}

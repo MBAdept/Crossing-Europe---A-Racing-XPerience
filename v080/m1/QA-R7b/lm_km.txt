@@ -1,0 +1,143 @@
+LMKM kiel_hamburg__kiel landmarks/elbphilharmonie side=-1 km=91.60 total=101.04 curve600=0.127 name=Elbphilharmonie
+LMKM kiel_hamburg__kiel landmarks/michel side=1 km=93.20 total=101.04 curve600=0.127 name=Michel (St. Michaelis)
+LMKM kiel_hamburg__hamburg props/church side=1 km=92.80 total=101.04 curve600=0.213 name=Rathausturm
+LMKM hamburg_hannover__hamburg landmarks/neues_rathaus_hannover side=-1 km=148.50 total=156.03 curve600=0.163 name=Neues Rathaus
+LMKM hamburg_hannover__hannover landmarks/elbphilharmonie side=-1 km=146.60 total=156.03 curve600=0.167 name=Elbphilharmonie
+LMKM hamburg_hannover__hannover landmarks/michel side=1 km=148.20 total=156.03 curve600=0.167 name=Michel (St. Michaelis)
+LMKM hannover_kassel__hannover props/church side=1 km=163.00 total=171.03 curve600=0.174 name=Martinskirche
+LMKM hannover_kassel__kassel landmarks/neues_rathaus_hannover side=-1 km=163.50 total=171.03 curve600=0.278 name=Neues Rathaus
+LMKM kassel_wuerzburg__kassel landmarks/kaiserburg_nuernberg side=-1 km=208.00 total=216.03 curve600=0.107 name=Festung Marienberg
+LMKM kassel_wuerzburg__wuerzburg props/church side=1 km=208.00 total=216.03 curve600=0.289 name=Martinskirche
+LMKM hamburg_bremen__hamburg props/church side=-1 km=118.40 total=126.03 curve600=0.291 name=Bremer Dom
+LMKM hamburg_bremen__bremen landmarks/elbphilharmonie side=-1 km=116.60 total=126.03 curve600=0.250 name=Elbphilharmonie
+LMKM hamburg_bremen__bremen landmarks/michel side=1 km=118.20 total=126.03 curve600=0.228 name=Michel (St. Michaelis)
+LMKM bremen_dortmund__bremen landmarks/florianturm side=1 km=231.00 total=241.05 curve600=0.281 name=Florianturm
+LMKM bremen_dortmund__dortmund props/church side=-1 km=233.40 total=241.05 curve600=0.242 name=Bremer Dom
+LMKM dortmund_frankfurt__dortmund landmarks/frankfurt_skyline side=1 km=222.00 total=231.03 curve600=0.217 name=Frankfurter Hochhäuser
+LMKM dortmund_frankfurt__frankfurt landmarks/florianturm side=1 km=221.00 total=231.03 curve600=0.296 name=Florianturm
+LMKM frankfurt_wuerzburg__frankfurt landmarks/kaiserburg_nuernberg side=-1 km=118.00 total=126.03 curve600=0.207 name=Festung Marienberg
+LMKM frankfurt_wuerzburg__wuerzburg landmarks/frankfurt_skyline side=1 km=117.00 total=126.03 curve600=0.161 name=Frankfurter Hochhäuser
+LMKM wuerzburg_nuernberg__wuerzburg landmarks/kaiserburg_nuernberg side=1 km=108.00 total=116.04 curve600=0.175 name=Kaiserburg
+LMKM wuerzburg_nuernberg__nuernberg landmarks/kaiserburg_nuernberg side=-1 km=108.00 total=116.04 curve600=0.274 name=Festung Marienberg
+LMKM muenchen_nuernberg__muenchen landmarks/kaiserburg_nuernberg side=1 km=168.00 total=176.04 curve600=0.182 name=Kaiserburg
+LMKM muenchen_nuernberg__nuernberg landmarks/frauenkirche_muenchen side=-1 km=168.00 total=176.04 curve600=0.151 name=Frauenkirche
+LMKM hannover_bremen__hannover props/church side=-1 km=123.40 total=131.04 curve600=0.245 name=Bremer Dom
+LMKM hannover_bremen__bremen landmarks/neues_rathaus_hannover side=-1 km=123.50 total=131.04 curve600=0.294 name=Neues Rathaus
+LMKM dresden_leipzig__dresden landmarks/voelkerschlachtdenkmal side=1 km=109.00 total=121.05 curve600=0.110 name=Völkerschlachtdenkmal
+LMKM dresden_leipzig__dresden props/building_tall side=-1 km=113.00 total=121.05 curve600=0.110 name=City-Hochhaus
+LMKM dresden_leipzig__leipzig landmarks/frauenkirche_dresden side=1 km=113.20 total=121.05 curve600=0.109 name=Frauenkirche
+LMKM leipzig_erfurt__leipzig props/church side=1 km=148.00 total=156.03 curve600=0.298 name=Erfurter Dom
+LMKM leipzig_erfurt__erfurt landmarks/voelkerschlachtdenkmal side=1 km=144.00 total=156.03 curve600=0.102 name=Völkerschlachtdenkmal
+LMKM leipzig_erfurt__erfurt props/building_tall side=-1 km=148.00 total=156.03 curve600=0.118 name=City-Hochhaus
+LMKM erfurt_kassel__erfurt props/church side=1 km=153.00 total=161.04 curve600=0.119 name=Martinskirche
+LMKM erfurt_kassel__kassel props/church side=1 km=153.00 total=161.04 curve600=0.164 name=Erfurter Dom
+LMKM kassel_dortmund__kassel landmarks/florianturm side=1 km=156.00 total=166.05 curve600=0.257 name=Florianturm
+LMKM kassel_dortmund__dortmund props/church side=1 km=158.00 total=166.05 curve600=0.294 name=Martinskirche
+LMKM leipzig_magdeburg__leipzig props/church side=-1 km=123.00 total=131.04 curve600=0.267 name=Magdeburger Dom
+LMKM leipzig_magdeburg__magdeburg landmarks/voelkerschlachtdenkmal side=1 km=119.00 total=131.04 curve600=0.200 name=Völkerschlachtdenkmal
+LMKM leipzig_magdeburg__magdeburg props/building_tall side=-1 km=123.00 total=131.04 curve600=0.160 name=City-Hochhaus
+LMKM magdeburg_hannover__magdeburg landmarks/neues_rathaus_hannover side=-1 km=143.50 total=151.05 curve600=0.112 name=Neues Rathaus
+LMKM magdeburg_hannover__hannover props/church side=-1 km=143.00 total=151.05 curve600=0.265 name=Magdeburger Dom
+LMKM hannover_dortmund__hannover landmarks/florianturm side=1 km=206.00 total=216.03 curve600=0.218 name=Florianturm
+LMKM hannover_dortmund__dortmund landmarks/neues_rathaus_hannover side=-1 km=208.50 total=216.03 curve600=0.294 name=Neues Rathaus
+LMKM bremen_amsterdam__bremen props/church side=1 km=362.70 total=371.04 curve600=0.257 name=Westerkerk
+LMKM bremen_amsterdam__amsterdam props/church side=-1 km=363.40 total=371.04 curve600=0.214 name=Bremer Dom
+LMKM amsterdam_luettich__amsterdam props/church side=-1 km=233.40 total=241.05 curve600=0.183 name=Kathedrale Saint-Paul
+LMKM amsterdam_luettich__luettich props/church side=1 km=232.70 total=241.05 curve600=0.289 name=Westerkerk
+LMKM luettich_paris__luettich landmarks/eiffel_tower side=1 km=394.70 total=401.04 curve600=0.200 name=Eiffelturm
+LMKM luettich_paris__paris props/church side=-1 km=393.40 total=401.04 curve600=0.260 name=Kathedrale Saint-Paul
+LMKM paris_tours__paris props/church side=1 km=239.00 total=246.03 curve600=0.286 name=Kathedrale Saint-Gatien
+LMKM paris_tours__tours landmarks/eiffel_tower side=1 km=239.70 total=246.03 curve600=0.167 name=Eiffelturm
+LMKM tours_bordeaux__tours props/church side=-1 km=344.10 total=351.03 curve600=0.220 name=Kathedrale Saint-André
+LMKM tours_bordeaux__bordeaux props/church side=1 km=344.00 total=351.03 curve600=0.282 name=Kathedrale Saint-Gatien
+LMKM bordeaux_san_sebastian__bordeaux props/church side=1 km=238.90 total=246.03 curve600=0.141 name=Catedral del Buen Pastor
+LMKM bordeaux_san_sebastian__san_sebastian props/church side=-1 km=239.10 total=246.03 curve600=0.252 name=Kathedrale Saint-André
+LMKM san_sebastian_burgos__san_sebastian landmarks/kathedrale_burgos side=-1 km=223.40 total=231.03 curve600=0.000 name=Kathedrale von Burgos
+LMKM san_sebastian_burgos__burgos props/church side=1 km=223.90 total=231.03 curve600=0.207 name=Catedral del Buen Pastor
+LMKM burgos_madrid__burgos landmarks/cuatro_torres side=1 km=234.00 total=246.03 curve600=0.258 name=Cuatro Torres
+LMKM burgos_madrid__madrid landmarks/kathedrale_burgos side=-1 km=238.40 total=246.03 curve600=0.168 name=Kathedrale von Burgos
+LMKM madrid_saragossa__madrid landmarks/basilica_pilar side=-1 km=314.00 total=321.03 curve600=0.273 name=Basílica del Pilar
+LMKM madrid_saragossa__saragossa landmarks/cuatro_torres side=1 km=309.00 total=321.03 curve600=0.196 name=Cuatro Torres
+LMKM saragossa_barcelona__saragossa landmarks/sagrada_familia side=1 km=297.60 total=306.03 curve600=0.208 name=Sagrada Família
+LMKM saragossa_barcelona__barcelona landmarks/basilica_pilar side=-1 km=299.00 total=306.03 curve600=0.263 name=Basílica del Pilar
+LMKM barcelona_montpellier__barcelona props/church side=1 km=348.40 total=356.04 curve600=0.290 name=Kathedrale Saint-Pierre
+LMKM barcelona_montpellier__montpellier landmarks/sagrada_familia side=1 km=347.60 total=356.04 curve600=0.261 name=Sagrada Família
+LMKM saragossa_pau__saragossa landmarks/kaiserburg_nuernberg side=1 km=258.60 total=266.04 curve600=0.178 name=Château de Pau
+LMKM saragossa_pau__pau landmarks/basilica_pilar side=-1 km=259.00 total=266.04 curve600=0.114 name=Basílica del Pilar
+LMKM pau_toulouse__pau props/church side=-1 km=199.00 total=206.04 curve600=0.280 name=Basilique Saint-Sernin
+LMKM pau_toulouse__toulouse landmarks/kaiserburg_nuernberg side=1 km=198.60 total=206.04 curve600=0.258 name=Château de Pau
+LMKM toulouse_montpellier__toulouse props/church side=1 km=243.40 total=251.04 curve600=0.197 name=Kathedrale Saint-Pierre
+LMKM toulouse_montpellier__montpellier props/church side=-1 km=244.00 total=251.04 curve600=0.200 name=Basilique Saint-Sernin
+LMKM montpellier_lyon__montpellier props/city_vienna_kirche side=-1 km=303.40 total=311.04 curve600=0.228 name=Basilika Notre-Dame de Fourvière
+LMKM montpellier_lyon__lyon props/church side=1 km=303.40 total=311.04 curve600=0.233 name=Kathedrale Saint-Pierre
+LMKM lyon_bern__lyon props/church side=1 km=308.40 total=316.05 curve600=0.191 name=Berner Münster
+LMKM lyon_bern__bern props/city_vienna_kirche side=-1 km=308.40 total=316.05 curve600=0.243 name=Basilika Notre-Dame de Fourvière
+LMKM bern_mailand__bern landmarks/duomo_milano side=1 km=363.00 total=371.04 curve600=0.272 name=Mailänder Dom
+LMKM bern_mailand__mailand props/church side=1 km=363.40 total=371.04 curve600=0.159 name=Berner Münster
+LMKM mailand_venedig__mailand landmarks/campanile_venezia side=-1 km=274.00 total=281.04 curve600=0.100 name=Campanile di San Marco
+LMKM mailand_venedig__venedig landmarks/duomo_milano side=1 km=273.00 total=281.04 curve600=0.148 name=Mailänder Dom
+LMKM venedig_ljubljana__venedig landmarks/kaiserburg_nuernberg side=1 km=243.50 total=251.04 curve600=0.242 name=Burg Ljubljana
+LMKM venedig_ljubljana__ljubljana landmarks/campanile_venezia side=-1 km=244.00 total=251.04 curve600=0.277 name=Campanile di San Marco
+LMKM ljubljana_slavonski_brod__ljubljana props/church side=-1 km=333.20 total=341.04 curve600=0.000 name=Franziskanerkloster
+LMKM ljubljana_slavonski_brod__slavonski_brod landmarks/kaiserburg_nuernberg side=1 km=333.50 total=341.04 curve600=0.292 name=Burg Ljubljana
+LMKM slavonski_brod_belgrad__slavonski_brod landmarks/hram_svetog_save side=1 km=202.60 total=211.05 curve600=0.295 name=Kirche des Heiligen Sava
+LMKM slavonski_brod_belgrad__belgrad props/church side=-1 km=203.20 total=211.05 curve600=0.000 name=Franziskanerkloster
+LMKM belgrad_sofia__belgrad landmarks/nevsky_kathedrale side=-1 km=393.00 total=401.04 curve600=0.240 name=Alexander-Newski-Kathedrale
+LMKM belgrad_sofia__sofia landmarks/hram_svetog_save side=1 km=392.60 total=401.04 curve600=0.205 name=Kirche des Heiligen Sava
+LMKM belgrad_budapest__belgrad landmarks/parlament_budapest side=-1 km=398.80 total=406.05 curve600=0.267 name=Parlament
+LMKM belgrad_budapest__budapest landmarks/hram_svetog_save side=1 km=397.60 total=406.05 curve600=0.242 name=Kirche des Heiligen Sava
+LMKM budapest_wien__budapest landmarks/riesenrad side=1 km=240.40 total=251.04 curve600=0.220 name=Riesenrad
+LMKM budapest_wien__budapest landmarks/stephansdom side=-1 km=243.60 total=251.04 curve600=0.220 name=Stephansdom
+LMKM budapest_wien__wien landmarks/parlament_budapest side=-1 km=243.80 total=251.04 curve600=0.219 name=Parlament
+LMKM wien_prag__wien landmarks/veitsdom_prag side=1 km=333.80 total=341.04 curve600=0.251 name=Veitsdom
+LMKM wien_prag__prag landmarks/riesenrad side=1 km=330.40 total=341.04 curve600=0.249 name=Riesenrad
+LMKM wien_prag__prag landmarks/stephansdom side=-1 km=333.60 total=341.04 curve600=0.249 name=Stephansdom
+LMKM prag_leipzig__prag landmarks/voelkerschlachtdenkmal side=1 km=259.00 total=271.05 curve600=0.288 name=Völkerschlachtdenkmal
+LMKM prag_leipzig__prag props/building_tall side=-1 km=263.00 total=271.05 curve600=0.297 name=City-Hochhaus
+LMKM prag_leipzig__leipzig landmarks/veitsdom_prag side=1 km=263.80 total=271.05 curve600=0.094 name=Veitsdom
+LMKM leipzig_berlin__leipzig landmarks/fernsehturm_berlin side=1 km=187.00 total=196.05 curve600=0.116 name=Fernsehturm
+LMKM leipzig_berlin__berlin landmarks/voelkerschlachtdenkmal side=1 km=184.00 total=196.05 curve600=0.226 name=Völkerschlachtdenkmal
+LMKM leipzig_berlin__berlin props/building_tall side=-1 km=188.00 total=196.05 curve600=0.226 name=City-Hochhaus
+LMKM berlin_posen__berlin landmarks/frauenkirche_muenchen side=1 km=268.20 total=276.03 curve600=0.213 name=Posener Dom
+LMKM berlin_posen__posen landmarks/fernsehturm_berlin side=1 km=267.00 total=276.03 curve600=0.176 name=Fernsehturm
+LMKM posen_warschau__posen landmarks/kulturpalast_warschau side=1 km=303.40 total=311.04 curve600=0.295 name=Kulturpalast
+LMKM posen_warschau__warschau landmarks/frauenkirche_muenchen side=1 km=303.20 total=311.04 curve600=0.215 name=Posener Dom
+LMKM warschau_bialystok__warschau props/church side=-1 km=198.20 total=206.04 curve600=0.292 name=Pfarrkirche (Fara)
+LMKM warschau_bialystok__bialystok landmarks/kulturpalast_warschau side=1 km=198.40 total=206.04 curve600=0.252 name=Kulturpalast
+LMKM bialystok_kaunas__bialystok props/church side=1 km=228.80 total=236.04 curve600=0.105 name=Christi-Auferstehungs-Kirche
+LMKM bialystok_kaunas__kaunas props/church side=-1 km=228.20 total=236.04 curve600=0.126 name=Pfarrkirche (Fara)
+LMKM kaunas_riga__kaunas landmarks/freiheitsdenkmal_riga side=1 km=253.80 total=261.03 curve600=0.286 name=Freiheitsdenkmal
+LMKM kaunas_riga__riga props/church side=1 km=253.80 total=261.03 curve600=0.220 name=Christi-Auferstehungs-Kirche
+LMKM rostock_kiel__rostock props/church side=1 km=207.80 total=216.03 curve600=0.199 name=Rathausturm
+LMKM rostock_kiel__kiel landmarks/st_petri_riga side=1 km=208.00 total=216.03 curve600=0.227 name=Marienkirche
+LMKM wien_linz__wien landmarks/mariendom_linz side=1 km=183.60 total=191.04 curve600=0.208 name=Mariendom
+LMKM wien_linz__linz landmarks/riesenrad side=1 km=180.40 total=191.04 curve600=0.282 name=Riesenrad
+LMKM wien_linz__linz landmarks/stephansdom side=-1 km=183.60 total=191.04 curve600=0.282 name=Stephansdom
+LMKM linz_passau__linz landmarks/dom_passau side=-1 km=114.00 total=121.05 curve600=0.210 name=Dom St. Stephan
+LMKM linz_passau__passau landmarks/mariendom_linz side=1 km=113.60 total=121.05 curve600=0.250 name=Mariendom
+LMKM passau_regensburg__passau landmarks/dom_regensburg side=1 km=119.00 total=126.03 curve600=0.190 name=Regensburger Dom
+LMKM passau_regensburg__regensburg landmarks/dom_passau side=-1 km=119.00 total=126.03 curve600=0.170 name=Dom St. Stephan
+LMKM regensburg_nuernberg__regensburg landmarks/kaiserburg_nuernberg side=1 km=103.00 total=111.03 curve600=0.279 name=Kaiserburg
+LMKM regensburg_nuernberg__nuernberg landmarks/dom_regensburg side=1 km=104.00 total=111.03 curve600=0.200 name=Regensburger Dom
+LMKM nuernberg_fulda__nuernberg landmarks/dom_fulda side=1 km=203.40 total=211.05 curve600=0.244 name=Fuldaer Dom
+LMKM nuernberg_fulda__fulda landmarks/kaiserburg_nuernberg side=1 km=203.00 total=211.05 curve600=0.198 name=Kaiserburg
+LMKM fulda_kassel__fulda props/church side=1 km=103.00 total=111.03 curve600=0.237 name=Martinskirche
+LMKM fulda_kassel__kassel landmarks/dom_fulda side=1 km=103.40 total=111.03 curve600=0.220 name=Fuldaer Dom
+LMKM bukarest_sibiu__bukarest landmarks/stadtpfarrkirche_sibiu side=1 km=278.80 total=286.05 curve600=0.210 name=Evangelische Stadtpfarrkirche
+LMKM bukarest_sibiu__sibiu landmarks/palatul_parlamentului side=1 km=276.60 total=286.05 curve600=0.259 name=Parlamentspalast
+LMKM bukarest_sibiu__sibiu landmarks/catedrala_mantuirii side=-1 km=278.40 total=286.05 curve600=0.259 name=Kathedrale der Erlösung des Volkes
+LMKM sibiu_timisoara__sibiu landmarks/catedrala_timisoara side=-1 km=273.60 total=281.04 curve600=0.138 name=Metropolitankathedrale
+LMKM sibiu_timisoara__timisoara landmarks/stadtpfarrkirche_sibiu side=1 km=273.80 total=281.04 curve600=0.188 name=Evangelische Stadtpfarrkirche
+LMKM timisoara_budapest__timisoara landmarks/parlament_budapest side=-1 km=318.80 total=326.04 curve600=0.217 name=Parlament
+LMKM timisoara_budapest__budapest landmarks/catedrala_timisoara side=-1 km=318.60 total=326.04 curve600=0.178 name=Metropolitankathedrale
+LMKM prag_nuernberg__prag landmarks/kaiserburg_nuernberg side=1 km=288.00 total=296.04 curve600=0.242 name=Kaiserburg
+LMKM prag_nuernberg__nuernberg landmarks/veitsdom_prag side=1 km=288.80 total=296.04 curve600=0.115 name=Veitsdom
+LMKM frankfurt_koeln__frankfurt landmarks/koelner_dom side=-1 km=188.80 total=196.05 curve600=0.283 name=Kölner Dom
+LMKM frankfurt_koeln__koeln landmarks/frankfurt_skyline side=1 km=187.00 total=196.05 curve600=0.278 name=Frankfurter Hochhäuser
+LMKM koeln_bruessel__koeln landmarks/atomium side=1 km=212.40 total=221.04 curve600=0.289 name=Atomium
+LMKM koeln_bruessel__koeln landmarks/basilika_koekelberg side=-1 km=213.80 total=221.04 curve600=0.289 name=Basilika Koekelberg
+LMKM koeln_bruessel__bruessel landmarks/koelner_dom side=-1 km=213.80 total=221.04 curve600=0.089 name=Kölner Dom
+LMKM bruessel_calais__bruessel landmarks/phare_calais side=1 km=212.00 total=221.04 curve600=0.240 name=Leuchtturm von Calais
+LMKM bruessel_calais__bruessel landmarks/beffroi_calais side=-1 km=213.80 total=221.04 curve600=0.240 name=Belfried von Calais
+LMKM bruessel_calais__calais landmarks/atomium side=1 km=212.40 total=221.04 curve600=0.271 name=Atomium
+LMKM bruessel_calais__calais landmarks/basilika_koekelberg side=-1 km=213.80 total=221.04 curve600=0.271 name=Basilika Koekelberg

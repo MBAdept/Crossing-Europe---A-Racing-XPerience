@@ -1,0 +1,8 @@
+v0.8.0 AS5aR2: lod1 zeigt die Blattkarten von lod0 unverändert (Südhaus, Loire-Haus)
+
+Auch mit den ersten n1 Karten von lod0 (größer) tauschte der Stufenwechsel beim Südhaus noch 27,5 % der Pixel
+(gemessen); die Kronentextur ändert sich mit der Kartendichte. Jetzt n1 = n und half1 = half: lod1 hat dieselben
+Karten wie lod0 (460 bzw. 340 Dreiecke mehr in lod1). Nur Katalog.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

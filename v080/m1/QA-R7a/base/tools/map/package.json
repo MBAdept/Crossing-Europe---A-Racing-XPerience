@@ -1,0 +1,15 @@
+{
+  "name": "crossing-europe-map-tools",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Build tool for data/map/europe_map.json (not shipped with the game). Install outside the repo: npm install --prefix <dir>, then MAP_NODE_MODULES=<dir>/node_modules node tools/map/build_map.mjs",
+  "type": "module",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "d3-geo": "3.1.1",
+    "d3-geo-projection": "4.0.0",
+    "topojson-client": "3.1.0",
+    "topojson-simplify": "3.0.3",
+    "world-atlas": "2.0.2"
+  }
+}

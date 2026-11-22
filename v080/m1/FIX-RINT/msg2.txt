@@ -1,0 +1,16 @@
+v0.8.0 FIX-RINT: Ausfahrt mit Tageslicht ab dem Portal, Einhängen unter Zeitbudget (B-01), Wächter (B-04), Zensus (B-05)
+
+- Tunnellicht: die Rampe an der Ausfahrt endet am Portal (wie Arcade bei Kamera + 1 m), in Rig und
+  Tunnelbaustein gleich; Blendviereck und Nachglühen entscheiden ebenfalls bei Kamera + 1 m (F-01).
+- Render-Prüfung exit_after: Schnee im Bodenband (Leuchtdichte >= 0,6, Sättigung < 0,1) statt
+  „hell und fast grau“ – erkennt die braunen Bilder (0,00 gegen 0,6).
+- chunk_streamer: im Fahrbetrieb Baustein für Baustein unter COMMIT_BUDGET_MS 2 ms je Bild, der Knoten
+  kommt erst vollständig in den Baum; commit_by je Baustein; die Lampen-Ebenen warten auf einen
+  Eltern-Knoten, der noch nicht im Baum ist, und vergessen einen freigegebenen (B-01).
+- Leistungstest: chunk_commit_ms_max, collect_ms_max_by, commit_ms_max_by je Szene (B-01/B-03).
+- perf_probe: drei Bilder über 1 s im Countdown urteilen „langsam“ (B-04).
+- check_instance_budget: Szene zusätzlich in jedem Bild mit neuem Höchstwert der Fahrzeug-Ebene (B-05).
+- lights.gd: SPOT_SPECULAR als Engine-Vorgabe dokumentiert (B-06).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

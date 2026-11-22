@@ -1,0 +1,176 @@
+{
+ "package": "FIX-RINT",
+ "branch": "worktree-wf_9927a373-337-4 (Sicherung: origin wip/v080-fix-rint)",
+ "commit": "3248211",
+ "worktree": "/home/user/crossing-europe---a-racing-xperience/.claude/worktrees/wf_9927a373-337-4",
+ "summary": "Ich habe jeden Befund (Blocker, hoch, mittel) zuerst nachgestellt. Neun sind behoben und nachgeprüft: F-01, F-05, F-06, B-01, B-02, B-03, B-04, B-05 und B-06 (B-06 nur dokumentiert). F-08 ist nur teilweise erledigt. F-02 und F-04 sind offen, F-03 und F-07 gehören zu R7.\n\nF-01, der Blocker: Schnee und Nässe hingen an der Tunnelrampe der Kamera. Außerdem lief die Lichtrampe bis 12 m hinter das Portal und das Nachglühen hat ausgebrannt. Jetzt kommen Schnee und Nässe aus der Palette, die Rampe endet am Portal und alle Entscheidungen fallen bei Kamera + 1 m wie in Arcade. Das Nachglühen hat ein eigenes, monotones Gesetz. Gemessen: Weiß im Bild 66 % → 1–2 % (Arcade 0,4–0,7 %), keine braunen Bilder mehr. Neue Prüfung mit Arcade als Vergleich.\n\nF-05: Die Tankstellenzone erreicht jetzt 0,95 × Arcade, vorher 0,77 ×. F-06: Der Sportwagen liegt nachts bei 1,01 × / 1,21 ×, vorher 1,19 × / 1,83 ×.\n\nB-01: Ein Stück wird jetzt Baustein für Baustein eingehängt, mit Ziel 2 ms je Bild. Gemessen 2,0–3,2 ms je Bild, vorher 8,96 ms. Regel 3 hält: die Prüfsumme ist gleich v0.7.0.\n\nF-08: Die Stöße lagen im Freigeben, nicht im Einhängen. Ein Stück wird jetzt verzögert und in Teilen freigegeben. Auf der geteilten VM lassen sich die restlichen Stöße aber nicht vom Rauschen trennen. Ob sie weg sind, zeigt erst eine Messung auf dem Deck.\n\nEin eigener Fehler (Flare-Merker auf einem belegten Platz) hat im ersten Volllauf drei Prüfdateien rot gemacht. Behoben in 3248211.\n\nTore: golden 20/20 und 17/17, modern-check 6/6, Render-Prüfungen 28/28. Im zweiten Volllauf sind alle Prüfdateien grün, aber 2 Klangtests rot (VM-Last). Beide sind einzeln danach grün.",
+ "files_changed": [
+  "scripts/race3d/environment_rig.gd",
+  "scripts/race3d/builders/tunnel.gd",
+  "scripts/race3d/builders/station.gd",
+  "scripts/race3d/chunk_streamer.gd",
+  "scripts/race3d/layers/flares.gd",
+  "scripts/race3d/layers/lights.gd",
+  "scripts/race3d/layers/vehicles.gd",
+  "scripts/race3d/modern_materials.gd",
+  "scripts/race3d/modern_renderer.gd",
+  "scripts/race3d/perf_probe.gd",
+  "scripts/race3d/benchmark.gd",
+  "tests/race3d/render/check_tunnel_bridge.gd",
+  "tests/race3d/render/check_night.gd",
+  "tests/race3d/render/check_structures.gd",
+  "tests/race3d/render/check_instance_budget.gd",
+  "tests/unit/race3d/test_environment_rig.gd",
+  "tests/unit/race3d/test_props.gd",
+  "tests/unit/race3d/test_quality.gd",
+  "tests/unit/race3d/test_chunk_streamer.gd",
+  "tests/unit/race3d/test_structures.gd",
+  "tests/unit/race3d/test_vehicles.gd",
+  "docs/renderer-modern.md"
+ ],
+ "acceptance": [
+  {
+   "check": "F-01 Blocker Tunnelausfahrt bei Tag (Überstrahlung, Schneesprung)",
+   "result": "pass",
+   "evidence": "gemessen: render-check tunnel_bridge_ausfahrt_schnee OK (Weiß höchstens +0,1 Punkte, Schnee >= 0,99 x Arcade), _trocken OK (+1,0), U1_ausfahrt 0,65 x; A/B Valík: Weiß 66-67 % -> 1-2 %, braune Bilder weg"
+  },
+  {
+   "check": "F-05 Tankstelle nachts zu dunkel",
+   "result": "pass",
+   "evidence": "gemessen: Zone x780-1280/y250-460 Arcade 96,4, vorher 74,7 (0,77 x), jetzt 91,6 (0,95 x); render-check tankstelle OK, Tankstelle als Ganzes 0,87 x (>= 0,85)"
+  },
+  {
+   "check": "F-06 Lack der Spielerautos nachts (Sportwagen zu hell und zu bunt)",
+   "result": "pass",
+   "evidence": "gemessen: spielerauto OK, Sportwagen 1,19 x / 1,83 x -> 1,01 x / 1,21 x; Prüfung jetzt für alle fünf Autos, rote Lacke mit eigener Maske"
+  },
+  {
+   "check": "B-01 Einhängen über 3 ms je Bild",
+   "result": "pass",
+   "evidence": "gemessen auf Kiel-Hamburg Deck: 8,96 -> 3,24 / 2,53 / 2,01 / 2,11 ms (4 Läufe, der erste 0,24 ms über 3 ms); Einheitstest test_commit_is_spread_over_frames; Regel-3-Prüfsumme 087ade2e = v0.7.0"
+  },
+  {
+   "check": "F-08 Stöße im Streamer",
+   "result": "partial",
+   "evidence": "Ursache gemessen: free 141,7 ms; jetzt verzögert (TRASH_DELAY 4) und in Teilen freigegeben; Lauf 4: trash 57 ms, aber auch das reine path 49,6 ms -> VM-Rauschen, Wirkung auf dem Gerät nur gefolgert; spikes-Liste im Leistungstest"
+  },
+  {
+   "check": "B-02 Tönungswächter ließ fehlende Tönung durch",
+   "result": "pass",
+   "evidence": "gemessen: Mutation baked+leaves -> test_props rot; Code ohne Kommentare geprüft"
+  },
+  {
+   "check": "B-03 collect() der Tankstelle über Frist",
+   "result": "pass",
+   "evidence": "gemessen: canopy_job_rest setzt fort, collect höchstens 0,13 / 0,17 ms (QA 3,6 / 4,9 ms); Einheitstest rest-in-pieces"
+  },
+  {
+   "check": "B-04 Wächter urteilt bei sehr langsamen Bildern nicht",
+   "result": "pass",
+   "evidence": "Einheitstests test_quality: drei Bilder > 1 s -> langsam/zu langsam, eine Pause allein urteilt nicht"
+  },
+  {
+   "check": "B-05 Zensus unterschätzt Spitzen",
+   "result": "pass",
+   "evidence": "render-check instanzen*/stadt/wald OK, obere Schranke Ebene + übrige gemeldet (141/176/222 < 230)"
+  },
+  {
+   "check": "B-06 SPOT_SPECULAR wirkt auf nichts Geprüftes",
+   "result": "pass",
+   "evidence": "nur dokumentiert (= Engine-Vorgabe 0,5, wirksam ist ce_headlight_light); Vertragsfrage A-20 Satz 1 an die Integration"
+  },
+  {
+   "check": "F-02 offene Autobahn nicht deutlich besser als Arcade",
+   "result": "fail",
+   "evidence": "offen: Gestaltungsaufgabe (Himmel, Dunst, Vegetationsschatten), in dieser Runde nicht angegangen -> R7/R8"
+  },
+  {
+   "check": "F-04 Stadthäuser nachts",
+   "result": "fail",
+   "evidence": "offen: welche Fenster leuchten, entscheidet cities3d.py aus den Zufallszahlen des Sprites; nötig ist ein Neubacken der Modelle (R7/AS5b), kein Renderer-Wert"
+  },
+  {
+   "check": "F-03 fehlende Vegetation (A-17-Korridor)",
+   "result": "not_run",
+   "evidence": "R7: S0-Eiche (z 27,9, x -17,1) fällt per Sonde als 'corridor' aus dem Kurvenband; Korridor nicht angefasst"
+  },
+  {
+   "check": "F-07 Frankfurter Hochhaus fehlt",
+   "result": "not_run",
+   "evidence": "R7: Sonde zeigt km 220,95-221,8 kein Hochhaus-Sprite auf der Strecke; Arcade zeichnet es aus der Skyline-Logik"
+  },
+  {
+   "check": "F-09 Niedrig/Schatten-Draw-Calls",
+   "result": "not_run",
+   "evidence": "abgelehnt: Primitive 221 k < 250 k Budget, Schatten-Draw-Calls in A-15 entschieden"
+  },
+  {
+   "check": "B-07 echter Benutzerordner beschrieben",
+   "result": "not_run",
+   "evidence": "nicht dieses Paket (R7a); alle FIX-RINT-Läufe mit eigenem absolutem XDG_DATA_HOME"
+  },
+  {
+   "check": "Tor: Import",
+   "result": "pass",
+   "evidence": "sauber"
+  },
+  {
+   "check": "Tor: tools/run_tests.sh (2 Volläufe)",
+   "result": "partial",
+   "evidence": "Lauf 2 auf 3248211: alle Prüfdateien grün, 804 Tests / 2 rot (test_engine3_checks, test_music_checks; Klang, unberührt, VM-Last 13), beide einzeln danach grün; Lauf 1: 3 Prüfdateien rot durch eigenen Flare-Fehler, in 3248211 behoben und einzeln grün"
+  },
+  {
+   "check": "Tor: tools/golden.sh check",
+   "result": "pass",
+   "evidence": "GOLDEN arcade: 20 von 20 identisch; arcade-ui: 17 von 17 identisch"
+  },
+  {
+   "check": "Tor: tools/golden.sh modern-check",
+   "result": "pass",
+   "evidence": "6 von 6 identisch, GLES gegen GL OK (2/255, 73,2 dB); modern-make nicht nötig, modern_s1_nacht angesehen"
+  },
+  {
+   "check": "Tor: tools/run_render_checks.sh all",
+   "result": "pass",
+   "evidence": "28 von 28 Render-Prüfdateien in Ordnung, 81 RENDER-CHECK-Zeilen, keine Script- oder Shader-Fehler"
+  },
+  {
+   "check": "Tor: modern_sight/path_check --full, Validator/Export, audio_qc",
+   "result": "not_run",
+   "evidence": "nicht verlangt: keine Platzierung oder Größe geändert, kein Modell, kein Klang"
+  }
+ ],
+ "tests_total": 804,
+ "tests_failed": 2,
+ "deviations": [
+  "F-02 (offene Autobahn) und F-04 (Stadthäuser nachts) sind nicht behoben: F-02 ist eine Gestaltungsaufgabe, F-04 eine Sache der Asset-Pipeline. Beide gehen mit Begründung an R7/R8.",
+  "F-08 ist nicht als behoben bewiesen. Einhängen ist verteilt und Freigeben verzögert, aber auf der geteilten VM lassen sich einzelne Stöße von 50–130 ms nicht vom Rauschen trennen.",
+  "Nachglühen an der Tunnelausfahrt: Modern nutzt ein eigenes, nicht klippendes Gesetz statt Arcades x 1,7 + 0,25 (Regel 9, Lesbarkeit). Bei Schnee ist es aus.",
+  "Der letzte Volllauf hatte 2 rote Klangtests wegen VM-Last. Ein dritter Volllauf war nicht erlaubt, darum habe ich nur diese beiden einzeln nachgeprüft (grün).",
+  "B-01: Der erste Messlauf lag mit 3,24 ms knapp über dem Budget von 3 ms, die drei späteren Läufe darunter (2,0–2,5 ms)."
+ ],
+ "contract_issues": [
+  "A-20 Satz 1 nennt SPOT_SPECULAR, wirksam ist aber ce_headlight_light (inc/headlight.gdshaderinc). Bitte den Satz darauf beziehen; die Konstante (= Engine-Vorgabe 0,5) ist nur dokumentiert.",
+  "§4.10: commit_ms_max misst jetzt die Einhängezeit je Bild, weil sich ein Stück über mehrere Bilder verteilt. Falls je Stück gemeint war, bitte klären.",
+  "A-7 Fassade: chunk_node() antwortet erst, wenn das Stück ganz eingehängt ist. Das ist eine Verhaltensänderung, auf die sich bisher kein Aufrufer verlässt.",
+  "Nachglühen der Ausfahrt weicht bewusst von Arcades Gesetz ab. Bitte als Ausnahme im Vertrag festhalten oder verwerfen."
+ ],
+ "notes_for_next": [
+  "Auf dem Steam Deck den Leistungstest laufen lassen und dort die neuen Felder spikes, chunk_commit_ms_max und commit_ms_max_by lesen. Nur so lässt sich zeigen, ob F-08 weg ist.",
+  "Einträge in flares._static haben feste Plätze: 6/7 _drop_of, 8/9 _lamp_profile, 10 STATIC_SEEN. Wer einen neuen Platz braucht, muss das Anhängen in add_static erweitern.",
+  "F-05: Arcades Lichtvolumen unter dem Vordach ist noch flächiger als Modern. Wenn mehr gewünscht ist, SHOP_VOLUME_* in station.gd anheben und mit der Prüfung tankstelle messen.",
+  "F-06: GT 0,92 x / 0,77 x und Kompakt 1,05 x / 1,23 x liegen im Band. Weitere Sätze können über VEHICLE_PLAYER_NIGHT in modern_materials.gd einen eigenen Nachtanteil bekommen.",
+  "Die Klangtests test_engine3_checks und test_music_checks werden ab VM-Last 12-13 rot. Paket SOUND sollte prüfen, ob die Grenzen mit der Last wachsen sollen.",
+  "F-03/F-07 für R7: Die Eiche bei S0 fällt durch den A-17-Korridor. Das Frankfurter Hochhaus fehlt, weil es zur Skyline-Logik gehört, nicht zu einem Strecken-Sprite."
+ ],
+ "look_verdict": "Tunnelausfahrt Schnee: Vorher war das das schlechteste Bild (weiße Wand, dann braune Landschaft), jetzt ist es gleichwertig mit Arcade. Leitlinien sind lesbar, Fichten tragen Schnee, der Schneefall hat Tiefe. Der Schnee am Fahrbahnrand ist eine Spur grauer als Arcades fast weiße Fläche.\n\nTankstelle 21 Uhr: Unter dem Shopvordach liegt jetzt ein warmer Lichtsaum, die Schaufenster leuchten. Modern hat dafür echte Lichtkegel und Tiefe. Arcade wirkt aber immer noch flächiger und gleichmäßiger hell. Modern ist hier nicht mehr dunkler, aber auch nicht besser.\n\nSportwagen nachts im Regen: Er ist jetzt dunkelrot wie in Arcade statt leuchtend kirschrot. Die Oberseite ist etwas dunkler als Arcades Glanzlicht.\n\nWeiterhin nicht besser oder schwächer als Arcade sind die offene Autobahn bei Tag (F-02: wenig Himmel und Tiefe), die Stadthäuser nachts (F-04), die Vegetation am Kurveninnenrand (F-03) und das Frankfurter Hochhaus (F-07).",
+ "media": [
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-RINT/F01_valik_schnee_02.jpg – F-01 Tunel Valík 8 Uhr Schnee, Bild 02 nach der Ausfahrt: Arcade | Modern vorher (braun/weiß) | Modern FIX-RINT",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-RINT/F01_valik_schnee_04.jpg – F-01 Bild 04 (4,2 s): vorher reines Weiß, jetzt verschneite Strecke mit lesbaren Linien",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-RINT/F01_valik_schnee_06.jpg – F-01 Bild 06: Modern nach der Ausfahrt gleichwertig mit Arcade",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-RINT/F05_tankstelle_21uhr.jpg – F-05 Tankstelle Kiel–Hamburg 21 Uhr: Zone 0,77 x -> 0,95 x Arcade",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-RINT/F05_tankstelle_21uhr_ausschnitt.jpg – F-05 Ausschnitt Shopvordach und Schaufenster",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-RINT/F06_sportwagen_22uhr_regen.jpg – F-06 Sportwagen 22 Uhr Regen: 1,19 x / 1,83 x -> 1,01 x / 1,21 x Arcade",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-RINT/bericht.md – Bericht FIX-RINT (deutsch, Abschnitte 1-7 mit Toren)"
+ ]
+}

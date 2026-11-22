@@ -1,0 +1,22 @@
+# Arcade golden frames (tools/golden.sh, docs/dev/v080_contract.md §4.9.3): 14 attract frames + 6 race frames.
+# One run of the race scene per line:  id | shot times (s) | arguments of the race scene (after "--")
+# A run writes <id>_00.png, <id>_01.png … (one per shot time). Fixed frame rate 60, fixed seeds, 1280×720.
+# The list is frozen together with the hash list: after changing a line run "tools/golden.sh make" again.
+#
+# Attract scenes of v0.7.0 (config attract.scenes, started as AttractMode.scene_setup starts them), at 4 s and 12 s.
+rushhour  | 4,12 | --stage=dortmund_frankfurt --from=dortmund --start-km=197.5 --hour=18.8 --weather=normal --vehicle=sportwagen --seed=8 --autopilot --autopilot-target=225 --autopilot-refuel=never --no-countdown --traffic-warmup --start-speed=170
+pyrenaeen | 4,12 | --stage=saragossa_pau --from=saragossa --start-km=159.0 --hour=11.0 --weather=snow --vehicle=kompakt --seed=4 --autopilot --autopilot-target=140 --autopilot-refuel=never --no-countdown --traffic-warmup --start-speed=90
+paris     | 4,12 | --stage=luettich_paris --from=luettich --start-km=384.6 --hour=20.0 --weather=normal --vehicle=gran_turismo --seed=1 --autopilot --autopilot-target=135 --autopilot-refuel=never --no-countdown --traffic-warmup --start-speed=90
+hamburg   | 4,12 | --stage=kiel_hamburg --from=kiel --start-km=77.0 --hour=12.5 --weather=normal --vehicle=kombi --seed=5 --autopilot --autopilot-target=160 --autopilot-refuel=never --no-countdown --traffic-warmup --start-speed=90
+regen     | 4,12 | --stage=leipzig_berlin --from=leipzig --start-km=159.0 --hour=23.0 --weather=rain --vehicle=limousine --seed=3 --autopilot --autopilot-target=215 --autopilot-refuel=never --no-countdown --traffic-warmup --start-speed=170
+venedig   | 4,12 | --stage=mailand_venedig --from=mailand --start-km=267.6 --hour=17.5 --weather=normal --vehicle=sportwagen --seed=2 --autopilot --autopilot-target=140 --autopilot-refuel=never --no-countdown --traffic-warmup --start-speed=90
+wien      | 4,12 | --stage=budapest_wien --from=budapest --start-km=234.5 --hour=6.3 --weather=normal --vehicle=kombi --seed=9 --autopilot --autopilot-target=110 --autopilot-refuel=never --no-countdown --traffic-warmup --start-speed=90
+#
+# Race frames at reference positions (§4.9.2): standing start with the countdown and the full HUD.
+# S1 inside the countdown (digit, start lights), N1 with "LOS!" and the weather hint, the others driving.
+race_s1   | 2.2  | --stage=kiel_hamburg --from=kiel --start-km=2 --hour=12 --weather=normal --vehicle=limousine --seed=11 --autopilot --traffic-warmup
+race_t1   | 6    | --stage=kassel_wuerzburg --from=kassel --start-km=46.5 --hour=15 --weather=normal --vehicle=kombi --seed=12 --autopilot --traffic-warmup
+race_n1   | 4    | --stage=hamburg_hannover --from=hamburg --start-km=71 --hour=22 --weather=snow --vehicle=kompakt --seed=13 --autopilot --traffic-warmup
+race_n2   | 6    | --stage=dortmund_frankfurt --from=dortmund --start-km=121 --hour=16 --weather=rain --vehicle=gran_turismo --seed=14 --autopilot --traffic-warmup
+race_c1   | 6    | --stage=dortmund_frankfurt --from=dortmund --start-km=221 --hour=19.5 --weather=normal --vehicle=sportwagen --seed=15 --autopilot --traffic-warmup
+race_u1   | 6    | --stage=bern_mailand --from=bern --start-km=186 --hour=12 --weather=normal --vehicle=limousine --seed=16 --autopilot --traffic-warmup

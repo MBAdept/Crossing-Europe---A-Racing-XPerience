@@ -1,0 +1,4 @@
+?? qa_occl.gd
+?? qa_occl.gd.uid
+?? qa_perf.gd
+?? qa_perf.gd.uid

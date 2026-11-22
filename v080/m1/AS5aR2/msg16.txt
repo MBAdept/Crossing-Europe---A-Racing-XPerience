@@ -1,0 +1,10 @@
+v0.8.0 AS5aR2: docs/modelle.md Abschnitt 22 - Ursache der blassen Fernfassaden gemessen (Ende der Echtzeitschatten)
+
+Dieselbe lodcol-Prüfszene (12 Uhr, Hoch) mit den Schatten des Rennens (200 m), mit 1000 m Reichweite
+und ohne Sonnenschatten: ohne Schatten bleiben alle fünf geprüften Modelle über 60-250 m gleich hell
+(-4 bis +3 %) und ihr dunkles Zehntel hellt nur um 1-15 Stufen auf (Sprite 3-11); mit den Schatten des
+Rennens +4 bis +29 %. Die Fernblässe kommt also vom Ende und der groben Auflösung der Echtzeitschatten,
+nicht von der Mip-Kette des Atlas - Abhilfe im Renderer (R4/R7). Nur Doku, kein Modell geändert.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

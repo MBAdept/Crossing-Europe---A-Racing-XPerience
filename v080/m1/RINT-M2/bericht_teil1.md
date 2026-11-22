@@ -2,7 +2,8 @@
 
 Zweig `wip/v080-rint-m2` (nur dorthin gepusht, nach jedem Commit), Basis `515dd51`. Alle Zahlen gemessen auf dieser
 Maschine (Xvfb, llvmpipe, Godot 4.7.2 Compatibility), sonst steht **(gefolgert)** dabei. Jeder Spiellauf mit
-absolutem `XDG_DATA_HOME` im Arbeitsordner und `--graphics` ausdrücklich; schwere Läufe einzeln über eine
+`--graphics` ausdrücklich und einem eigenen absoluten `XDG_DATA_HOME` – **bis auf rund 20 Einzelprüfungen eines
+Hilfsskripts, die den echten Benutzerordner trafen (selbst gefunden, §6)**; schwere Läufe einzeln über eine
 Warteschlange, `nice -n 10`, `LP_NUM_THREADS=2`.
 
 ## 1. Kurzfassung
@@ -13,12 +14,15 @@ Warteschlange, `nice -n 10`, `LP_NUM_THREADS=2`.
 - **Selbst gefunden und behoben:** die erste Fassung der Tönung (Notiz 5, `b04d28a`) färbte Fensterrahmen,
   Garagentore, Bäume und Windräder leuchtend grün. Ursache ist ein Verhalten von Godots Compatibility-Renderer bei
   `INSTANCE_CUSTOM` (mit Sonden eingegrenzt, §3 Notiz 5); behoben in `a3120e4`, Bilder vorher/nachher.
-- Notiz 8 brauchte nach dem ersten Einfrieren (`1cd689d`) noch drei Code-Schritte am Tankstellendach (`c72d484`,
-  `b673df5`, `02051f7`): `collect()` der Tankstelle höchstens 2,40 ms, Mittel 0,14 ms auf „Deck“ (vorher 3,41 / 0,20;
-  Ziel 2 ms im Höchstwert um 0,4 ms verfehlt, §3 Notiz 8); Entscheide netzweit unverändert (1909 Dächer, 0 verschieden).
-  Dazu eine angepasste Render-Prüfung (`ab2a400`) und Doku (`ae1fd76`). Endstand `@@HEAD@@`.
+- Notiz 8 brauchte nach dem ersten Einfrieren (`1cd689d`) noch fünf Code-Schritte am Tankstellendach (`c72d484`,
+  `b673df5`, `02051f7`, `b903797`, `9b02f05`): `collect()` der Tankstelle höchstens 1,36 ms, Mittel 0,11 ms auf
+  „Deck“ (Merge-Stand 3,41 / 0,20; ein Messlauf auf belasteter VM, §3 Notiz 8); Entscheide netzweit unverändert
+  (1909 Dächer, 0 verschieden).
+  Dazu eine angepasste Render-Prüfung (`ab2a400`), Doku (`ae1fd76`, `92dbff2`) und ein Prüfungskommentar (`dd7d984`).
+  Endstand `9b02f05`.
 - A/B: an den Bezugsstellen 2 besser, 8 gleich, 4 schlechter (Kurveninnenseiten in Bergetappen, A-17 → R7); an den
-  weiteren Stellen @@ABX@@ (§5, §7).
+  weiteren Stellen 4 besser (zwei davon klein), 15 gleich, 2 mit schlechterem Lack der Limousine in der Dämmerung; Clips: Köhlbrandbrücke
+  nachts im Regen besser, nach der Gotthard-Ausfahrt die Kurveninnenseiten schlechter (§5, §7).
 
 ## 2. Zusammenbau
 
@@ -35,5 +39,6 @@ Auf dem Merge-Stand `8999769` liefen die Render-Prüfungen `night_nass`, `night`
 
 Commits der Nacharbeit: `2322092` (Notiz 3), `1c61036`/`71ed4b7` (4), `b04d28a`/`a3120e4` (5), `967ad21` (6),
 `6347e41`/`618561f` (8), `747fa30` (9), `4fc3d35` (7), `eb417a7` (11 a–d), `58eba9e`/`5294d00` (11 e: N1/N2),
-`aa44247`/`1cd689d` (Doku), `c72d484`/`b673df5`/`02051f7` (8, Tankstellendach), `ab2a400` (Render-Prüfung
-`props_spiegel`), `ae1fd76` (Doku §17.10), dazu die Goldens `6b17293` (§4).
+`aa44247`/`1cd689d` (Doku), `c72d484`/`b673df5`/`02051f7`/`b903797`/`9b02f05` (8, Tankstellendach), `ab2a400` (Render-Prüfung
+`props_spiegel`), `ae1fd76`/`92dbff2`/`dd7d984` (Doku §17.9/§17.10, Kopf von `check_night_nass`), dazu die Goldens
+`6b17293` (§4).

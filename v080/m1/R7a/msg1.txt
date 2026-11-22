@@ -1,0 +1,11 @@
+v0.8.0 R7a (WIP): Sichtkorridor aus der wirklichen Geometrie (A-17)
+
+SightCorridor (neu, Kern): Hülle aller Sichtlinien von einer Kamera in jeder
+Spur zu einem Fahrzeug in jeder Spur bis L = min(300 m, F2-Bedarf / 0,6 +
+Kamera) – Bedarf wie fairness.speed_profile(), größter von trocken, Regen,
+Schnee. TerrainProfile.corridor_width() liest sie; Band des Geländes
+unverändert. Einheitstest gegen eine vollständige Referenz an langem und
+kurzem Bogen, Gerade vor der Kurve, S-Kurve, Kehre, drei Spuren mit Tankspur.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

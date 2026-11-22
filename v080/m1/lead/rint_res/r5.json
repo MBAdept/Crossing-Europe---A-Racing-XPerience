@@ -1,0 +1,87 @@
+{
+ "verdict": "Partly. 3248211 can serve as the base for R7 and the whole-race QA, but N-01 has to be fixed first. The blocker F-01 is really fixed: after the snowy exit Modern shows 2.5–3.1 % pure white against Arcade's 0.1–0.3 % (65–68 % before), it switches in the same frame as Arcade, and there are no brown frames. The gates are green: Arcade golden 20/20 and 17/17, Rule-3 checksums equal to Arcade by day and at night, every related render check and 175 unit tests. N-01 is a small but real regression from the commit that is now spread over frames: the stale-reflector SCRIPT ERROR, reproduced with a probe and not yet seen in a real drive. B-01 and F-08 are not proven fixed: per-frame commit reached 6.51 ms and 4.23 ms because a single builder is never split, and the streamer hitch is still 71.5 ms on this VM (inferred: only the Deck can settle it). F-06 is half done (the Gran Turismo is pixel-identical to before, still silver), and F-02, F-03 and F-04 are untouched, as FIX-RINT announced.",
+ "per_finding": [
+  {
+   "id": "F-01",
+   "status": "fixed",
+   "evidence": "measured: head A/B clip, the QA's exact call, QA lumtrace.py: after the exit Modern white 0.024-0.031 / lum 170 vs Arcade 0.001-0.003 / lum 157-167; 9b02f05 0.646-0.676 / lum 213-221 and brown frames 4.030-4.063 s (lum 151-154). Head switches at 4.047 s like Arcade. Dry Valik 12:00 (own head+base runs): 3.9 s white 0.310 -> 0.030 (Arcade 0.015). Snow in the tube unchanged (head = base). Render checks tunnel_bridge_ausfahrt_schnee/_trocken OK (+0.1 / +1.0 points). Pictures deliver/NACH-RINT/F01_*.jpg, clip valik_morgen_schnee_3248211.mp4"
+  },
+  {
+   "id": "F-02",
+   "status": "not_fixed",
+   "evidence": "git diff 9b02f05..3248211 contains no terrain, sky, haze, props or road-wear code; the day drive pictures (STREAM_kiel_hamburg_tag_deck_ts16.jpg) look as before. Left to R7/R8 as FIX-RINT announced"
+  },
+  {
+   "id": "F-03",
+   "status": "not_fixed",
+   "evidence": "no props/corridor change in the diff; S0 at the start pixel-identical to 9b02f05, Arcade's big oak still missing (TB1_start_auto_im_countdown.jpg). R7 (A-17)"
+  },
+  {
+   "id": "F-04",
+   "status": "not_fixed",
+   "evidence": "no city model, baked.gdshader or city.gd in the diff (inferred unchanged, no KHH22 re-render). AS5b/R7"
+  },
+  {
+   "id": "F-05",
+   "status": "fixed",
+   "evidence": "measured TS15N region.py 780 250 1280 460: Arcade 96.4, 9b02f05 74.7 (0.77x), head 91.6 (0.95x); render check tankstelle: whole station 0.87x (limit 0.85), lane 0.88x. Looked at it: a warm glow under the shop canopy now, but Arcade's flat light volume across the whole canopy is still stronger (F05_*.jpg)"
+  },
+  {
+   "id": "F-06",
+   "status": "partly",
+   "evidence": "sports car fixed: spielerauto check 1.01x lum / 1.21x sat, visibly dark red like Arcade (F06_sportwagen_22uhr_regen.jpg). Gran Turismo N2N 22:00 rain: head Modern PNG byte-identical (cmp) to 9b02f05, still light silver vs Arcade dark blue-grey (F06_gran_turismo_22uhr_regen.jpg); check reports 0.92x/0.77x, inside the band"
+  },
+  {
+   "id": "F-08",
+   "status": "partly",
+   "evidence": "measured, KH day deck ts16 threaded: spikes streamer 71.5 ms at km 30.27, 60.2 at 47.5, vehicles 52.8 at 47.9; update_ms_max trash 69.4 ms (QA 9b02f05: streamer 70.9, vehicles 20.4). KH 22:00 rain: streamer 27.3, trash 25.5, collect 21.8 ms. Saragossa-Pau night: trash 57.5 ms. Instrumentation present; pool warm-up and render() cost of the night stage not addressed; effect on the Deck only inferred"
+  },
+  {
+   "id": "B-01",
+   "status": "partly",
+   "evidence": "measured commit_ms_max per frame: KH day 6.51 ms (roadside alone 6.32, terrain 4.73, road 4.16; 103 steps for 95 chunks), KH night 4.23 ms (road 4.16), Saragossa-Pau night 1.98 ms; budget 3 ms. Splitting works between builders, never inside one. FIX-RINT's 2.0-3.24 ms were under lower load"
+  },
+  {
+   "id": "B-02",
+   "status": "fixed",
+   "evidence": "measured sh/mut_b02.sh: clean test_props 13/0; baked 'a.rgb *= v_tint' -> vec3(1.0): red; leaves ALBEDO without v_tint: red; billboard COLOR.rgb * v_tint -> COLOR.rgb: red; git status clean afterwards. No render-level tint check (QA's 'better' option)"
+  }
+ ],
+ "findings": [
+  {
+   "id": "N-01",
+   "severity": "medium",
+   "area": "Streamer / Lichtebene (neu durch B-01)",
+   "where": "scripts/race3d/layers/lights.gd add_reflectors() Z.238-243, _update_glints() Z.562-565; trigger chunk_streamer.gd _commit_step()/_drop()/_make_room()/clear(), builders/roadside.gd Z.395-399",
+   "problem": "Since B-01 a chunk can be dropped while it is COMMITTING (it never entered the tree), for example through _make_room() with max_chunks full or through clear(). roadside.commit() has already called lights.add_reflectors(mi, list) by then. The lights layer forgets reflectors only on tree_exiting, which never comes for such a node. After _free_trash() frees it, every _update_glints() with the low beam on raises SCRIPT ERROR and aborts, so the reflector glints freeze for the rest of the stage. FIX-RINT guarded _statics and the flares with is_instance_valid, but not _reflectors.",
+   "evidence": "measured: probe m1/NACH-RINT/sh/probe_reflectors.gd with the real lights.gd. Register a reflector on an out-of-tree node, free the node, call _update_glints 3x -> 3x 'SCRIPT ERROR: Trying to assign invalid previously freed instance. at: _update_glints (lights.gd:563)', and _reflector_count stays 1. Not observed in 3 real threaded drives (KH day and night, Saragossa-Pau night; 0 errors). How often it happens in play is inferred: rarely.",
+   "repro": "godot --headless --path <head> -s m1/NACH-RINT/sh/probe_reflectors.gd (absolute XDG_DATA_HOME)",
+   "fix": "In _update_glints() drop entries whose pair[0] is not is_instance_valid() and lower _reflector_count, as _update_pools() does for _statics; or let the streamer notify the layers when it drops a COMMITTING chunk. Add a unit test: reflector on a node that is never added, free it, update the glints -> no error and a count of 0."
+  },
+  {
+   "id": "N-02",
+   "severity": "low",
+   "area": "Tunnelausfahrt (alt, nicht FIX-RINT)",
+   "where": "scripts/race3d/environment_rig.gd _show_exit() glare quad (EXIT_QUAD_H 9 m, width road+13 m)",
+   "problem": "In the last 3 frames before the exit (camera at the portal plane) the tube no longer frames the glare quad. Its top and right edges show as hard straight borders between burnt-out and normally lit landscape. Arcade over-exposes the whole outside in these frames. This was already present in 9b02f05.",
+   "evidence": "looked at: Valik snow clip head 3.997-4.030 s and the QA clip at 9b02f05 3.997-4.013 s (deliver/NACH-RINT/N02_blendviereck_kante_*.jpg); about 50 ms at 135 km/h",
+   "repro": "tools/ab_clip.sh (QA F-01 call), frames 3.99-4.03 s",
+   "fix": "Within the last ~2 m before the portal, use the full-screen canvas with Arcade's law instead of the quad, or widen the quad to cover the view frustum."
+  }
+ ],
+ "gates": [
+  "import: godot --headless --import exit 0",
+  "tools/run_tests.sh unit/race3d (all changed unit-test files): 175 Tests, 0 fehlgeschlagen (55 s)",
+  "tools/run_tests.sh test_props: 13/0; B-02 mutations baked/leaves/billboard each FEHLGESCHLAGEN as required; worktree clean afterwards",
+  "run_render_checks.sh modern tunnel_bridge: 8/8 OK (beacon 4 lights all blink, B1 630 water surfaces, ausfahrt_schnee +0.1 points snow 0.99x, ausfahrt_trocken +1.0)",
+  "run_render_checks.sh modern structures: check_structures + check_structures_licht OK (tankstelle whole 0.87x, lane 0.88x; countdown, zieltor, grenze, blitz, stadt, schatten)",
+  "run_render_checks.sh modern night: check_night + check_night_nass OK (spielerauto 6 cases in band, sports car 1.01x/1.21x, GT 0.92x/0.77x; nass_kegel 0.88x)",
+  "run_render_checks.sh modern start_km0: OK (kamera <=1.14 px, auto 193x192 vs 192x192, boden 0.034)",
+  "run_render_checks.sh modern instance_budget: 3 files OK, no engine refusal, wald 222/230",
+  "tools/golden.sh check: GOLDEN arcade: 20 von 20 identisch; arcade-ui: 17 von 17 identisch",
+  "Rule 3: KH 12:00 Modern deck ts16 digest 087ade2e = v0.7.0 (347 s); KH 22:00 rain Modern = Arcade head 67695b6b (273 s)",
+  "threaded drives without --gfx-sync (KH day, KH night rain, Saragossa-Pau night): 0 engine errors/warnings, no holes in 23 screenshots",
+  "frozen files: none of the Rule 1 list in git diff 9b02f05..3248211 or in v0.7.0..3248211",
+  "not run: full tools/run_tests.sh, golden modern-check, unrelated render checks, modern_sight/path_check, validator, audio_qc"
+ ]
+}

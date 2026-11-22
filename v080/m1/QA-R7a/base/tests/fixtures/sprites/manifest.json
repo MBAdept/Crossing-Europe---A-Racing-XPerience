@@ -1,0 +1,395 @@
+{
+ "version": 2,
+ "generator": "tests/fixtures/make_fixtures.py",
+ "_doc": "Testdaten des Renn-Moduls (docs/fahrzeug-darstellung.md). Im Spiel: --sprite-manifest=res://tests/fixtures/sprites/manifest.json; aliases zeigen echte Sets auf die Testdaten.",
+ "sets": {
+  "fixture/car17": {
+   "file": "car17.png",
+   "cell": [
+    324,
+    136
+   ],
+   "grid_cols": 9,
+   "angles": [
+    "l24",
+    "l21",
+    "l18",
+    "l15",
+    "l12",
+    "l9",
+    "l6",
+    "l3",
+    "c",
+    "r3",
+    "r6",
+    "r9",
+    "r12",
+    "r15",
+    "r18",
+    "r21",
+    "r24"
+   ],
+   "yaw_deg": [
+    -24.0,
+    -21.0,
+    -18.0,
+    -15.0,
+    -12.0,
+    -9.0,
+    -6.0,
+    -3.0,
+    0.0,
+    3.0,
+    6.0,
+    9.0,
+    12.0,
+    15.0,
+    18.0,
+    21.0,
+    24.0
+   ],
+   "layers": [
+    "base",
+    "tail",
+    "brake"
+   ],
+   "image_width_m": 6.2308,
+   "anchor": [
+    0.5,
+    0.9412
+   ],
+   "pivot": "rear",
+   "projection": "ortho",
+   "elevation_deg": 9.0,
+   "object": {
+    "width_m": 1.82,
+    "length_m": 4.7,
+    "height_m": 1.48
+   },
+   "tags": [
+    "fixture",
+    "car"
+   ]
+  },
+  "fixture/police17": {
+   "file": "police17.png",
+   "cell": [
+    328,
+    148
+   ],
+   "grid_cols": 9,
+   "angles": [
+    "l24",
+    "l21",
+    "l18",
+    "l15",
+    "l12",
+    "l9",
+    "l6",
+    "l3",
+    "c",
+    "r3",
+    "r6",
+    "r9",
+    "r12",
+    "r15",
+    "r18",
+    "r21",
+    "r24"
+   ],
+   "yaw_deg": [
+    -24.0,
+    -21.0,
+    -18.0,
+    -15.0,
+    -12.0,
+    -9.0,
+    -6.0,
+    -3.0,
+    0.0,
+    3.0,
+    6.0,
+    9.0,
+    12.0,
+    15.0,
+    18.0,
+    21.0,
+    24.0
+   ],
+   "layers": [
+    "base",
+    "tail",
+    "brake",
+    "beacon_a",
+    "beacon_b"
+   ],
+   "image_width_m": 6.3077,
+   "anchor": [
+    0.5,
+    0.9459
+   ],
+   "pivot": "rear",
+   "projection": "ortho",
+   "elevation_deg": 9.0,
+   "object": {
+    "width_m": 1.84,
+    "length_m": 4.8,
+    "height_m": 1.65
+   },
+   "tags": [
+    "fixture",
+    "police"
+   ]
+  },
+  "fixture/player21": {
+   "file": "player21.png",
+   "cell": [
+    486,
+    320
+   ],
+   "grid_cols": 7,
+   "angles": [
+    "l20",
+    "l18",
+    "l16",
+    "l14",
+    "l12",
+    "l10",
+    "l8",
+    "l6",
+    "l4",
+    "l2",
+    "c",
+    "r2",
+    "r4",
+    "r6",
+    "r8",
+    "r10",
+    "r12",
+    "r14",
+    "r16",
+    "r18",
+    "r20"
+   ],
+   "yaw_deg": [
+    -20.0,
+    -18.0,
+    -16.0,
+    -14.0,
+    -12.0,
+    -10.0,
+    -8.0,
+    -6.0,
+    -4.0,
+    -2.0,
+    0.0,
+    2.0,
+    4.0,
+    6.0,
+    8.0,
+    10.0,
+    12.0,
+    14.0,
+    16.0,
+    18.0,
+    20.0
+   ],
+   "layers": [
+    "base",
+    "tail",
+    "brake"
+   ],
+   "anchor": [
+    0.5,
+    0.51766
+   ],
+   "pivot": "center",
+   "projection": "perspective",
+   "supersample": 1.25,
+   "camera": {
+    "height_m": 3.4,
+    "distance_m": 9.0,
+    "fov_deg": 84.0,
+    "horizon_y_frac": 0.45,
+    "screen": [
+     1280,
+     720
+    ]
+   },
+   "object": {
+    "width_m": 1.86,
+    "length_m": 4.85,
+    "height_m": 1.48
+   },
+   "tags": [
+    "fixture",
+    "player"
+   ]
+  },
+  "fixture/truck_box": {
+   "file": "truck_box.png",
+   "render": "box",
+   "object": {
+    "width_m": 2.55,
+    "length_m": 16.5,
+    "height_m": 4.0
+   },
+   "parts": [
+    {
+     "name": "trailer",
+     "z": [
+      -8.25,
+      5.35
+     ],
+     "x": [
+      -1.275,
+      1.275
+     ],
+     "y": [
+      0.0,
+      4.0
+     ],
+     "faces": {
+      "top": [
+       4,
+       4,
+       122,
+       653
+      ],
+      "rear": [
+       134,
+       4,
+       122,
+       192
+      ],
+      "right": [
+       264,
+       4,
+       653,
+       192
+      ],
+      "left": [
+       925,
+       4,
+       653,
+       192
+      ]
+     }
+    },
+    {
+     "name": "cab",
+     "z": [
+      5.75,
+      8.25
+     ],
+     "x": [
+      -1.25,
+      1.25
+     ],
+     "y": [
+      0.0,
+      3.8
+     ],
+     "faces": {
+      "rear": [
+       1846,
+       4,
+       120,
+       182
+      ],
+      "right": [
+       4,
+       665,
+       120,
+       182
+      ],
+      "left": [
+       132,
+       665,
+       120,
+       182
+      ],
+      "top": [
+       260,
+       665,
+       120,
+       120
+      ]
+     }
+    },
+    {
+     "name": "chassis",
+     "z": [
+      5.35,
+      5.75
+     ],
+     "x": [
+      -0.5,
+      0.5
+     ],
+     "y": [
+      0.45,
+      1.15
+     ],
+     "faces": {
+      "left": [
+       388,
+       665,
+       19,
+       34
+      ],
+      "right": [
+       415,
+       665,
+       19,
+       34
+      ],
+      "top": [
+       442,
+       665,
+       48,
+       19
+      ]
+     }
+    }
+   ],
+   "lights": {
+    "tail": [
+     {
+      "part": "trailer",
+      "face": "rear",
+      "rect": [
+       1586,
+       4,
+       122,
+       192
+      ]
+     }
+    ],
+    "brake": [
+     {
+      "part": "trailer",
+      "face": "rear",
+      "rect": [
+       1716,
+       4,
+       122,
+       192
+      ]
+     }
+    ]
+   },
+   "tags": [
+    "fixture",
+    "heavy"
+   ]
+  }
+ },
+ "aliases": {
+  "traffic/sedan_*": "fixture/car17",
+  "traffic/hatch_*": "fixture/car17",
+  "traffic/truck_*": "fixture/truck_box",
+  "police/*": "fixture/police17",
+  "player/*": "fixture/player21"
+ }
+}

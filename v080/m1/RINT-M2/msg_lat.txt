@@ -1,0 +1,8 @@
+v0.8.0 RINT-M2: Kopf von check_night_nass – „laternen“ misst an der Steigung Kassel – Würzburg
+
+Der Kommentar nannte noch die Rampe der Köhlbrandbrücke (seit 5294d00 die
+echte Steigung Kassel – Würzburg km 61,6, die Brücke ist im Profil eben);
+in §17.10 die Datei, die die Prüfung laufen lässt. Nur Text.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

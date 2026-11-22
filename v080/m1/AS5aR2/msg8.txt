@@ -1,0 +1,9 @@
+v0.8.0 AS5aR2: Blattkarten auch in lod1 (Südhaus, Loire-Haus) - kein Sprung der Krone beim Stufenwechsel
+
+Gemessen nach dem ersten echten Export: der Stufenwechsel bei 60 m (Mittel, 12 Uhr) tauschte beim Südhaus 34,8 %
+der Pixel (vorher 16,4 %), weil lod1 nur den Kronenkern ohne Karten zeigte. Jetzt bekommt lod1 weniger, größere
+Karten (leaf_cards n1 / half1) und behält die Ausschneide-Klasse (kein lod1_opaque bei diesen zwei Häusern); der
+Kern bleibt auch in lod1 geschrumpft. Andere Modelle unberührt (ohne n1 derselbe Weg wie vorher).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

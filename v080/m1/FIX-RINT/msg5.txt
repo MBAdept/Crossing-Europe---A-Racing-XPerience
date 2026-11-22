@@ -1,0 +1,11 @@
+v0.8.0 FIX-RINT: Sportwagen nachts wie Arcade (F-06), Probe roter Lacke, Tankstelle heller (F-05)
+
+- modern_materials: VEHICLE_PLAYER_NIGHT – eigener Nachtanteil je Spielerauto; der rote Sportwagen nachts
+  0,6 entsättigt und auf 0,85 abgedunkelt (gemessen vorher 1,19 × Arcades Leuchtdichte, 1,83 × Sättigung).
+  player_paint() nimmt die Set-ID mit, vehicles.gd reicht sie durch; test_vehicles prüft es.
+- check_night „spielerauto“: rote Lacke werden in der oberen Hälfte des Autos ohne Farbtonregel gemessen (die
+  Farbtonregel hielt den roten Lack für Lampenschein: 0,58 × bei Sättigung 0,07 – gemessen wurden die Zierleisten).
+- station.gd: Leuchtscheine 1,6 / 2,0 (Tankstelle als Ganzes vorher 0,77 ×, mit 1,2 / 1,6 gemessen 0,90 × Arcade).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

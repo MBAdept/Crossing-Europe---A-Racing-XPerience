@@ -1,0 +1,11 @@
+v0.8.0 FIX-RINT: WIP Tankstelle nachts (F-05), collect der Tankstelle in Stücken (B-03), Stoß-Protokoll (F-08)
+
+- station.gd: Arcades Lichtschicht der Tankstelle – warmes Lichtvolumen unter dem Vordach des Shops und
+  die drei Schaufenster als Leuchtschein (Flare-Ebene, nur nachts); Werte noch nicht am Bild abgeglichen.
+- station.gd: canopy_job_rest() hält eine Frist ein und macht im nächsten collect() weiter (B-03);
+  test_structures: Rest in Stücken ergibt denselben Auftrag.
+- modern_renderer: perf_stats()["spikes"] – die längsten Teile eines Bildes über 8 ms mit Etappen-km;
+  der Leistungstest schreibt sie je Szene mit (F-08).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

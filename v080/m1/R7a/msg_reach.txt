@@ -1,0 +1,11 @@
+Kurvenkorridor: Fußabdruck-Test in ChunkContext.in_bend_corridor (Reichweite, halbe Länge)
+
+ChunkContext.in_bend_corridor(z, x) prüft nur den Fuß. Gemessen (probe/intrude.gd, 128 Richtungen):
+Requisiten, deren Fuß außerhalb der Hülle steht, deren Vorderkante oder Krone aber hineinreicht –
+Basis 1.124, mit der Hülle und Fuß-Test 5.832. Neue optionale Argumente reach (wie weit das Objekt
+vom Fuß zur Straße reicht) und half_len (halbe Länge längs der Straße); ohne sie bleibt alles wie
+bisher. Der Props-Builder (R7c) kann damit streng nach A-17 prüfen (Rest 269, alles nicht
+weglassbare Objekte). Test in test_chunk_streamer.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,7 @@
+v0.8.0 AS5aR2: Südhaus und Loire-Haus neu exportiert (Blattkarten in lod1), Manifest neu erzeugt
+
+lod1 mit 80 bzw. 60 größeren Blattkarten in der Ausschneide-Klasse; Dreiecke lod0 / lod1: Südhaus 5 820 / 3 616,
+Loire-Haus 4 250 / 1 880.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

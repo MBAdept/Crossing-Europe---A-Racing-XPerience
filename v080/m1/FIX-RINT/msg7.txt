@@ -1,0 +1,11 @@
+v0.8.0 FIX-RINT: Stücke hinter der Kamera in Stücken und verzögert freigeben (F-08)
+
+- chunk_streamer: ein Stück hinter der Kamera verlässt sofort den Baum und wird erst TRASH_DELAY (4) Aktualisierungen
+  später Kind für Kind freigegeben, höchstens FREE_BUDGET_MS (1 ms) je Bild; clear() gibt alles sofort frei.
+  Gemessen (Kiel – Hamburg, Deck, Xvfb): die Streamer-Stöße bis 144 ms lagen im Freigeben (update_ms_max „free“
+  141,7 ms), nicht im Einhängen; sofort freigegeben blieb ein einzelnes Kind bis 134 ms teuer.
+- test_chunk_streamer: Stück 0 ist nach der Fahrt freigegeben, der Abfall wird abgetragen, clear() lässt keinen.
+- Doku §18.2.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

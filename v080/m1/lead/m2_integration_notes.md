@@ -357,3 +357,68 @@ Grundlage: FIX-M2 bericht.md B-01 (Sehnenstudie, Vorschau T4), A-3/A-10 ("Entsch
 - RINT-M2: Workflow wp48kf273, Lauf wf_9927a373-337, Skript wf_m4_rint.js, args = args_m4.json.
   Resume: Workflow({scriptPath: wf_m4_rint.js, resumeFromRunId: 'wf_9927a373-337', args: <args_m4.json>}).
 - Worktrees wf_fd1de4ee-28b-1..8 entfernt (alles auf origin). AS5a2 läuft weiter (wf_db8ba6cd-508), danach KRITIK-5a2 → AS5aR2.
+
+## 22.11. 08:10 UTC – nach Wochenlimit fortgesetzt (Nutzer: „bitte weitermachen“)
+- Container neu gestartet, Dateisystem erhalten (Scratchpad, Journale, Worktrees). Erinnerung trig_01BHvBq… gelöscht (doppelt).
+- Stand beim Limit: RINT-M2 FERTIG 9b02f05 (origin/wip/v080-rint-m2): 4 Merges, §11.3 (8999769), Notizen 3–9, 11, 12 erfüllt,
+  10 (Lack) gelistet; 803/0 Tests, Arcade 20/20+17/17, Modern 6/6, Render 28/28, Sicht/Pfad, Builds 191/201 MB, Rauchtests.
+  Instanzen Kiel–Hamburg 141, Wald 216, Stadt Nürnberg 171 (≤ 230); collect() Tankstelle max 1,36 ms (WorkerThreadPool).
+  Selbstgefunden: rc_snap.sh ohne XDG_DATA_HOME → ~20 Prüfungen im echten Benutzerordner, bereinigt.
+  QA-RINT-BILD/-SYSTEM am Limit gestorben → jetzt neu (Resume, STAND.md vorhanden).
+- AS5a: AS5a2 3c5e37a + KRITIK-5a2 fertig; AS5aR2 (047e10f WIP) am Limit gestorben → jetzt neu (Resume).
+- Läufe: wr1wavh8b (RINT, wf_9927a373-337), wyp98qli6 (AS5a, wf_db8ba6cd-508).
+
+## 22.11. ~09:00 UTC – AS5a FERTIG, R7 (dreigeteilt) GESTARTET
+- AS5aR2 216ac5c (origin/wip/v080-as5ar2): K1 Schaufenster nachts wie Arcade (Paris 22,7 % gegen 28,2 %), K3 Gartenbaum
+  Blattkarten (Südhaus 588×), K4 lod1 ohne Alpha-Test; alle 23 Stadthäuser neu exportiert (geteilte Formeln). K2 (ferne
+  Fassaden 4–29 % heller) = Renderer (Schattenende) → R7c. Blattkarten flimmern stärker (0,9–1,5 %) → R7c.
+  Worktree wf_db8ba6cd-508-6 bleibt (41 MB _cache3d für spätere Modell-Nacharbeit); -1/-3/-4 entfernt.
+- LEITUNG (für §11.4): R7 dreigeteilt – R7a Sichtkorridor-Hülle (Kern, modern_sight, Ausnahmen border.gd/city.gd/terrain.gd),
+  R7b Wahrzeichen/Skyline (landmarks.gd neu, eigener Shader, Ausnahme backdrop.gd + markierter Skip in props.gd),
+  R7c Fern-LOD Bauten/Pflanzen (props.gd, prop_library, baked/leaves/billboard, model_factory, modern_materials, config
+  graphics; zuerst AS5aR2 mergen; Gebäude-Überblendung + max_dist_m, Fernlicht jenseits Schattenende, Flimmern,
+  Dämmerungsfenster, Impostoren, Anbauten "attach" in model.json, Tags, Windmühlen-Phase). Stadthäuser dürfen 3
+  Oberflächen haben, wenn das ganze-Fassade-cutout vermeidet; Gartenbäume später als Anbau (Modell-Nacharbeit).
+- Workflow w6rjld3v1, Lauf wf_ba4424b4-294, Skript wf_m5_r7.js (= m5_meta + c1_head + m5_body), args_m5.json
+  {base 9b02f05, as5r2 216ac5c}. Je Paket Bau → QA → FIX → NACH; Branches wip/v080-r7a/-r7b/-r7c (+fix-).
+- Parallel: QA-RINT-BILD/-SYSTEM (wr1wavh8b) → FIX-RINT → NACH-RINT. Danach RINT-M3 (FIX-RINT + R7a/b/c) → QA-mid → ZS2.
+- Rückstau Modell-Nacharbeit (später, Welle 6 mit AS5b): Sportwagen-Bremsband 0,35 m + Mittelbremslicht; GT-Silber nachts
+  (Lack Asset); Limousine Dämmerung Farbton; Tankstellen-Shop Nachtatlas (A-16); AS1b-Scheiben; Südhaus/Loire-Gartenbaum
+  als Anbau; Eckhaus-Rückseite K8, Wandleuchten K9, Bürohaus 15,9 px/m, Maashaus-Fernfenster, Bern-Arkaden nachts.
+
+## 22.11. ~21:10 UTC – RINT-Prüfung FERTIG (wf_9927a373-337: QA-RINT-BILD ∥ -SYSTEM → FIX-RINT → NACH-RINT)
+- QA-RINT-SYSTEM (kein Blocker): B-01 Einhängen > 3 ms (KH 8,96), B-02 Tönung ohne Regelwächter (baked/leaves/billboard),
+  B-03 Tankstelle collect ohne Reserve, B-04 Wächter verwirft Bilder > 1 s, B-05 Zensus unterschätzt, B-06 SPOT_SPECULAR
+  wirkungslos, B-07 R7a/R7c-Sonden ohne XDG_DATA_HOME (Regel 8).
+- QA-RINT-BILD: F-01 BLOCKER Tunnelausfahrt Tag überstrahlt (Schnee 65–68 % Weiß) + 3 braune Bilder; F-02 HOCH freie
+  Autobahn ≈ Arcade (Himmel, Baumgruppen, kein Dunst, keine Fahrbahnstruktur); F-03 Vordergrund-/Kurvenvegetation
+  (S0-Eiche auf Gerade!, S1-Busch, S4-Birke, T1–T4); F-04 Hansehaus nachts 0,46× Fensterlicht; F-05 Tankstellendach
+  nachts 0,77×; F-06 Lack nachts (GT silber, Sportwagen grell); F-07 Hochhaus Frankfurt fehlt; F-08 Stöße 2–3× schwerer;
+  F-09 Strukturen ohne Preset-LOD (Niedrig 88 % Primitive).
+- FIX-RINT 3248211 (origin/wip/v080-fix-rint): F-01 (Schnee/Nässe aus Palette, Rampe endet am Portal, Nachglühen monoton,
+  Prüfungen ausfahrt_schnee/_trocken), F-05 (0,95×), F-06 Sportwagen, B-01 (bausteinweise einhängen), B-02 (Mutationen
+  rot), B-03..B-06; F-08 teilweise; F-02/F-04 offen; F-03/F-07 → R7.
+- NACH-RINT: „tragfähig, aber N-01 zuerst“. N-01 (mittel, neu durch B-01): Reflektoren eines verworfenen COMMITTING-Stücks
+  → SCRIPT ERROR in _update_glints (lights.gd:563), Glanz eingefroren (Sonde, in echten Fahrten nicht gesehen).
+  N-02 (niedrig, alt): letzte 3 Bilder vor Ausfahrt harte Kanten des Blendquads. B-01 nur teilweise (roadside allein
+  6,32 ms, nie innerhalb eines Bausteins geteilt), F-08 Streamer-Stoß 71,5 ms, GT-Silber bytegleich unverändert.
+- LEITUNG:
+  * RINT-M3 = FIX-RINT 3248211 + R7a/R7b/R7c (FIX-Köpfe). Notizen: N-01 (is_instance_valid + Unit-Test), N-02,
+    Einhängen innerhalb roadside/terrain/road teilbar (Ziel ≤ 3 ms/Bild; sonst messen und listen – Deck entscheidet, PERF),
+    Regel 8 in allen Sonden, Sprites bytegleich (R7c ändert cesprites/props_cities.py mit 3D-Haken), F-04 nach R7c-
+    Dämmerungsfenstern nachmessen, F-07, Goldens modern einmal nach Ansehen.
+  * F-02 → NEUES PAKET R7d „Freie Strecke“ VOR QA-mid/ZS2 (Kern des Nutzerwunschs „deutliche grafische Überarbeitung“;
+    dort verbringt der Spieler die meiste Zeit). Himmel mit Wolken (aus R8 vorgezogen) + Wolkenschatten, Luftperspektive
+    (nie auf Fahrzeuge/Spieltafeln), Fahrbahnverschleiß (Spurrinnen, Flicken, Fugen, Abschnittston), Wiesen-/Feldvariation,
+    Relief außerhalb der A-17-Hülle, sichtbare Baum-/Buschschatten, Bodendecker ≤ 0,5 m im Korridor. Nach RINT-M3
+    (Maschine ausgelastet: Last 8–10 auf 4 Kernen; R7a/R7b berühren terrain_profile/backdrop). Abnahme durch
+    unabhängigen Kritiker: S1/S3/Deck „auf den ersten Blick erkennbar“; F1–F7 grün; Budgets je Preset.
+  * Rückstau: F-06 GT-Silber (Asset), F-09 Preset-LOD der Bauten (PERF), F-08 Restschübe (Deck-Messung, PERF).
+  * Benutzerordner bereinigt: 4 Logs der R7-Sonden (09:26–17:56) + godot.log, 31 Shader-Cache-Dateien (RINT-Zeit).
+- Worktrees wf_9927a373-337-1..5 entfernt (alles auf origin). Freier Platz 9,1 GB.
+- R7 (wf_ba4424b4-294): R7b gebaut 2c154bc, R7a gebaut 509bb16, R7c baut (965b8a9), QA-R7b läuft.
+
+## 22.11. ~22:30 UTC – Sicherung (Nutzer: ULTRA-Abo läuft in 30 min ab)
+- R7: QA-R7b fertig (Journal), QA-R7a läuft, R7c baut (965b8a9; Hilfsdateien zusätzlich auf wip/v080-r7c-sicherung 8b33b62).
+- Probe-Merge fix-rint → r7a → r7b → r7c(WIP): Konflikte chunk_streamer.gd, docs/renderer-modern.md, test_props.gd.
+- R7d-Auftragsentwurf: m1/lead/m6_r7d_draft.js. WIEDERAUFNAHME.md aktualisiert, Archiv gepusht.

@@ -1,0 +1,11 @@
+v0.8.0 R7c: WIP Detailstufe je Instanz mit Überblenden, Fernlicht, Phase, Tags, Anbauten
+
+Erster Stand (kompiliert, noch nicht im Bild geprüft): Materialien je Netz für
+statische Modelle (ModernMaterials, ModelFactory.surfaced_mesh), Distanzband
+lod_band je Stufe (inc/lod_band.gdshaderinc in baked, leaves, billboard und der
+statischen vpbr-Variante), Fernlicht jenseits der Schattenreichweite (far_sun),
+Phase je Instanz in den Custom-Daten (a = 1 + Phase), Tags ground_align /
+ground_sink / face_road, Anbauten (attach) aus model.json, Konfiguration.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

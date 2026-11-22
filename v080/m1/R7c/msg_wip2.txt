@@ -1,0 +1,10 @@
+v0.8.0 R7c: Stufenband – Schattendurchgang im Vertex-Shader erkennen, Tests
+
+MAIN_CAM_INV_VIEW_MATRIX gibt es nur in vertex(): der Schattendurchgang wird dort
+erkannt und als Varying weitergereicht. test_props: Sichtbarkeit der Stufen je
+Band (beide Nachbarstufen im Überblendband), Bänder je Modell (Fachwerk 35 m),
+Materialien je Netz und Einschub in vpbr_static, Phase je Instanz unabhängig vom
+Ursprung, face_road / ground_sink, Anbauten mit einem Test-Manifest.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

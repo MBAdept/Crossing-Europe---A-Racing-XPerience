@@ -1,0 +1,11 @@
+Sichtkorridor: Vorrechnen bis hinter die Wahrzeichen-Reichweite, Messung der Nachberechnung
+
+Der Streamer rechnete den Korridor nur bis zwei Stücke hinter load_path_m voraus; die fernen
+Wahrzeichen des Requisiten-Builders lesen das Gelände ihrer Reihe bis landmark_path_m voraus und
+mussten die Kameras dazwischen im Hauptthread nachrechnen (gemessen: bis 24 ms im Requisiten-Hook,
+Zeitraffer 40). Jetzt: beim Laden bis zwei Stücke hinter landmark_path_m auf einmal, danach in
+freien Bildern; liegt der Korridor hinter dem, was das nächste Sammeln braucht, bis 2 ms je Bild.
+perf_stats zeigt die Nachberechnung (corridor_sync_ms_max/_sum, corridor_sync_calls).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

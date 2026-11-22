@@ -10,7 +10,7 @@
   „town_ahead“ (22 %, keine Spieltafel nach A-18) – gelistet.
 - Unit-Test (Mast verdeckt keine Tafel, steht außerhalb des Korridors).
 
-### Notiz 8 – collect() je Baustein ≤ 2 ms auf „Deck“ (A-18): **teilweise – Sichtlinien auf dem Arbeitsfaden, Tankstelle höchstens 2,40 ms (Mittel 0,14)**
+### Notiz 8 – collect() je Baustein ≤ 2 ms auf „Deck“ (A-18): **erfüllt im Messlauf – Sichtlinien auf dem Arbeitsfaden, Vorwärmen in Stücken; Tankstelle höchstens 1,36 ms (Mittel 0,11)**
 
 @@NOTE8@@
 

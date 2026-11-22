@@ -1,0 +1,8 @@
+v0.8.0 R7a (WIP): Sichtkorridor je Kamerareihe exakt, Vorrechnen im Streamer
+
+Jede Reihe eine Kamera, jede Reihe ein Wert (gegen die vollständige
+Referenz ohne Fehlbetrag); Mittelachse erst beim Lesen; der Streamer rechnet
+in Bildern ohne Sammeln und Festschreiben höchstens 0,25 ms voraus.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

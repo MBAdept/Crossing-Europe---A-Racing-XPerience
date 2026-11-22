@@ -9,21 +9,27 @@ der Maschine das Paket AS5a2 (nice 19) – Zeiten und Höchstwerte sind davon be
 |---|---|---|---|
 | Import | `godot --headless --path . --import` | `1cd689d` | Exit 0, 0 Fehlerzeilen (14 s) |
 | Skripte | `godot --headless --path . -s res://tests/check_scripts.gd` | `1cd689d` | „330 Skripte geprüft, 0 fehlerhaft“ |
+| Skripte auf dem Endstand | `godot --headless --path . -s res://tests/check_scripts.gd` | `9b02f05` | Exit 0, „330 Skripte geprüft, 0 fehlerhaft“ |
 | Tests Lauf 1 | `tools/run_tests.sh` | `1cd689d` | **802 Tests, 0 fehlgeschlagen**; 150 CHECK-Zeilen OK, 0 FEHLER (1008 s) |
-| Tests Lauf 2 | `tools/run_tests.sh` | @@T2STAND@@ | @@T2@@ |
+| Tests Lauf 2 | `tools/run_tests.sh` | `9b02f05` | **803 Tests, 0 fehlgeschlagen** (einer mehr: `test_station_warm_step_prepares_what_the_halves_read`); 150 CHECK-Zeilen OK, 0 FEHLER (964 s) |
 | Arcade-Goldens (einmal) | `tools/golden.sh check` | `1cd689d` | **GOLDEN arcade: 20 von 20 identisch**, **arcade-ui: 17 von 17 identisch** |
 | Modern-Melder ansehen | `KEEP=… tools/golden.sh modern-check` | `1cd689d` | 0 von 6 identisch (erwartet nach den Merges); alle sechs angesehen (`bilder/goldens_modern_sechs.jpg`); `modern-gles` OK (2/255, 73,2 dB) |
 | Modern-Melder neu | `tools/golden.sh modern-make` | `c72d484` | MD5 gleich den behaltenen Bildern von `1cd689d`; Commit `6b17293` |
 | Modern-Melder prüfen | `tools/golden.sh modern-check` | `6b17293` | **GOLDEN modern: 6 von 6 identisch**, **modern-gles OK** (max. 2/255, PSNR 73,2 dB) |
-| Render-Prüfungen | `tools/run_render_checks.sh all` | `b673df5` | **27 von 28 Dateien OK**; rot nur `check_props_render` „props_spiegel“ – die Prüfung erwartete das Einfamilienhaus noch als Ersatzbild (seit AS5a ein Modell); angepasst, einzeln: `props_spiegel` OK, `rotor` OK (`ab2a400`); die Strukturprüfung (`countdown`, `zieltor`, `grenze`, `blitz`) auf dem Endstand `02051f7` erneut OK |
+| Modern-Melder auf dem Endstand | `tools/golden.sh modern-check` | `9b02f05` | **GOLDEN modern: 6 von 6 identisch**, **modern-gles OK** (max. 2/255, PSNR 73,2 dB) |
+| Render-Prüfungen | `tools/run_render_checks.sh all` | `b673df5` | **27 von 28 Dateien OK**; rot nur `check_props_render` „props_spiegel“ – die Prüfung erwartete das Einfamilienhaus noch als Ersatzbild (seit AS5a ein Modell); angepasst, einzeln: `props_spiegel` OK, `rotor` OK (`ab2a400`); die Strukturprüfung (`countdown`, `zieltor`, `grenze`, `blitz`) auf `02051f7` erneut OK |
+| Strukturen auf dem Endstand | `check_structures.gd`, `check_structures_licht.gd` | `9b02f05` | **7 von 7 OK**: `countdown`, `zieltor`, `grenze`, `blitz`; `tankstelle` (21 Uhr Tankspur 0,406 / Arcade 0,459), `stadt` (0,491 / 0,501), `schatten` (mit eigenem `XDG_DATA_HOME`, der echte Benutzerordner unberührt) |
 | Sicht | `modern_sight.gd --full`, `modern_path_check.gd --full` | `b673df5` | **6 von 6 OK** (`f1` 0 Fälle bis 270 m in 99,4 Mio. Stichproben, `f1_lanes`, `f2` ≤ 0,596, `f3` 0 von 5923, `f7`, `model`); Pfad **2 von 2 OK** (Abstand ≥ 267,6 m, Schleifen ≥ 2064 m) |
 | ERGEBNIS Arcade = Modern | `run_stage.gd` (Zeitraffer 40) | `b673df5` | **Kiel – Hamburg, Testetappe, Saragossa – Pau: je 28 Schlüssel identisch (außer gfx)** |
 | Texturspeicher | `probe/texmem_probe.gd` (20 s Fahrt) | `b673df5` | Arcade 201,7 / 200,6 MB, Modern **109,2 / 110,8 MB** (Kiel – Hamburg / Dortmund – Frankfurt; Spitze 109,2 / 110,8) |
-| Prüfer, Schlüssel, Sprites, Klang | `validate_models.py --report`, `export_models.py --check-keys`, `check_sprite_geometry.py`, `audio_qc.py` | @@VSTAND@@ | @@VAL@@ |
-| Export-Determinismus | zwei AS5a-Modelle zweimal `--force` exportiert und gebacken | @@VSTAND@@ | @@DET@@ |
-| Leistung neben `515dd51` | `run_stage.gd` unter Xvfb, Zeitraffer 40 | @@VSTAND@@ | §4.1 |
-| Builds | `tools/build_linux.sh`, `tools/build_windows.sh`, `pck_report.py` | @@VSTAND@@ | @@BUILD@@ |
-| Rauchtest | `tools/smoke_modern.sh` (Linux, GLES, Windows unter wine64) | @@VSTAND@@ | @@SMOKE@@ |
+| Prüfer, Schlüssel, Sprites, Klang | `validate_models.py --report`, `export_models.py --check-keys`, `check_sprite_geometry.py`, `audio_qc.py` | `ae1fd76`/`dd7d984` (Modelle, Sprites, Klänge seit `cee4590` unverändert) | `CHECK models OK`; `CHECK cache_keys OK` (98 Modelle); `CHECK sprite_geometry OK`; `audio_qc`: 98 Klänge, 0 mit Fehlern |
+| Export-Determinismus | zwei AS5a-Modelle zweimal `--force` exportiert und gebacken | `dd7d984` | Kontor und Einfamilienhaus je zweimal: Cache und gebackene Modelle byte-gleich, `git status assets/models` 0 Dateien |
+| Leistung neben `515dd51` | `run_stage.gd` unter Xvfb, Zeitraffer 40 (Testetappe 16) | `b903797` / `9b02f05` | §4.1 |
+| Builds | `tools/build_linux.sh`, `tools/build_windows.sh`, `pck_report.py` | `9b02f05` | Exit 0 / 0; Linux **191,1 MB** (geschätzt), Windows-ZIP **200,9 MB** (gemessen) – Budget 277 MB, Warnung über 300; Modern: Modelle 19,6 / 40, Texturen 18,4 / 60, Klang 16,4 / 23, Musik 18,6 / 25 MB; die eingefrorenen Arcade-Teile wie gehabt (Sprites 71,07 / 71,0, Klang 14,72 / 14,7 – Rundung der Budgets) |
+| Rauchtest | `tools/smoke_modern.sh` (Linux, GLES, Windows unter wine64) | `9b02f05` | **SMOKE linux OK, linux_opengl3_es OK, windows OK** (Arcade und Modern starten, Leistungstest 6,7 / 5,8 / 5,7 fps auf llvmpipe, Vorschlag arcade/low; Nutzerordner je im Arbeitsordner) |
+
+Regel 1: `git diff --stat 515dd51..9b02f05` über alle eingefrorenen Arcade-Dateien des Vertrags (Liste §Rule 1) ist
+leer – keine dieser Dateien geändert, auch nicht durch die Merges.
 
 Ausgewählte Zeilen der Render-Prüfungen (`b673df5`):
 - `abblendlicht` OK – roter Lkw 22 Uhr, 20 m: 0,5 % weiß, Mittel 0,24; 60 m: 0,0 %, 0,17.

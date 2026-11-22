@@ -1,0 +1,742 @@
+#!/usr/bin/env python3
+"""Generates data/network.json from tools/map/network_data.py.
+
+    python3 tools/map/build_network.py            # write data/network.json (+ tables in docs/daten.md)
+    python3 tools/map/build_network.py --check    # only check rules and print the route report
+
+What it does:
+  * converts the compact stage definitions into the network.json format (ARCHITECTURE.md §4.1),
+  * places fuel stations per driving direction (v0.7.0 – in a race the tank carries over from stage to stage): the
+    first fuel.first_station_min_km–first_station_max_km (5–20 km, aimed at 12) after the start, then every
+    60–90 km, the last 26–90 km before the finish (deterministic, clear of tunnels, that direction's radar zones and
+    borders); written as {"km", "dir"} entries in km from 'from' (like radars),
+  * derives explicit border entries from country changes between sections,
+  * checks the StagePlan rules for BOTH driving directions (fuel/radar distances, section sums, …),
+  * checks that the landscape (scenery) changes at every border and that borders lie outside the City Limits,
+  * replays the routing of GameData.next_options (Dijkstra + detour tolerance) and prints all race routes,
+  * checks the stage lengths of tours ("tour": true, the Königsrennen): a way between two consecutive waypoints
+    that needs several stages is split into stages of stages.split_length_km (200–400 km),
+  * keeps existing "map_pos" values (they are written by tools/map/build_map.mjs from "latlon"),
+  * rewrites the generated block in docs/daten.md (between the NETZ markers).
+The committed data/network.json is the source of truth for the game; the Godot tests re-check everything.
+"""
+import hashlib
+import heapq
+import json
+import math
+import os
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
+sys.path.insert(0, HERE)
+import network_data as nd  # noqa: E402
+
+NETWORK_PATH = os.path.join(ROOT, "data", "network.json")
+CONFIG_PATH = os.path.join(ROOT, "config", "game_config.json")
+COUNTRIES_PATH = os.path.join(ROOT, "data", "countries.json")
+DOC_PATH = os.path.join(ROOT, "docs", "daten.md")
+DOC_BEGIN = "<!-- BEGIN NETZ (generiert von tools/map/build_network.py) -->"
+DOC_END = "<!-- END NETZ -->"
+
+SCENERY_IDS = ["north_plain", "heath", "forest_hills", "rhine_main", "industrial", "polder", "ardennes",
+			   "farmland_fr", "loire", "pyrenees", "meseta", "mediterranean", "alps", "lombardy", "karst",
+			   "balkan_hills", "pannonian_plain", "bohemian", "east_plain", "baltic_forest", "coast", "city"]
+FUEL_TARGET = {"few": 88.0, "normal": 75.0, "many": 62.0}
+
+errors = []
+
+
+def err(msg):
+	errors.append(msg)
+
+
+def load_json(path):
+	with open(path, encoding="utf-8") as f:
+		return json.load(f)
+
+
+CFG = load_json(CONFIG_PATH)
+COUNTRIES = load_json(COUNTRIES_PATH)["countries"]
+CITY_LEN = float(CFG["city_limits"]["length_km"])
+LAST_STATION = float(CFG["fuel"]["last_station_min_before_end_km"])
+SPACING = [float(v) for v in CFG["fuel"]["station_spacing_km"]]
+LANE_MAX = float(CFG["fuel"]["lane_length_km"][1])
+RADAR_ZONE = float(CFG["radar"]["zone_length_km"])
+NO_RADAR = float(CFG["radar"]["no_radar_before_city_km"])
+TOLERANCE = float(CFG["routing"]["detour_tolerance"])
+MAX_OPTIONS = int(CFG["routing"]["max_options"])
+SPLIT_KM = [float(v) for v in CFG["stages"].get("split_length_km", [200, 400])]
+BORDER_MARGIN = float(CFG["stages"].get("border_min_before_city_km", 5.0))
+EDGE_MIN = LAST_STATION + 1.0     # the last station keeps this distance to the finish (each direction)
+FIRST_MAX = float(CFG["fuel"].get("first_station_max_km", 20.0))  # first station at the latest (each direction)
+FIRST_MIN = float(CFG["fuel"].get("first_station_min_km", 5.0))   # … and not before (lane + taper after the start)
+FIRST_TARGET = 12.0               # aim: the 8-L reserve reaches it at vmax in every car (Gran Turismo 15.9 km)
+FIRST_WINDOW = (8.0, 15.0)        # preferred first-station window; outside it (5–20) only around obstacles
+END_MAX = SPACING[1]              # last station -> finish at most 90 km
+RADAR_MIN = CITY_LEN + NO_RADAR   # radar zones end at least this far before the finish (50 km)
+BORDER_EDGE = CITY_LEN + BORDER_MARGIN  # borders lie at least this far from both ends (25 km)
+
+
+def r1(v):
+	v = round(float(v), 1)
+	return int(v) if v == int(v) else v
+
+
+def stable_jitter(key, amplitude):
+	h = int(hashlib.md5(key.encode("utf-8")).hexdigest()[:8], 16)
+	return ((h % 2001) / 1000.0 - 1.0) * amplitude
+
+
+# ------------------------------------------------------------------------------------------- stages
+
+def section_limit(sec):
+	"""Effective limit like StagePlan: 0 = none."""
+	lim = sec["speed_limit"]
+	if lim is None:
+		return 0
+	if lim == nd.DEF:
+		d = COUNTRIES.get(sec["country"], {}).get("limits", {}).get(sec["road"])
+		return 0 if d is None else int(d)
+	return int(lim)
+
+
+def build_sections(s):
+	out = []
+	km = 0.0
+	for sec in s["sections"]:
+		length = float(sec["length_km"])
+		out.append(dict(sec, start=km, end=km + length))
+		km += length
+	return out, km
+
+
+def limits_in(secs, a, b):
+	return {section_limit(x) for x in secs if x["end"] > a + 1e-6 and x["start"] < b - 1e-6}
+
+
+def obstacles_of(s, secs, d="both"):
+	"""Obstacles in km from 'from': tunnels, radar zones valid in driving direction d, borders."""
+	obs = []
+	for (km, length, _name) in s["tunnels"]:
+		obs.append((km - 0.5, km + length + 0.5))
+	for r in s["radars"]:
+		rd = r[2] if len(r) > 2 else "both"
+		if d != "both" and rd != "both" and rd != d:
+			continue
+		obs.append((r[0] - 0.5, r[0] + RADAR_ZONE + 0.5))
+	for i in range(1, len(secs)):
+		if secs[i]["country"] != secs[i - 1]["country"]:
+			obs.append((secs[i]["start"] - 1.5, secs[i]["start"] + 1.5))
+	return obs
+
+
+def mirror(obs, length, d):
+	"""Obstacles in driving km of direction d."""
+	return obs if d == "fwd" else [(length - b, length - a) for (a, b) in obs]
+
+
+def station_clear(x, obs_d):
+	# station at driving km x: its fuel lane is the last 1–2 km before it (right side) – keep 1 km margin
+	a, b = x - LANE_MAX - 1.0, x + 1.0
+	return all(b <= o0 or a >= o1 for (o0, o1) in obs_d)
+
+
+def place_direction(s, length, obs_d, d):
+	"""Stations of one driving direction in driving km: first within the start window, then 60–90 km gaps near the
+	class target, the last 26–90 km before the finish aimed at (target − 12) km."""
+	target = FUEL_TARGET[s["fuel"]]
+	aim = float(s.get("first_fuel", {}).get(d, FIRST_TARGET))
+	e_aim = min(max(target - FIRST_TARGET, EDGE_MIN), END_MAX)
+	grid = [FIRST_MIN + 0.5 * i for i in range(int((FIRST_MAX - FIRST_MIN) / 0.5) + 1)]
+	lo, hi = min(FIRST_WINDOW[0], aim), max(FIRST_WINDOW[1], aim)
+	ok = [x for x in grid if station_clear(x, obs_d)]
+	inside = sorted([x for x in ok if lo <= x <= hi], key=lambda x: (abs(x - aim), x))
+	outside = sorted([x for x in ok if not lo <= x <= hi], key=lambda x: (abs(x - aim), x))
+	if not inside and not outside:
+		err("%s (%s): keine Tankstelle in den ersten %.0f km möglich" % (s["id"], d, FIRST_MAX))
+		return []
+	x0 = (inside or outside)[0]
+	best = None
+	if EDGE_MIN <= length - x0 <= END_MAX:
+		best = (0.0, [x0])        # one station is enough (Kiel – Hamburg)
+	for k in range(1, 9):
+		e = EDGE_MIN
+		while e <= END_MAX + 1e-9:
+			g = (length - e - x0) / k
+			if SPACING[0] <= g <= SPACING[1]:
+				c = k * (g - target) ** 2 + 0.5 * (e - e_aim) ** 2
+				if best is None or c < best[0]:
+					best = (c, [x0 + i * g for i in range(k + 1)])
+			e += 0.5
+	if best is None:
+		err("%s (%s): keine Tankstellenfolge 60–90 km möglich" % (s["id"], d))
+		return [x0]
+	out = [x0]
+	for i in range(1, len(best[1])):
+		want = best[1][i] + stable_jitter("%s:%s:%d" % (s["id"], d, i), 3.0)
+		placed = None
+		for step in range(0, 61):
+			x = round(want + (step + 1) // 2 * 0.5 * (1 if step % 2 else -1), 1)
+			if not (SPACING[0] <= x - out[-1] <= SPACING[1]) or x > length - EDGE_MIN:
+				continue
+			if i == len(best[1]) - 1 and length - x > END_MAX:
+				continue
+			if station_clear(x, obs_d):
+				placed = x
+				break
+		if placed is None:
+			err("%s (%s): Tankstelle %d nicht platzierbar (Basis %.1f km)" % (s["id"], d, i, want))
+			placed = round(want, 1)
+		out.append(placed)
+	return out
+
+
+def place_stations(s, length, secs):
+	"""{"fwd": [driving km], "rev": [driving km]} – v0.7.0: one layout per driving direction."""
+	fuel = s["fuel"]
+	if isinstance(fuel, dict):
+		return {d: [float(v) for v in fuel.get(d, [])] for d in ("fwd", "rev")}
+	if isinstance(fuel, (list, tuple)):
+		# old format (before v0.7.0): km from 'from', the same stations in both directions – checked per direction
+		xs = sorted(float(v) for v in fuel)
+		return {"fwd": xs, "rev": sorted(length - x for x in xs)}
+	out = {}
+	for d in ("fwd", "rev"):
+		out[d] = place_direction(s, length, mirror(obstacles_of(s, secs, d), length, d), d)
+	return out
+
+
+def station_entries(stations, length):
+	"""network.json entries in km from 'from': {"km": x, "dir": "fwd"|"rev"}."""
+	out = [{"km": r1(x), "dir": "fwd"} for x in stations["fwd"]] + [{"km": r1(length - x), "dir": "rev"} for x in stations["rev"]]
+	out.sort(key=lambda e: (float(e["km"]), e["dir"]))
+	return out
+
+
+def check_stage(s, secs, length, stations):
+	sid = s["id"]
+	if abs(length - s["km"]) > 0.01:
+		err("%s: Abschnitte ergeben %.1f km statt %s km" % (sid, length, s["km"]))
+	cities = {c[0]: c for c in nd.CITIES}
+	for end, sec in (("from", secs[0]), ("to", secs[-1])):
+		cc = cities[s[end]][2]
+		if sec["country"] != cc:
+			err("%s: Abschnitt am Ende '%s' liegt in %s, Stadt in %s" % (sid, end, sec["country"], cc))
+	for sec in secs:
+		if sec["scenery"] not in SCENERY_IDS or sec["scenery"] == "city":
+			err("%s: unbekannte/unerlaubte Szenerie %s" % (sid, sec["scenery"]))
+		if sec["country"] not in COUNTRIES:
+			err("%s: unbekanntes Land %s" % (sid, sec["country"]))
+		if sec["speed_limit"] is None and not (sec["country"] == "DE" and sec["road"] == "autobahn"):
+			err("%s: 'ohne Limit' nur auf deutscher Autobahn (%s)" % (sid, sec["name"]))
+		if not (0 <= sec["curviness"] <= 3 and 0 <= sec["hills"] <= 3):
+			err("%s: Kurvigkeit/Hügel außerhalb 0–3" % sid)
+	# fuel stations, each driving direction (driving km): first within FIRST_MIN–FIRST_MAX, spacing 60–90, the last
+	# ≥ 25 km (never in the City Limits) and ≤ 90 km before the finish, no fuel lane at a tunnel
+	for d in ("fwd", "rev"):
+		xs = stations[d]
+		if not xs:
+			err("%s (%s): keine Tankstelle" % (sid, d))
+			continue
+		if not (FIRST_MIN - 0.01 <= xs[0] <= FIRST_MAX + 0.01):
+			err("%s (%s): erste Tankstelle bei km %.1f (Soll %.0f–%.0f)" % (sid, d, xs[0], FIRST_MIN, FIRST_MAX))
+		for a, b in zip(xs, xs[1:]):
+			if not (SPACING[0] - 0.01 <= b - a <= SPACING[1] + 0.01):
+				err("%s (%s): Tankstellenabstand %.1f km" % (sid, d, b - a))
+		if length - xs[-1] < LAST_STATION or xs[-1] > length - CITY_LEN:
+			err("%s (%s): letzte Tankstelle %.1f km vor dem Ziel (Regel ≥ %.0f)" % (sid, d, length - xs[-1], LAST_STATION))
+		if length - xs[-1] > END_MAX + 0.01:
+			err("%s (%s): letzte Tankstelle %.1f km vor dem Ziel (> %.0f)" % (sid, d, length - xs[-1], END_MAX))
+		tun = mirror([(tk, tk + tl) for (tk, tl, _n) in s["tunnels"]], length, d)
+		for x in xs:
+			if any(x - LANE_MAX < t1 and x > t0 for (t0, t1) in tun):
+				err("%s (%s): Tankspur bei km %.1f im Tunnel" % (sid, d, x))
+	# radars
+	for r in s["radars"]:
+		km, lim = r[0], r[1]
+		d = r[2] if len(r) > 2 else "both"
+		if d in ("both", "fwd") and km + RADAR_ZONE > length - RADAR_MIN + 1e-6:
+			err("%s: Radar bei %.1f liegt vorwärts in den letzten %.0f km" % (sid, km, RADAR_MIN))
+		if d in ("both", "rev") and km < RADAR_MIN - 1e-6:
+			err("%s: Radar bei %.1f liegt rückwärts in den letzten %.0f km" % (sid, km, RADAR_MIN))
+		lims = limits_in(secs, km, km + RADAR_ZONE)
+		if lims != {lim}:
+			err("%s: Radar bei %.1f (Limit %d) passt nicht zum Tempolimit %s" % (sid, km, lim, sorted(lims)))
+		for (tk, tl, _n) in s["tunnels"]:
+			if km < tk + tl and km + RADAR_ZONE > tk:
+				err("%s: Radar bei %.1f im Tunnel" % (sid, km))
+	# tunnels
+	last_end = -1.0
+	for (tk, tl, name) in sorted(s["tunnels"]):
+		if tk < 0.5 or tk + tl > length - 0.5:
+			err("%s: Tunnel %s außerhalb der Etappe" % (sid, name))
+		if tk < last_end:
+			err("%s: Tunnel überlappen sich" % sid)
+		last_end = tk + tl
+	# borders: new country = new landscape (design: "Wechsel von Schildern, Landschaft und Polizeifahrzeugen").
+	# Inside the City Limits both sides would show the "city" scenery, so borders stay outside them (both
+	# directions) with a margin in which the new landscape is visible.
+	for i in range(1, len(secs)):
+		a, b = secs[i - 1], secs[i]
+		if a["country"] == b["country"]:
+			continue
+		km = a["end"]
+		if a["scenery"] == b["scenery"]:
+			err("%s: Grenze %s → %s bei km %.1f ohne Landschaftswechsel (beide Seiten %s)" % (
+				sid, a["country"], b["country"], km, a["scenery"]))
+		if km < BORDER_EDGE - 1e-6 or km > length - BORDER_EDGE + 1e-6:
+			err("%s: Grenze bei km %.1f liegt weniger als %.0f km vor den City Limits (einer Richtung)" % (
+				sid, km, BORDER_MARGIN))
+
+
+def convert_stage(s):
+	secs, length = build_sections(s)
+	stations = place_stations(s, length, secs)
+	check_stage(s, secs, length, stations)
+	out_secs = []
+	for sec in secs:
+		o = {"length_km": r1(sec["length_km"]), "road": sec["road"], "curviness": sec["curviness"],
+			 "hills": sec["hills"], "scenery": sec["scenery"], "country": sec["country"]}
+		if sec["speed_limit"] != nd.DEF:
+			o["speed_limit"] = sec["speed_limit"]
+		o["traffic"] = sec["traffic"]
+		if sec["name"]:
+			o["name"] = sec["name"]
+		out_secs.append(o)
+	borders = []
+	for i in range(1, len(secs)):
+		if secs[i]["country"] != secs[i - 1]["country"]:
+			borders.append({"km": r1(secs[i]["start"]), "to": secs[i]["country"]})
+	radars = []
+	for r in s["radars"]:
+		o = {"km": r1(r[0]), "limit": int(r[1])}
+		if len(r) > 2:
+			o["dir"] = r[2]
+		radars.append(o)
+	st = {"id": s["id"], "from": s["from"], "to": s["to"], "length_km": r1(length), "roads": s["roads"]}
+	if s["doc"]:
+		st["description"] = s["doc"]
+	if s.get("tutorial"):
+		st["tutorial"] = True
+	if s.get("start_fuel") is not None:
+		st["start_fuel_fraction"] = s["start_fuel"]
+	st["sections"] = out_secs
+	st["fuel_stations_km"] = station_entries(stations, length)
+	st["radars"] = radars
+	st["tunnels"] = [{"km": r1(t[0]), "length_km": r1(t[1]), "name": t[2]} for t in s["tunnels"]]
+	st["borders"] = borders
+	return st
+
+
+# ------------------------------------------------------------------------------------------ routing
+# Mirrors RoadNetwork.next_options() in scripts/data/road_network.gd.
+
+def build_graph(stages, ferries):
+	adj = {}
+	for st in stages:
+		if st.get("dev"):
+			continue
+		for a, b in ((st["from"], st["to"]), (st["to"], st["from"])):
+			adj.setdefault(a, []).append(("stage", st["id"], b, float(st["length_km"])))
+	for f in ferries:
+		for a, b in ((f["from"], f["to"]), (f["to"], f["from"])):
+			adj.setdefault(a, []).append(("ferry", f["id"], b, 0.0))
+	return adj
+
+
+def dijkstra(adj, src, dst, avoid_cities, avoid_stages):
+	dist = {src: 0.0}
+	heap = [(0.0, src)]
+	while heap:
+		d, c = heapq.heappop(heap)
+		if c == dst:
+			return d
+		if d > dist.get(c, math.inf):
+			continue
+		for (kind, lid, to, length) in adj.get(c, []):
+			if lid in avoid_stages or (to in avoid_cities and to != dst):
+				continue
+			nd_ = d + length
+			if nd_ < dist.get(to, math.inf) - 1e-9:
+				dist[to] = nd_
+				heapq.heappush(heap, (nd_, to))
+	return math.inf
+
+
+def next_options(adj, race, current, idx, leg_visited):
+	targets = race["waypoints"] + [race["finish"]]
+	target = targets[idx]
+	avoid_stages = set(race.get("avoid_stages", []))
+	visited = set(leg_visited) | {current}
+	opts = []
+	for (kind, lid, to, length) in adj.get(current, []):
+		if lid in avoid_stages or to in visited:
+			continue
+		rem = 0.0 if to == target else dijkstra(adj, to, target, visited, avoid_stages)
+		if math.isinf(rem):
+			continue
+		opts.append((length + rem, kind, lid, to, length))
+	if not opts:
+		return []
+	best = min(o[0] for o in opts)
+	opts = [o for o in opts if o[0] <= best * (1.0 + TOLERANCE) + 1e-6]
+	opts.sort()
+	return opts[:MAX_OPTIONS]
+
+
+def race_routes(adj, race, limit=64):
+	targets = race["waypoints"] + [race["finish"]]
+	routes = []
+	choices = {}
+
+	def rec(city, idx, leg_visited, cities, legs, km):
+		if len(routes) >= limit:
+			return
+		while idx < len(targets) and targets[idx] == city and len(cities) > 1:
+			idx += 1
+			leg_visited = [city]
+		if idx >= len(targets):
+			routes.append((km, list(cities), list(legs)))
+			return
+		opts = next_options(adj, race, city, idx, leg_visited)
+		if len(opts) > 1:
+			choices.setdefault((city, idx), [o[3] for o in opts])
+		for (_cost, kind, lid, to, length) in opts:
+			rec(to, idx, leg_visited + [to], cities + [to], legs + [(kind, lid, city, to, length)], km + length)
+
+	rec(race["start"], 0, [race["start"]], [race["start"]], [], 0.0)
+	routes.sort(key=lambda r: r[0])
+	return routes, choices
+
+
+def target_segments(race, legs):
+	"""Splits the legs of a route into the ways between consecutive targets (start → waypoint → … → finish)."""
+	targets = race["waypoints"] + [race["finish"]]
+	idx = 0
+	seg = []
+	out = []
+	for leg in legs:
+		seg.append(leg)
+		if idx < len(targets) and targets[idx] == leg[3]:
+			while idx < len(targets) and targets[idx] == leg[3]:
+				idx += 1
+			out.append(seg)
+			seg = []
+	if seg:
+		out.append(seg)
+	return out
+
+
+def split_violations(race, routes):
+	"""Tours ("tour": true, the Königsrennen): a way between two consecutive targets that consists of several
+	stages must use stages of SPLIT_KM (200–400 km); a single natural stage may be shorter."""
+	if not race.get("tour"):
+		return []
+	out = set()
+	for (_km, _cs, legs) in routes:
+		for seg in target_segments(race, legs):
+			stages = [l for l in seg if l[0] == "stage"]
+			if len(stages) < 2:
+				continue
+			for (_kind, lid, a, b, length) in stages:
+				if not (SPLIT_KM[0] - 1e-6 <= length <= SPLIT_KM[1] + 1e-6):
+					out.add("%s: Etappe %s (%s – %s, %.0f km) teilt den Abschnitt %s – %s, Soll %.0f–%.0f km" % (
+						race["id"], lid, a, b, length, seg[0][2], seg[-1][3], SPLIT_KM[0], SPLIT_KM[1]))
+	return sorted(out)
+
+
+def natural_short_stages(race, routes):
+	"""(stage id, from, to, km) of single-stage target-to-target ways shorter than SPLIT_KM[0]."""
+	out = []
+	for (_km, _cs, legs) in routes:
+		for seg in target_segments(race, legs):
+			stages = [l for l in seg if l[0] == "stage"]
+			if len(stages) == 1 and stages[0][4] < SPLIT_KM[0] and stages[0][1] not in [o[0] for o in out]:
+				out.append((stages[0][1], stages[0][2], stages[0][3], stages[0][4]))
+	return out
+
+
+# --------------------------------------------------------------------------------------------- JSON
+
+def fmt(v):
+	return json.dumps(v, ensure_ascii=False)
+
+
+def obj_line(d):
+	return "{ " + ", ".join("%s: %s" % (fmt(k), fmt(v)) for k, v in d.items()) + " }"
+
+
+def write_network(cities, stages, ferries, races):
+	lines = ["{"]
+	lines.append('\t"_doc": %s,' % fmt(
+		"Streckennetz: Städte (Knoten), Etappen (Verbindungen, in beide Richtungen fahrbar), Fähren und Rennen "
+		"(Start, Ziel, Pflichtstationen). Positionen von Tankstellen, Radar, Tunneln und Grenzen in km ab 'from'. "
+		"City Limits = automatisch die letzten 20 km. Radar 'dir': nur in einer Richtung (fwd = from→to, "
+		"rev = to→from). Tankstellen: Zahl = beide Richtungen, {km, dir} = nur in dieser Richtung (seit v0.7.0 je "
+		"Richtung erzeugt, die erste 5–20 km nach dem Start). Erzeugt mit tools/map/build_network.py (Quelle "
+		"tools/map/network_data.py), map_pos mit tools/map/build_map.mjs – Details in docs/daten.md."))
+	lines.append('\t"version": 2,')
+	lines.append('\t"cities": [')
+	lines.append(",\n".join("\t\t" + obj_line(c) for c in cities))
+	lines.append("\t],")
+	lines.append('\t"stages": [')
+	blocks = []
+	for st in stages:
+		b = ["\t\t{"]
+		head = {k: v for k, v in st.items() if k not in ("sections", "fuel_stations_km", "radars", "tunnels", "borders")}
+		items = list(head.items())
+		b.append("\t\t\t" + ", ".join("%s: %s" % (fmt(k), fmt(v)) for k, v in items) + ",")
+		b.append('\t\t\t"sections": [')
+		b.append(",\n".join("\t\t\t\t" + obj_line(x) for x in st["sections"]))
+		b.append("\t\t\t],")
+		b.append('\t\t\t"fuel_stations_km": %s,' % fmt(st["fuel_stations_km"]))
+		for key in ("radars", "tunnels", "borders"):
+			arr = st[key]
+			inner = ", ".join(obj_line(x) for x in arr)
+			b.append('\t\t\t"%s": [%s]%s' % (key, (" " + inner + " ") if arr else "", "," if key != "borders" else ""))
+		b.append("\t\t}")
+		blocks.append("\n".join(b))
+	lines.append(",\n".join(blocks))
+	lines.append("\t],")
+	lines.append('\t"ferries": [')
+	lines.append(",\n".join("\t\t" + obj_line(f) for f in ferries))
+	lines.append("\t],")
+	lines.append('\t"races": [')
+	rb = []
+	for r in races:
+		rb.append("\t\t{\n" + ",\n".join("\t\t\t%s: %s" % (fmt(k), fmt(v)) for k, v in r.items()) + "\n\t\t}")
+	lines.append(",\n".join(rb))
+	lines.append("\t]")
+	lines.append("}")
+	text = "\n".join(lines) + "\n"
+	json.loads(text)  # sanity
+	with open(NETWORK_PATH, "w", encoding="utf-8") as f:
+		f.write(text)
+
+
+def raw_dev_stage():
+	st = json.loads(json.dumps(nd.DEV_STAGE))
+	return st
+
+
+# --------------------------------------------------------------------------------------------- docs
+
+def de_num(v, digits=2):
+	return ("%.*f" % (digits, v)).replace(".", ",")
+
+
+def stage_stats(st):
+	auto = sum(s["length_km"] for s in st["sections"] if s["road"] == "autobahn")
+	free = sum(s["length_km"] for s in st["sections"] if s["road"] == "autobahn" and "speed_limit" in s and s["speed_limit"] is None)
+	traffic = sum(s["length_km"] * s["traffic"] for s in st["sections"]) / st["length_km"]
+	countries = []
+	for s in st["sections"]:
+		if not countries or countries[-1] != s["country"]:
+			countries.append(s["country"])
+	rad_f = sum(1 for r in st["radars"] if r.get("dir", "both") in ("both", "fwd"))
+	rad_r = sum(1 for r in st["radars"] if r.get("dir", "both") in ("both", "rev"))
+	return auto, free, traffic, countries, rad_f, rad_r
+
+
+def stations_in(st, d):
+	"""Fuel stations valid in driving direction d (a number = both directions)."""
+	return sum(1 for e in st["fuel_stations_km"] if not isinstance(e, dict) or e.get("dir", "both") in ("both", d))
+
+
+def doc_block(cities, stages, ferries, races, route_info):
+	cname = {c["id"]: c["name"] for c in cities}
+	sname = {s["id"]: "%s – %s" % (cname[s["from"]], cname[s["to"]]) for s in stages}
+	out = []
+	out.append("### Rennen\n")
+	out.append("| Rennen | Start → Ziel | Pflichtstationen | Routen | km (kürzeste–längste) | Etappen |")
+	out.append("|---|---|---|---|---|---|")
+	for r in races:
+		routes, _choices = route_info[r["id"]]
+		kms = [x[0] for x in routes]
+		nst = [sum(1 for l in x[2] if l[0] == "stage") for x in routes]
+		out.append("| %s (`%s`) | %s → %s | %d | %d | %s–%s | %d–%d |" % (
+			r["name"], r["id"], cname[r["start"]], cname[r["finish"]], len(r["waypoints"]), len(routes),
+			"{:,}".format(int(round(min(kms)))).replace(",", "."), "{:,}".format(int(round(max(kms)))).replace(",", "."),
+			min(nst), max(nst)))
+	out.append("")
+	by_id = {s["id"]: s for s in stages}
+	for r in races:
+		routes, choices = route_info[r["id"]]
+		out.append("**%s** – Routen:\n" % r["name"])
+		if routes:
+			out.append("| Route | km | Etappen | frei km | Radar | Tankstellen | Verkehr Ø | max. Hügel | Landstraße km |")
+			out.append("|---|---|---|---|---|---|---|---|---|")
+			for (km, cs, legs) in routes:
+				free = radars = stations = hills = 0
+				land = traffic = 0.0
+				for (kind, lid, a, b, length) in legs:
+					if kind != "stage":
+						continue
+					st = by_id[lid]
+					auto, fr, tr, _c, rf, rr = stage_stats(st)
+					free += fr
+					radars += rf if a == st["from"] else rr
+					stations += stations_in(st, "fwd" if a == st["from"] else "rev")
+					traffic += tr * st["length_km"]
+					land += st["length_km"] - auto
+					hills = max(hills, max(s["hills"] for s in st["sections"]))
+				diff = [cname[c] for c in cs if all(c not in o[1] for o in routes if o[1] is not cs)]
+				if len(routes) == 1:
+					label = "einzige Route"
+				else:
+					label = "über " + ", ".join(diff[:3]) if diff else " – ".join(cname[c] for c in cs[:3]) + " …"
+				out.append("| %s | %s | %d | %s | %d | %d | %s | %d | %s |" % (
+					label, "{:,}".format(int(round(km))).replace(",", "."), sum(1 for l in legs if l[0] == "stage"),
+					r1(free), radars, stations, de_num(traffic / max(km, 1)), hills, r1(land)))
+			out.append("")
+		for (km, cs, legs) in routes:
+			seq = " – ".join(cname[c] for c in cs)
+			out.append("- %s km, %d Etappen: %s" % ("{:,}".format(int(round(km))).replace(",", "."),
+				sum(1 for l in legs if l[0] == "stage"), seq))
+		if choices:
+			out.append("- Wahlpunkte: " + "; ".join("%s → %s" % (cname[c], " / ".join(cname[t] for t in opts))
+				for (c, _i), opts in choices.items()))
+		if r.get("tour"):
+			lens = [l[4] for x in routes for l in x[2] if l[0] == "stage"]
+			short = natural_short_stages(r, routes)
+			out.append("- Etappenlängen %s–%s km. Abschnitte zwischen zwei Pflichtstationen, die mehrere Etappen "
+				"brauchen, sind in Etappen von %d–%d km geteilt; kürzer sind nur natürliche Etappen zwischen zwei "
+				"aufeinanderfolgenden Pflichtstationen: %s" % (
+					r1(min(lens)), r1(max(lens)), SPLIT_KM[0], SPLIT_KM[1],
+					", ".join("%s – %s (%s km)" % (cname[a], cname[b], r1(km)) for (_id, a, b, km) in short) or "keine"))
+		out.append("")
+	out.append("### Etappen\n")
+	out.append("Radar = Radarfallen vorwärts/rückwärts, Tank = Tankstellen vorwärts/rückwärts (die erste je Richtung "
+			   "höchstens %.0f km nach dem Start), Verkehr = längengewichteter Faktor, frei = Autobahn ohne Tempolimit.\n" % FIRST_MAX)
+	out.append("| Etappe (`id`) | Straßen | km | Länder | Autobahn / frei km | Radar | Tank | Tunnel | Verkehr |")
+	out.append("|---|---|---|---|---|---|---|---|---|")
+	for st in stages:
+		if st.get("dev"):
+			continue
+		auto, free, traffic, countries, rf, rr = stage_stats(st)
+		tunnels = ", ".join("%s (%s km)" % (t["name"], str(t["length_km"]).replace(".", ",")) for t in st["tunnels"]) or "–"
+		out.append("| %s (`%s`) | %s | %s | %s | %s / %s | %d/%d | %d/%d | %s | %s |" % (
+			sname[st["id"]], st["id"], st.get("roads", ""), str(st["length_km"]).replace(".", ","), " → ".join(countries),
+			r1(auto), r1(free), rf, rr, stations_in(st, "fwd"), stations_in(st, "rev"), tunnels, de_num(traffic)))
+	out.append("")
+	out.append("### Grenzübergänge\n")
+	out.append("An jeder Grenze wechselt die Landschaft (Szenerie-ID des Abschnitts, ARCHITECTURE.md §4.1); die Grenze "
+			   "liegt in beiden Richtungen mindestens %.0f km vor den City Limits. km ab `from`.\n" % BORDER_MARGIN)
+	out.append("| Etappe | km | Grenze | Landschaft | Abschnitte |")
+	out.append("|---|---|---|---|---|")
+	for st in stages:
+		if st.get("dev"):
+			continue
+		km = 0.0
+		secs = st["sections"]
+		for i, sec in enumerate(secs):
+			if i > 0 and sec["country"] != secs[i - 1]["country"]:
+				p = secs[i - 1]
+				out.append("| %s | %s | %s → %s | `%s` → `%s` | %s / %s |" % (
+					sname[st["id"]], str(r1(km)).replace(".", ","), p["country"], sec["country"], p["scenery"],
+					sec["scenery"], p.get("name", ""), sec.get("name", "")))
+			km += sec["length_km"]
+	out.append("")
+	out.append("Fähren: " + "; ".join("%s (`%s`, %d s Rennzeit, %d h Weltzeit)" % (
+		f["name"], f["id"], f["fixed_time_s"], f["world_hours"]) for f in ferries))
+	total = sum(st["length_km"] for st in stages if not st.get("dev"))
+	out.append("")
+	out.append("Summe aller Etappen: %s km in %d Etappen, %d Städte." % (
+		"{:,}".format(int(round(total))).replace(",", "."), sum(1 for s in stages if not s.get("dev")),
+		sum(1 for c in cities if not c.get("dev"))))
+	return "\n".join(out)
+
+
+def update_doc(block):
+	if not os.path.exists(DOC_PATH):
+		return False
+	with open(DOC_PATH, encoding="utf-8") as f:
+		text = f.read()
+	if DOC_BEGIN not in text or DOC_END not in text:
+		return False
+	a = text.index(DOC_BEGIN) + len(DOC_BEGIN)
+	b = text.index(DOC_END)
+	text = text[:a] + "\n" + block + "\n" + text[b:]
+	with open(DOC_PATH, "w", encoding="utf-8") as f:
+		f.write(text)
+	return True
+
+
+# --------------------------------------------------------------------------------------------- main
+
+def main():
+	check_only = "--check" in sys.argv
+	old_pos = {}
+	if os.path.exists(NETWORK_PATH):
+		try:
+			for c in load_json(NETWORK_PATH).get("cities", []):
+				if "map_pos" in c:
+					old_pos[c["id"]] = c["map_pos"]
+		except (ValueError, KeyError):
+			pass
+	cities = []
+	ids = set()
+	for (cid, name, country, lat, lon, local) in nd.CITIES:
+		if cid in ids:
+			err("Stadt doppelt: " + cid)
+		ids.add(cid)
+		c = {"id": cid, "name": name, "country": country}
+		if local:
+			c["name_local"] = local
+		c["latlon"] = [lat, lon]
+		c["map_pos"] = old_pos.get(cid, [0, 0])
+		cities.append(c)
+	for dc in nd.DEV_CITIES:
+		c = dict(dc)
+		c["map_pos"] = old_pos.get(c["id"], [0, 0])
+		cities.append(c)
+	stages = []
+	sids = set()
+	for s in nd.STAGES:
+		if s["id"] in sids:
+			err("Etappe doppelt: " + s["id"])
+		sids.add(s["id"])
+		for end in ("from", "to"):
+			if s[end] not in ids:
+				err("%s: unbekannte Stadt %s" % (s["id"], s[end]))
+		stages.append(convert_stage(s))
+	stages.append(raw_dev_stage())
+	ferries = nd.FERRIES
+	races = nd.RACES
+	adj = build_graph(stages, ferries)
+	route_info = {}
+	for r in races:
+		for avoid in r.get("avoid_stages", []):
+			if avoid not in sids:
+				err("%s: avoid_stages enthält unbekannte Etappe %s" % (r["id"], avoid))
+		routes, choices = race_routes(adj, r)
+		if not routes:
+			err("Rennen %s ist nicht fahrbar" % r["id"])
+		for msg in split_violations(r, routes):
+			err(msg)
+		route_info[r["id"]] = (routes, choices)
+		print("== %s: %d Route(n)" % (r["name"], len(routes)))
+		for (km, cs, legs) in routes:
+			print("   %6.0f km, %2d Etappen: %s" % (km, sum(1 for l in legs if l[0] == "stage"), " – ".join(cs)))
+		for (c, i), opts in choices.items():
+			print("   Wahl in %s (Ziel #%d): %s" % (c, i, ", ".join(opts)))
+	if errors:
+		print("\nFEHLER:")
+		for e in errors:
+			print("  - " + e)
+		sys.exit(1)
+	if check_only:
+		print("\nRegeln ok (nur geprüft, nichts geschrieben).")
+		return
+	write_network(cities, stages, ferries, races)
+	print("\n%s geschrieben (%d Städte, %d Etappen)." % (os.path.relpath(NETWORK_PATH, ROOT), len(cities), len(stages)))
+	if update_doc(doc_block(cities, stages, ferries, races, route_info)):
+		print("docs/daten.md: Netz-Tabellen aktualisiert.")
+	missing = [c["id"] for c in cities if c["map_pos"] == [0, 0]]
+	if missing:
+		print("Hinweis: map_pos fehlt für %d Städte – tools/map/build_map.mjs ausführen." % len(missing))
+
+
+if __name__ == "__main__":
+	main()

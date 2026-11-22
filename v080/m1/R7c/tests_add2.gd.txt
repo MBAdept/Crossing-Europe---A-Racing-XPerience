@@ -1,0 +1,26 @@
+
+
+## R7c: the slowness watchdog lowers the preset during the countdown – the bands on the materials AND on the level
+## nodes already committed follow at once (a node keeping its old band would hide instances the shader shows).
+func test_quality_lowered_moves_the_bands() -> void:
+	var t := _track()
+	_put(t, 198, {"kind": "prop", "set": "props/tree_oak", "side": 1, "x": _x(t, 1, 12.0), "scale": 1.0})
+	var ctx := _ctx(t, 6)
+	var b := Props.new()
+	b.apply_quality({"prop_lod0_m": 60.0, "prop_lod1_m": 200.0, "shadow_casters": 2, "shadow_distance_m": 120.0, "deco_density": 1.0})
+	var parent := Node3D.new()
+	b.commit(ctx, b.build(ctx, b.collect(ctx)), parent)
+	b.quality_lowered({"prop_lod0_m": 40.0, "prop_lod1_m": 120.0, "shadow_casters": 0, "shadow_distance_m": 0.0, "deco_density": 0.6})
+	var want: Dictionary = b.model_bands("props/tree_oak")
+	assert_near(((want["lod0"] as Vector4).z + (want["lod0"] as Vector4).w) * 0.5, 40.0, 1.0e-3, "neues Band: lod0 bis 40 m")
+	var seen := 0
+	for c: Node in parent.get_child(0).get_children():
+		if c.has_meta(&"band") and str(c.get_meta(&"model", "")) == "props/tree_oak":
+			assert_eq(c.get_meta(&"band"), want[str(c.get_meta(&"rep"))], "Knoten %s mit dem neuen Band" % str(c.get_meta(&"rep")))
+			seen += 1
+	assert_eq(seen, 3, "drei Stufenknoten der Eiche")
+	for mat: ShaderMaterial in b.library.rep_materials("props/tree_oak", "lod0"):
+		assert_eq(mat.get_shader_parameter("lod_band"), want["lod0"], "Material von lod0 mit dem neuen Band")
+		assert_eq(mat.get_shader_parameter("shadow_far"), Vector2.ZERO, "ohne Schattenwerfer kein Fernlicht")
+	parent.free()
+	_cleanup()

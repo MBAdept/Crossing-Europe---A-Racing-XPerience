@@ -1,0 +1,7 @@
+v0.8.0 R7a: Doku – Sichtkorridor aus der wirklichen Geometrie (renderer-modern 5.3)
+
+Verfahren, Folgen, Rechnung, Messwerte im ganzen Netz (Requisiten, Stadtzäune,
+Grenzdächer), F7-Prüfung der Hülle, offene Punkte nachgezogen.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

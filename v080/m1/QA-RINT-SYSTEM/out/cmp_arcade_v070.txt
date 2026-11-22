@@ -1,0 +1,3 @@
+CMP OK keys=27/27 differing=[] hashes=347/347 first_diff=-1 digest_equal=True gfx=-/arcade time_s=346.066666666681 refuels=1 radar=0 police=0 collisions=0 renderer=res://scripts/race/road_renderer.gd
+CMP OK keys=27/27 differing=[] hashes=395/395 first_diff=-1 digest_equal=True gfx=-/arcade time_s=394.666666666636 refuels=2 radar=0 police=0 collisions=0 renderer=res://scripts/race/road_renderer.gd
+CMP OK keys=27/27 differing=[] hashes=1355/1355 first_diff=-1 digest_equal=True gfx=-/arcade time_s=1354.61666666576 refuels=1 radar=0 police=0 collisions=0 renderer=res://scripts/race/road_renderer.gd

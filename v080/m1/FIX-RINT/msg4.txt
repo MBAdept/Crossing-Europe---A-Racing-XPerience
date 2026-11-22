@@ -1,0 +1,11 @@
+v0.8.0 FIX-RINT: WIP Tankstelle nachts als Ganzes prüfen (F-05), Spielerautos nachts alle fünf (F-06), Doku §18
+
+- station.gd: Leuchtscheine des Shops ohne beleuchtete Geometrie dahinter ("halo" 1), Schaufenster vor der
+  Ladenfront (z ≈ -2,9).
+- check_structures „tankstelle“: um 21 Uhr zusätzlich die Tankstelle als Ganzes (Dächer, Vorplatz, Shop) mindestens
+  0,85 × Arcade.
+- check_night „spielerauto“: Sportwagen bei Regen vor dem Valík-Tunnel und Kombi – jedes Spielerauto nachts.
+- docs/renderer-modern.md §18: Nacharbeit FIX-RINT.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

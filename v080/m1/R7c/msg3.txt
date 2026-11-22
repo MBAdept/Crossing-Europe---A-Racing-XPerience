@@ -1,0 +1,18 @@
+v0.8.0 R7c: Fernlicht, Flimmern, Fenster in der Dämmerung – gemessen eingestellt
+
+Fernlicht (Leitentscheid 2): far_sun Gebäude 0,78, Bäume 0,8, Chalet 0,35,
+Fachwerk 0,85 – Helligkeit von 60 bis 250 m in ±5 % des beschatteten
+Nahbilds (k6_scene lodcol, Hoch und Mittel; vorher +4 … +29 %). Das
+Nahbild bleibt gleich (light() des baked-Shaders = Lambert + Schlick-GGX
+der Engine: bei 60 m dieselben Werte wie vorher).
+Flimmern (Leitentscheid 3): Alphatest der Ausschneide-Teile aus einer zwei
+Stufen gröberen Mip, Farbe ab 30 m mit wachsendem Mip-Bias (bis 1,25 bei
+120 m), lod0 der Stadthäuser bis 35 m bei „Mittel“, Fachwerk und Pariser
+Häuser bis 30 m (graphics.modern.props.lod0_m, auch je Tag).
+Fenster (Leitentscheid 4): ein leuchtendes Pixel des Nachtatlas ersetzt mit
+der Nacht die beleuchtete Fassadenfarbe (wie Arcades Lichtebene), nicht wo der
+Nachtatlas aus ist (Pylone).
+Fernbilder: relief_night auch in ModelFactory.build_impostor().
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

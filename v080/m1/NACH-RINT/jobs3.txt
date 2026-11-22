@@ -1,0 +1,10 @@
+cmd|perf_kh_day|-|-|-|/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/NACH-RINT/sh/perf.sh kh_day /home/user/crossing-europe---a-racing-xperience/.claude/worktrees/wf_9927a373-337-5 modern deck kiel_hamburg 12 normal 7 16 3,14.8,30.8,46,60,74.6,77.8,85,91
+cmd|rc_tunnel_bridge|-|-|-|/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/NACH-RINT/sh/rc.sh tunnel_bridge
+cmd|rc_structures|-|-|-|/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/NACH-RINT/sh/rc.sh structures
+cmd|rc_night|-|-|-|/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/NACH-RINT/sh/rc.sh night
+cmd|perf_kh_night_arcade|-|-|-|/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/NACH-RINT/sh/perf.sh kh_night_arcade /home/user/crossing-europe---a-racing-xperience/.claude/worktrees/wf_9927a373-337-5 arcade - kiel_hamburg 22 rain 7 40 -
+cmd|perf_kh_night|-|-|-|/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/NACH-RINT/sh/perf.sh kh_night /home/user/crossing-europe---a-racing-xperience/.claude/worktrees/wf_9927a373-337-5 modern deck kiel_hamburg 22 rain 7 16 3,14.8,30.8,46,60,74.6,76.6,77.8,85,91
+cmd|rc_start_km0|-|-|-|/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/NACH-RINT/sh/rc.sh start_km0
+cmd|rc_instance_budget|-|-|-|/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/NACH-RINT/sh/rc.sh instance_budget
+cmd|rc_vehicle_lights|-|-|-|/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/NACH-RINT/sh/rc.sh vehicle_lights
+cmd|golden|-|-|-|/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/NACH-RINT/sh/golden.sh

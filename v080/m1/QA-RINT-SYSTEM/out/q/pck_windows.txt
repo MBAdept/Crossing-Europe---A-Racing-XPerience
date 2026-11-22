@@ -1,0 +1,26 @@
+Größe des Builds /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/QA-RINT-SYSTEM/build/CrossingEurope-QA.exe – 553.7 MB, Spieldaten (PCK, Godot 4.7.2): 1665 Dateien
+Teil                              Dateien     roh MB   im Archiv MB  Budget MB
+Programm (Godot-Vorlage)                1     109.30          37.95       38.0
+Arcade-Sprites                        375     305.22          71.07       71.0
+Arcade-Klang und -Musik                31      15.75          14.72       14.7
+UI, Schriften, Skripte, Daten         402       4.57           4.04        5.0
+Modern: Modelle (Meshes)              404      20.24          19.55       40.0
+Modern: Texturen                      200      60.36          18.41       60.0
+Modern: Klang                         204      19.08          16.38       23.0
+Modern: Musik                          49      19.02          18.60       25.0
+Summe                                1666     553.53         200.72      277.0
+(„im Archiv“ = deflate -9 je Datei, geschätzt; Budgets nach Vertrag §4.11; 37 s)
+Die 12 größten Dateien:
+      19.91 MB  arcade_sprites   assets/sprites/player/sportwagen.png
+      19.10 MB  arcade_sprites   assets/sprites/player/gran_turismo.png
+      19.04 MB  arcade_sprites   assets/sprites/player/kompakt.png
+      18.46 MB  arcade_sprites   assets/sprites/player/kombi.png
+      18.46 MB  arcade_sprites   assets/sprites/player/limousine.png
+       5.57 MB  arcade_sprites   assets/sprites/traffic/truck_blue.png
+       5.57 MB  arcade_sprites   assets/sprites/traffic/truck_white.png
+       5.57 MB  arcade_sprites   assets/sprites/traffic/truck_red.png
+       5.57 MB  arcade_sprites   assets/sprites/traffic/truck_green.png
+       5.39 MB  arcade_sprites   assets/sprites/police/lt.png
+       5.39 MB  arcade_sprites   assets/sprites/police/at.png
+       5.03 MB  arcade_sprites   assets/sprites/police/hu.png
+Archiv /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/QA-RINT-SYSTEM/build/CrossingEurope-QA-windows-x86_64.zip (gemessen): 200.9 MB – Grenzen: Warnung über 300, Abbruch über 330, hartes Limit 350 MB – in Ordnung

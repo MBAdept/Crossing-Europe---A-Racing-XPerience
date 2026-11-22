@@ -1,0 +1,14 @@
+{
+	"format": "ce-audio-manifest-1",
+	"folder": "sfx",
+	"sounds": {
+		"fehlt": {"file": "gibt_es_nicht.wav", "kind": "oneshot"},
+		"gut": {"file": "manifest.json", "kind": "oneshot", "bus": "MUI", "gain_db": -2.5, "bytes": 10, "extra": "bleibt in meta"},
+		"kaputte_schleife": {"file": "manifest.json", "kind": "loop", "frames": 100, "loop": [50, 200]},
+		"kein_objekt": 5,
+		"ohne_datei": {"kind": "oneshot"},
+		"ohne_schleife": {"file": "manifest.json", "kind": "loop"},
+		"unbekannt": {"file": "manifest.json", "kind": "zauber"},
+		"varianten": {"files": ["manifest.json", "manifest.json", "manifest.json"], "kind": "oneshot", "bytes": [1, 2, 3], "placeholder": true}
+	}
+}

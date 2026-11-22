@@ -1,0 +1,10 @@
+v0.8.0 AS5aR2: Modern-Goldens s4_mittel und s5_niedrig neu (Hamburg-Einfahrt mit neu exportierten Charge-1-Häusern)
+
+tools/golden.sh modern-check zeigte 4 von 6 identisch: modern_s4_mittel und modern_s5_niedrig
+(Kiel - Hamburg, Einfahrt Hamburg, 12 Uhr) weichen ab, weil dort die neu exportierten Häuser der
+Charge 1 stehen (Ladenlicht-Formel und Innenring der Fernstufe, beide Chargen geteilt). Beide Bilder
+vorher angesehen: Giebel-, Kontor- und Speicherhäuser bei Tag, keine Löcher, HUD unverändert. Dann
+tools/golden.sh modern-make; die neuen Hashes sind gleich denen der am 16.11. behaltenen Bilder.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

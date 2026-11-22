@@ -14,6 +14,15 @@ func _run() -> void:
 		return
 	_mats = ModernMaterials.new()
 	_build_rig()
+	# AS5aR2 K2 diagnosis: --shadow_m=<m> sets the sun's shadow reach (0 = no shadows at all)
+	if _args.has("shadow_m"):
+		var sm := float(str(_args["shadow_m"]))
+		for n: Node in _sv.find_children("*", "DirectionalLight3D", true, false):
+			var dl := n as DirectionalLight3D
+			dl.shadow_enabled = sm > 0.0
+			if sm > 0.0:
+				dl.directional_shadow_max_distance = sm
+			print("k6_scene: Schatten %s, Reichweite %.0f m" % [str(dl.shadow_enabled), dl.directional_shadow_max_distance])
 	var models: Array = str(_args.get("models", "")).split(",", false)
 	var dists: Array = str(_args.get("dists", "60,120,250")).split(",", false)
 	var x := float(str(_args.get("x", "20")))

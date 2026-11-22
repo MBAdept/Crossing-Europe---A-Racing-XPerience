@@ -1,0 +1,24 @@
+== godot.log 2026-11-22 09:50:52
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+SHORT lanes 2: L 300 m, widest 22.5 m at row 210 (apex 210), apex 22.5 m
+SHORT lanes 3: L 300 m, widest 22.4 m at row 210 (apex 210), apex 22.4 m
+== godot2026-11-22T09.16.48.log 2026-11-22 09:16:48
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "p_size < 0" is true. Returning: ERR_INVALID_PARAMETER
+   at: resize (./core/templates/cowdata.h:404)
+== godot2026-11-22T09.26.15.log 2026-11-22 09:26:15
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+STEPS long     cam 1 row 1 simple 1.2: short max 0.000 at 297/1 (11.8), over max 0.000, cameras 605, 229 us/camera
+STEPS long     cam 1 row 1 simple 0.0: short max 0.000 at 297/1 (11.8), over max 0.000, cameras 605, 257 us/camera
+== godot2026-11-22T09.26.53.log 2026-11-22 09:26:53
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ENV safe1 31.0 m/s vtop 75.0 m/s brake 19.44
+ENV safe1 27.8 m/s vtop 73.1 m/s brake 15.14
+== godot2026-11-22T09.50.49.log 2026-11-22 09:50:49
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+CORR 376:10.2/5.5 378:11.4/5.5 380:12.6/5.5 382:14.0/5.5 384:15.4/5.5 386:16.9/5.5 388:18.5/5.5 390:20.1/5.5 392:21.9/5.5 394:23.7/5.5 396:25.6/5.5 398:27.7/5.5 400:29.8/5.5 402:31.5/5.5 404:33.1/5.5 

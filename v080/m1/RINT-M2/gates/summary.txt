@@ -23,3 +23,19 @@ gate validate fertig (4 s, nice 10)
 gate keys fertig (644 s, nice 10)
 13:55 audio_qc exit 0 –  98 Klänge geprüft, 0 mit Fehlern, 0 Probleme insgesamt -> OK 
 gate audio fertig (178 s, nice 10)
+15:33 check_sprite_geometry exit 0 – CHECK sprite_geometry OK
+gate geometry fertig (404 s, nice 10)
+15:46 determinism exit 0 – git status assets/models: 0 geänderte Dateien
+gate determinism fertig (791 s, nice 10)
+16:16 perf – perf head kiel_hamburg medium exit 0 (0 Skriptfehler) perf head kiel_hamburg deck exit 0 (0 Skriptfehler) perf head dresden_leipzig medium exit 0 (0 Skriptfehler) perf base kiel_hamburg medium exit 0 (0 Skriptfehler) perf base kiel_hamburg deck exit 0 (0 Skriptfehler) perf base dresden_leipzig medium exit 0 (0 Skriptfehler) 
+gate perf fertig (1223 s, nice 10)
+16:36 build_linux exit 0, build_windows exit 0
+gate builds fertig (144 s, nice 10)
+16:43 smoke linux exit 0, gles exit 0, windows (build/CrossingEurope.exe) exit 0 – SMOKE linux_opengl3_es: OK SMOKE linux: OK SMOKE windows: OK 
+gate smoke fertig (389 s, nice 10)
+16:59 run_tests (tests2) exit 0 – 803 Tests, 0 fehlgeschlagen – 150 CHECK OK, 0 CHECK FEHLER
+gate tests2 fertig (964 s, nice 10)
+16:59 check_scripts (Endstand 9b02f05) exit 0 – 330 Skripte geprüft, 0 fehlerhaft
+gate scripts2 fertig (9 s, nice 10)
+17:16 modern-check (Endstand 9b02f05) exit 0 – GOLDEN modern: 6 von 6 identisch (763 s) GOLDEN modern-gles: modern_s3_hoch OpenGL ES gegen OpenGL: OK max. Abweichung 2/255, PSNR 73.2 dB, 8564 Pixel verschieden (243 s) 
+gate moderncheck2 fertig (1013 s, nice 10)

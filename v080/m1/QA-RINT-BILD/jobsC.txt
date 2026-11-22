@@ -1,0 +1,1 @@
+C1T|high|1280x720|0|1,4,7|--stage=dortmund_frankfurt --from=dortmund --start-km=221 --hour=12 --weather=normal --vehicle=sportwagen --seed=15 --autopilot --autopilot-refuel=never --traffic-warmup --no-countdown --start-speed=60

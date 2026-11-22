@@ -1,0 +1,55 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/tree_beech",
+ "model": {
+  "kind": "tree",
+  "object": {"width_m": 9.5, "height_m": 15.5},
+  "extent_m": {"left": 5.06, "right": 5.51},
+  "aabb": [-5.115, -0.55, -5.252, 5.506, 15.554, 4.668],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 2475,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/tree_beech/lod0_body.res",
+      "classes": ["vpbr", "leaves"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 200,
+    "tris": 882,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/tree_beech/lod1_body.res",
+      "classes": ["vpbr", "leaves"]
+     }
+    ]
+   }
+  ],
+  "shadow": {"mesh": "props/tree_beech/shadow.res", "tris": 186},
+  "textures": {"leaves": "props/tree_beech/leaves.png"},
+  "impostor": {
+   "texture": "props/tree_beech/impostor.png",
+   "size_m": [11.067, 15.909],
+   "anchor_x": 0.4799
+  },
+  "cards": {"lod0": 62, "lod1": 62},
+  "auto_lod": false,
+  "tags": ["prop", "tree"],
+  "bytes": 2055240,
+  "hash": "cb44419ab72727306ae0345309e06abe1f1a6487"
+ },
+ "sets": {
+  "props/tree_beech": {
+   "model": "props/tree_beech",
+   "variants": ["props/tree_beech", "props/tree_beech_b"]
+  }
+ }
+}

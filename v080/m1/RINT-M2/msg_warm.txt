@@ -1,0 +1,21 @@
+v0.8.0 RINT-M2: Tankstellendach – warm_step() verteilt die kalte Arbeit des ersten Dachs (A-18)
+
+Das erste Dach einer Station kostete mit kalten Caches zwei Hälften zu
+1,2–1,5 ms (collect() bis 2,40 ms auf „Deck“). warm_step() erzeugt vor der
+ersten Hälfte die Strecke so weit, wie signs_behind() sie braucht
+(WARM_GEN_SEGS = 6 Segmente je Stück, Fortschritt im Cache „_gen“), und
+füllt die Caches der Schilder und Kamerastellen Stück für Stück bis
+WARM_BUDGET_MS (jetzt 1,0 ms), mindestens ein Stück je Aufruf. Die Hälften
+lesen danach nur noch aus dem Cache. Hilfen _segment_signs() und _lane_xs()
+statt doppelter Schleifen.
+
+Gemessen (Testetappe ganz, „Steam Deck“, llvmpipe, neben AS5a2): collect()
+der Tankstelle höchstens 2,08 ms, Mittel 0,12 (vorher 2,40 / 0,14). Mit
+0,7 ms Budget reichte die Zeit bis zum Stück nicht (8,7 ms) – verworfen.
+Entscheide gleich: Sonde jobpath 1909 Dächer, 0 verschieden; Unit-Test
+test_station_warm_step_prepares_what_the_halves_read (in Stücken, danach
+derselbe Entscheid wie kalt auf einer zweiten Strecke), test_structures 14/14.
+Doku §17.5, §17.9, §17.10.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

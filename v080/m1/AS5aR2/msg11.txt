@@ -1,0 +1,6 @@
+v0.8.0 AS5aR2: Südhaus und Loire-Haus neu exportiert (lod1-Karten = erste n1 von lod0), Manifest neu erzeugt
+
+Dreiecke lod0 / lod1: Südhaus 5 820 / 3 636, Loire-Haus 4 250 / 1 900.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

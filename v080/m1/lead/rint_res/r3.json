@@ -1,0 +1,119 @@
+{
+ "verdict": "The second M2 assembly (9b02f05) passes the hard gates I checked. Arcade goldens were 20/20 and 17/17 identical. No frozen file was touched. F1–F3 and F7 and the path check are green. The new structures (canopy, bridges, city houses, gates, border) caused no new occlusion of cars in my probe at 13 places. Instance uniforms stayed at or below 141 of 230. Memory showed no leak over 15 min and over 215 km (all measured). However, I found one new high-severity picture defect that the assembly did not report. After a tunnel exit by day, Modern washes the whole picture out for about 1 s (snow: 65–68 % pure white against Arcade's 0.3 %; dry: 15–19 % against 1–3 %), and before that it shows 3 frames of brown, snow-free landscape. While the picture is washed out, the lane markings are barely visible (Rule 9). Modern is clearly better than Arcade in the Nürnberg old town, at structures, and in wet or snowy night scenes. On the open motorway (S1, S3, Deck) it only looks the same, so the user's wish for a 'deutliche Überarbeitung' is not met there. Several things look worse than Arcade: foreground and bend-side vegetation is missing, the city houses in Hamburg have fewer lit windows at night than Arcade and than the base, the fuel-station canopy is darker at night (0.77×), and the player cars' paint is too light at night. On performance, every counter is inside its budget. 'Hoch' casts 3.4× the shadow primitives of the base, and render() takes 2.5–2.9 ms against the 1.5 ms budget (the base already needed 2.1–2.3 ms). The single-frame hitches sit at the same places as in the base but are 2–3× heavier; at night the largest ones (64–159 ms) did not come back in a repeat run. The VM ran at load 8–14 during the whole check, so everything about real hardware or the Steam Deck is inferred, not measured. I would not ship the tunnel-exit whiteout (F-01) in the next test build; everything else can go in.",
+ "findings": [
+  {
+   "id": "F-01",
+   "severity": "blocker",
+   "area": "Licht/Tunnel",
+   "where": "scripts/race3d/environment_rig.gd: EXIT_AFTER 0.4 / EXIT_AFTER_M 60 / EXIT_AFTER_S 2 (exit_after_timed, _after ColorRect); line 385 ce_snow = snow*(1-tunnel01), same for ce_wet",
+   "problem": "After a tunnel exit by day, Modern over-exposes the whole picture for about 1 s. With snow, 65–68 % of the scene band is pure white and the lane markings and road edge are barely visible (Rule 9). Before that come 3 frames of brown, snow-free landscape with green trees. Arcade has neither effect.",
+   "evidence": "measured: python3 sh/lumtrace.py clips/valik_morgen_schnee.mp4 3.96 6.0 -> Modern white 0.646-0.675 from t=4.077 to 4.85 s, 0.42 at 5.05 s, Arcade <=0.003; frames 4.027-4.060 s scene luminance 151-154 (brown) vs Arcade snow. Dry check on RINT-M2's gotthard_ausfahrt.mp4: Modern 15-19 % white for about 0.8 s, Arcade 1-3 %. Pictures: deliver/QA-RINT-BILD/bilder/clip_valik_schnee_ausfahrt_folge.jpg and clip_valik_schnee_modern_4.08_4.10_5.30.jpg",
+   "repro": "GFX_ARGS=--gfx-preset=high CLIP_S=10 tools/ab_clip.sh out.mp4 --stage=prag_nuernberg --from=prag --vehicle=sportwagen --seed=22 --autopilot --autopilot-refuel=never --traffic-warmup --no-countdown --start-km=87.3 --hour=8 --weather=snow --start-speed=80; look at frames 4.0-5.3 s",
+   "fix": "Limit or drop the post-exit over-exposure: at most Arcade's share of pure-white pixels + 5 points, e.g. scale EXIT_AFTER by (1-snow) and cap display*(1+gain)+lift for road and markings. Hide snow and wetness inside the tube shader instead of driving ce_snow/ce_wet to 0 through the camera's tunnel01. Add a render check 'Ausfahrt Schnee' to check_tunnel_bridge.gd."
+  },
+  {
+   "id": "F-02",
+   "severity": "high",
+   "area": "Gesamteindruck",
+   "where": "Open motorway S1 km 2, S3 km 60, Deck S1 (terrain, props, backdrop, far_ground)",
+   "problem": "On the open motorway Modern shows almost the same picture as Arcade: the same flat sky, nearly identical tree groups, no haze, no wear on the road. Only the grass texture and the steel guardrail are new. The wish for a 'deutliche grafische Überarbeitung' is not met where the player spends most of the race.",
+   "evidence": "looked at: bilder/S1_00.jpg, S3_00.jpg, S1_DECK_00.jpg, S3 tree crop (sheets/S3_trees.jpg)",
+   "repro": "tools/ab_shot.sh out S1 (and S3) with GFX_ARGS=--gfx-preset=high",
+   "fix": "Visible tree and bush shadows on the grass, terrain relief and meadow variation within sight, road wear (ruts, patches, joints), aerial perspective (haze), a 3D sky with clouds. Benchmark: in S1 and S3 the mode must be recognisable at first glance."
+  },
+  {
+   "id": "F-03",
+   "severity": "medium",
+   "area": "Vegetation/Fairness-Korridor",
+   "where": "builders/props.gd: bend band (FIX-M2 B-01); A-17 envelope not yet built (R7); start lead-in of Kiel–Hamburg",
+   "problem": "Prominent foreground vegetation that Arcade shows is missing: the big bush on the left at S1, the birch at S4, the big oak at the start S0 (on a straight road), and the inside of bends at T1–T4. On the start, the first picture of the stage, Modern looks emptier than Arcade.",
+   "evidence": "looked at: bilder/S1_busch_links.jpg, S0_00.jpg, S0_01.jpg, S4_crop_links.jpg. Occlusion probe at T1–T4/S0/S4: visible share 0.93–1.00 up to 260 m (measured), so the trees could stand there again without breaking F2 (inferred).",
+   "repro": "tools/ab_shot.sh out S1 / S4; --stage=kiel_hamburg --from=kiel --start-km=0 --shot-times=1,4",
+   "fix": "Build A-17 (envelope of chords) in R7. For S0, check that props.gd places Arcade's props of the start lead-in. Then repeat the A/B pictures S0, S1, S4, T1–T4."
+  },
+  {
+   "id": "F-04",
+   "severity": "medium",
+   "area": "Stadthäuser nachts",
+   "where": "AS5a city house models (night windows in the bake / baked.gdshader), Hamburg centre km 88.2",
+   "problem": "At 22:00 the nearby Hanseatic house shows mostly dark panes. Its warm-lit window area is 0.46× Arcade's; the base, which still used the sprites, reached 0.76×. Over the whole picture it is 0.84–0.90×. The houses are much sharper in 3D, but the night mood suffers, and this is a step back from the base.",
+   "evidence": "measured: python3 sh/warm2.py 1000 160 1280 380 KHH22_{arcade,modern,base_modern}_00.png -> 0.0153 / 0.0071 / 0.0116; bilder/KHH22_fenster_rechts.jpg",
+   "repro": "tools/ab_shot.sh out --stage=kiel_hamburg --from=kiel --vehicle=limousine --seed=11 --autopilot --autopilot-refuel=never --traffic-warmup --no-countdown --start-km=88.2 --hour=22 --start-speed=50 --shot-times=2,4 (GFX_ARGS=--gfx-preset=high)",
+   "fix": "Light about 35–45 % of the windows at night, chosen per house with a fixed seed, and give the glass emission at night. Acceptance: warm share per house 0.85–1.15× Arcade."
+  },
+  {
+   "id": "F-05",
+   "severity": "medium",
+   "area": "Tankstelle nachts",
+   "where": "builders/station.gd (canopy underside, lane lights), Kiel–Hamburg km 14.6",
+   "problem": "At 21:00 Arcade's large white ceiling-light panels are missing under the canopy, and the canopy zone is clearly darker than in Arcade. The existing render check 'tankstelle' only measures the lane and stays green.",
+   "evidence": "measured: python3 sh/region.py 780 250 1280 460 TS15N_{arcade,modern}_00.png -> luminance 96.4 vs 74.7 (0.77×), pure white 2.9 % vs 1.9 %; bilder/TS15N_00.jpg",
+   "repro": "tools/ab_shot.sh out --stage=kiel_hamburg --from=kiel --start-km=14.3 --hour=21 --start-speed=100 --shot-times=1.5,2.5 (+ slice arguments)",
+   "fix": "Add emissive ceiling panels in Arcade's grid and bring the lane pool up to Arcade's brightness. Extend the 'tankstelle' check to the canopy zone (at least 0.85× Arcade)."
+  },
+  {
+   "id": "F-06",
+   "severity": "medium",
+   "area": "Fahrzeuglack nachts",
+   "where": "vehicle model paint (Gran Turismo) and the player-car fill light (modern_materials.gd 'fill')",
+   "problem": "At night the Gran Turismo is light silver-grey instead of Arcade's dark blue-grey, and lighter in the head than in the base. The red sports car glows bright red where Arcade's sprite is dark red.",
+   "evidence": "measured on N2N 22:00 rain, roof luminance head/base/Arcade 51/40/47, saturation 0.33/0.28/0.49; looked at bilder/N2N_wagen_kegel.jpg, VALN_00.jpg, VALN_02.jpg",
+   "repro": "tools/ab_shot.sh out --stage=dortmund_frankfurt --from=dortmund --start-km=121 --hour=22 --weather=rain --vehicle=gran_turismo --seed=14 ... --shot-times=3",
+   "fix": "Set the Gran Turismo paint to Arcade's hue. Limit the night fill light so the player car stays at or below 1.15× Arcade's luminance. Run the 'spielerauto' check at 22:00 for all five cars."
+  },
+  {
+   "id": "F-08",
+   "severity": "medium",
+   "area": "Leistung Hauptfaden",
+   "where": "render hooks lights/flares/vehicles (night) and terrain/commit (Kiel–Hamburg km 30.8 and 74.6), Deck preset",
+   "problem": "On the night test stage render() is 28–38 % more expensive than the base (2.65–2.85 against 2.07 ms; budget 1.5 ms). On Kiel–Hamburg the hitches sit at the same km as in the base but are 2–3× heavier: terrain 55 ms against 15–17 ms at km 30.8, commit 17.7 ms against 7.8 ms near the Köhlbrandbrücke. The night hitches of 138–159 ms in the first run did not come back in a repeat run.",
+   "evidence": "measured, timescale 1, same load: perf/head_DN1*, base_DN1, head_KH1, base_KH1 .json (field spikes, perf.hooks_ms_avg); report §4.2",
+   "repro": "sh/perf.sh <root> head DN1 modern deck --stage=dev_testetappe --vehicle=limousine --hour=22 --weather=rain --seed=7 --timescale=1 --max-seconds=900",
+   "fix": "Instrument the hooks per section and log every section over 8 ms. Warm the lamp, flare and vehicle pools, and the heavy terrain and bridge chunks, in prepare() or in budgeted steps (like warm_step()). Acceptance on the Deck: frame time p99 at or below 33 ms and no frame over 50 ms."
+  },
+  {
+   "id": "F-07",
+   "severity": "low",
+   "area": "Stadt/Skyline",
+   "where": "Dortmund–Frankfurt km 221.2 (Friedensbrücke), 12:00",
+   "problem": "The near office tower that Arcade shows at the right edge of the picture is missing in Modern.",
+   "evidence": "looked at: bilder/C1T_hochhaus_rechts.jpg, C1T_00.jpg",
+   "repro": "tools/ab_shot.sh out --stage=dortmund_frankfurt --from=dortmund --start-km=221 --hour=12 --vehicle=sportwagen --seed=15 --autopilot --traffic-warmup --no-countdown --start-speed=60 --shot-times=1",
+   "fix": "Check whether this high-rise prop has a Modern model (R7 skyline). If not, place it as a billboard of Arcade's sprite."
+  },
+  {
+   "id": "F-09",
+   "severity": "low",
+   "area": "Budgets",
+   "where": "preset 'Niedrig'; viewport_get_render_info SHADOW",
+   "problem": "Kiel–Hamburg on 'Niedrig' peaks at 221 k of its 250 k primitive budget (88 %), only 11 % below 'Mittel', because the structures have no preset-dependent detail level. The renderer reports shadow draw calls as 0, so the budget 'draw calls incl. shadows' cannot be checked.",
+   "evidence": "measured: perf/head_KH_modern_low.json primitives max 221k; draw_calls_shadow 0 in every run, while shadow primitives go up to 182k",
+   "repro": "sh/perf.sh <root> head KH modern low --stage=kiel_hamburg --from=kiel --vehicle=limousine --hour=12 --seed=7 --timescale=40",
+   "fix": "Scale the LOD distance of city houses, bridges and the station with 'Details'. Measure the budget as primitives incl. shadows, or take draw calls from RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME (inferred)."
+  }
+ ],
+ "checked_ok": [
+  "Arcade goldens: tools/golden.sh check -> 20/20 and 17/17 identical (measured, logs/golden_check.log)",
+  "Rule 1: git diff 515dd51 9b02f05 over all frozen Arcade files = 0 lines",
+  "modern_sight --full: F1 0 cases up to 270 m (99.4 M samples), outer lanes 0 up to 260 m, F2 <= 0.596, F3 0/5923, F7 terrain 0, model check 0.0002 px; modern_path_check 2/2",
+  "Occlusion probe at 13 places (station, Köhlbrand, Hamburg, Nürnberg, Augustusbrücke, border, C1, T1–T4, S0, S4): no new occlusion of cars by Modern structures; the two hits (border booth on the shoulder, brick house in Frankfurt) stand at the same place in Arcade",
+  "Instance uniforms at 'Hoch' over whole stages: 134–141, at most 141 (limit 230), no refusal",
+  "Memory: Kiel–Hamburg Deck 15 min at timescale 1, RSS 1082 -> 1087 MB, orphans 0; Bern–Mailand km 150 -> 365 RSS flat at 1075–1077 MB",
+  "Draw calls and primitives of every preset below budget (Deck max 212 / 244k, Hoch 273 / 261k)",
+  "Pictures at least equal to Arcade: border at night (better), Augustusbrücke, Köhlbrand at night, Tunel Valík at night, Gotthard inside, start and finish gates, Nürnberg old town (clearly better), Kiel at night in snow (better), N1 snow, Deck fills 16:10",
+  "Wet night in Hamburg (clip): reflections and rain better; popscan finds no jump in Modern that Arcade does not also have; low-beam cone in rain 0.92–0.93× Arcade at 15–35 m"
+ ],
+ "media": [
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-RINT-BILD/bericht.md",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-RINT-BILD/bilder/clip_valik_schnee_ausfahrt_folge.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-RINT-BILD/bilder/clip_valik_schnee_modern_4.08_4.10_5.30.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-RINT-BILD/bilder/KHH22_fenster_rechts.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-RINT-BILD/bilder/TS15N_00.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-RINT-BILD/bilder/S1_00.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-RINT-BILD/bilder/S0_01.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-RINT-BILD/bilder/NUE12_00.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-RINT-BILD/bilder/N2N_wagen_kegel.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-RINT-BILD/clips/valik_morgen_schnee.mp4",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-RINT-BILD/clips/hh_nacht_regen.mp4"
+ ]
+}

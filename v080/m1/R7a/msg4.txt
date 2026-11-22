@@ -1,0 +1,9 @@
+v0.8.0 R7a (WIP): F7 prüft die Hülle der Sichtlinien gegen eine unabhängige Referenz
+
+fairness.sight_envelope(): jede 7. Kamerareihe, jede Spur, Bedarf aus
+speed_profile(), Doppelgenauigkeit; scan_corridor() verlangt, dass der
+Korridor jede Sichtlinie der Stichprobe deckt und dort als Kurvenkorridor
+zählt. Rechte Spurmitte: die der Tankspur, sobald sie öffnet.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

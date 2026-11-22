@@ -1,0 +1,107 @@
+{
+ "verdict": "Ich habe die zweite Montage von M2 (9b02f05) selbst nachgeprüft. Sie besteht alle harten Prüfungen meines Blickwinkels; es gibt keinen Blocker und keinen Befund der Stufe high. Arcade ist gleich v0.7.0: Die eingefrorenen Dateien sind unverändert, golden.sh check ergibt 20/20 und 17/17, und ERGEBNIS sowie jede Verkehrssekunde sind bitgleich auf vier Etappenläufen (mit Tankstopp, Grenze, Tunnel, ausgelöstem Blitzer, Polizei, Regen, Schnee und Nacht); die Arcade-Klangtests laufen grün. Regel 3 gilt kopflos und mit echtem Zeichnen unter Xvfb. run_tests ergibt 803/0, die Render-Prüfungen 28/28, die Modern-Goldens 6/6 mit OpenGL-ES-Abgleich OK; von neun Regel-Mutationen werden acht rot. Die Ausnahme ist die Modelltönung nach A-19 für baked, leaves und billboard: Dort gibt es keinen Regelwächter. Der Instanz-Zensus lädt das Budget wirklich. Texturspeicher (Modern 144,5 MB gegen Arcade 197,9 MB) und Exportgröße (191,3 / 200,9 MB) liegen gut im Budget. Das Einhängen eines Stücks liegt dagegen in jeder Messung über 3 ms, schon seit der Basis, und collect() der Tankstelle hat gegenüber A-18 keine Reserve. Alle Höchstwerte sind auf dieser VM (Last 10–15) nur bedingt aussagekräftig. Robust sind: die Rückfälle (gfx-debug=fail, Manifest fehlt oder ist kaputt), die Leistungstest-Datei, Beenden und Neustart in 14 Lagen, zwei Fahrten à 20 min Modern ohne Fehlerzeile und der Testbuild auf Linux, GLES und Windows unter Wine. Der Wächter stuft bei Regen und Schnee herab, aber nicht bei Bildern über 1 s. Steam Deck und echte GPUs sind nicht gemessen, sondern gefolgert. Den Look habe ich nur als Beleg angesehen; er war nicht mein Prüfschwerpunkt.",
+ "findings": [
+  {
+   "id": "B-01",
+   "severity": "medium",
+   "area": "Budget §4.10 (Einhängen)",
+   "where": "scripts/race3d/chunk_streamer.gd (Commit-Pfad, stats().commit_ms_max), Ausgaben der Bausteine",
+   "problem": "Das Einhängen eines Stücks soll bei 'Steam Deck', 'Niedrig' und 'Mittel' höchstens 3 ms dauern. In keiner Messung blieb es darunter, auch nicht bei RINT oder in der Basis. Auf dem Deck gefolgert: gelegentlich ein verlorenes Bild beim Einhängen.",
+   "evidence": "gemessen, Xvfb, deck, Zeitraffer 16, ganze Etappe: Testetappe commit_ms_max 6,74 und 5,24 ms, Kiel–Hamburg 8,96 ms (Mittel 1,05–1,27). RINT 3,8 / 6,8 ms, Basis 515dd51 4,2 ms. Sim-Schritt max 142–369 ms zeigt Verdrängung durch die Last, alle Läufe liegen aber über 3 ms. Dateien: .../m1/QA-RINT-SYSTEM/out/q/x_dev.log, x_dev2.log, x_kh.log (Zeile BUDGET)",
+   "repro": ".../m1/QA-RINT-SYSTEM/sh/q.sh x_dev (stage_hash.gd unter xvfb-run, -- --graphics=modern --gfx-preset=deck --timescale=16 --stage=dev_testetappe), dann PERF.streamer.commit_ms_max lesen",
+   "fix": "Einhängen unter ein Zeitbudget stellen wie warm_step(): Teile eines Stücks über 2–3 Bilder einhängen und erst sichtbar schalten, wenn alles hängt. Außerdem chunk_commit_ms_max in leistungstest.json schreiben, damit das Deck die Zahl liefert, oder ein anderes Budget durch die Leitung festlegen."
+  },
+  {
+   "id": "B-02",
+   "severity": "medium",
+   "area": "Tests / A-19 Tönung",
+   "where": "tests/unit/race3d/test_props.gd::test_model_instances_carry_the_placement_tint (Z. 395–401); Render-Prüfungen props_render/models/facade_render",
+   "problem": "Für baked, leaves und billboard prüft der Test nur, dass der Shader v_tint liest, nicht dass er die Albedo damit multipliziert. Fällt die Multiplikation weg, bleiben Einheits- und Render-Prüfungen grün. Nur der Modern-Golden S4 (ein Änderungsmelder, den die Montage nach dem Ansehen neu erzeugt) bemerkt es. Die rosa Einfamilienhäuser könnten so unbemerkt wieder weiß werden.",
+   "evidence": "gemessen: 'a.rgb *= v_tint' in baked.gdshader (und '* v_tint' in leaves) durch vec3(1.0) ersetzt → test_props 13/0, check_props_render, check_models und check_facade_render OK; golden modern-check 5/6, nur modern_s4_mittel ANDERS. Der vpbr-Fall wird dagegen rot. Dateien: .../m1/QA-RINT-SYSTEM/out/mut_tint_baked_unit.log, out/rmut/tint*.log, out/q/gmut_modern.log",
+   "repro": "In einer Kopie: python3 sh/mutate.py apply assets/shaders/modern/baked.gdshader '\\ta.rgb *= v_tint;' '\\ta.rgb *= vec3(1.0);' und dann tools/run_tests.sh test_props sowie tools/run_render_checks.sh modern props_render",
+   "fix": "Im Einheitstest je Klasse die Multiplikation verlangen ('a.rgb *= v_tint', '* v_tint;' in der ALBEDO-Zeile, 'COLOR.rgb * v_tint'). Besser zusätzlich eine Render-Prüfung in check_props_render: dasselbe Hausmodell mit tint #ff8080 und ohne – das Rot/Grün-Verhältnis der Wand muss steigen."
+  },
+  {
+   "id": "B-03",
+   "severity": "low",
+   "area": "Budget A-18 (collect je Baustein)",
+   "where": "scripts/race3d/builders/station.gd (columns_in_chunk, canopy_job_rest, WARM_BUDGET_MS)",
+   "problem": "Die Tankstelle lag in beiden eigenen Läufen derselben Fahrt über 2 ms. RINT meldete 1,36 ms; mit dem Faktor 1,5 für den Deck-Kern ergibt das etwa 2,0 ms. Damit bleibt für das Gerät keine Reserve (gefolgert).",
+   "evidence": "gemessen unter Last: collect_by station max 3,61 / 4,86 ms (Mittel 0,13–0,15); alle anderen Bausteine im 2. Lauf ≤ 1,34 ms. Der Grenzwert 6,72 ms im 1. Lauf war Rauschen (2. Lauf 0,53 ms). Datei: .../m1/QA-RINT-SYSTEM/out/q/x_dev2.log (COLLECT_BY)",
+   "repro": ".../m1/QA-RINT-SYSTEM/sh/q.sh x_dev2",
+   "fix": "canopy_job_rest() in mehr Teile unter WARM_BUDGET_MS zerlegen (Spuren je Kamerastelle in Häppchen). collect_by in leistungstest.json ausgeben und auf dem Deck messen; Höchstwerte als Median aus drei Läufen werten."
+  },
+  {
+   "id": "B-04",
+   "severity": "low",
+   "area": "Robustheit / Langsamkeitswächter",
+   "where": "scripts/race3d/perf_probe.gd::watch() (Bilder > MAX_FRAME_MS = 1000 ms werden verworfen)",
+   "problem": "Dauert jedes Bild des Countdowns länger als 1 s, gibt es kein Urteil, keine Herabstufung und keine Meldung. Ausgerechnet der langsamste Rechner bekommt so keine Hilfe.",
+   "evidence": "gemessen: 1280×720 'Hoch', Regen/Schnee, Bilder 1,2–2,5 s → watchdog '' und watchdog_median_ms 0, nichts gesenkt (.../m1/QA-RINT-SYSTEM/out/q/wd.log). Bei 640×360 mit Bildern von 0,6–0,7 s: Hoch→Mittel bei Regen und Schnee, Meldung erscheint, Teilchen 4000→1500 (out/q/wd_small.log, deliver/QA-RINT-SYSTEM/bilder/waechter_schnee_640.jpg)",
+   "repro": "sh/probe_race.gd unter xvfb-run 1280x720 auf belasteter llvmpipe-VM, -- --graphics=modern --gfx-preset=high --weather=rain --run-s=3 (mit Countdown)",
+   "fix": "Im Countdown Bilder über MAX_FRAME_MS nicht verwerfen, sondern auf MAX_FRAME_MS kappen und mitzählen (eine echte Pause friert den Countdown ohnehin ein); oder am Ende des Countdowns mit mindestens 3 solchen Bildern 'slow'/'too_slow' urteilen."
+  },
+  {
+   "id": "B-05",
+   "severity": "low",
+   "area": "Tests / A-19 Zensus",
+   "where": "tests/race3d/render/check_instance_budget.gd::_process (Szene nur jedes 10. Bild gezählt)",
+   "problem": "Die Szene wird seltener gezählt als die Fahrzeug-Ebene, deshalb unterschätzt der Szenenwert die Spitze. Die gemeldete Reserve (Wald 216/230) ist womöglich kleiner. Der eigentliche Torwächter, die Ablehnung durch die Engine, ist nicht betroffen.",
+   "evidence": "gemessen: instanzen_stadt – Fahrzeug-Ebene höchstens 176 (jedes Bild), ganze Szene höchstens 171 (jedes 10. Bild); die Szene enthält die Ebene. Datei: .../m1/QA-RINT-SYSTEM/out/rc_full.log",
+   "repro": "tools/run_render_checks.sh modern instance_budget_stadt (eigenes absolutes XDG_DATA_HOME)",
+   "fix": "Bei eingespeistem Verkehr jedes Bild zählen, oder wenigstens in jedem Bild mit neuem Höchstwert der Ebene; max(Szene, Ebene + Rest) ausgeben."
+  },
+  {
+   "id": "B-06",
+   "severity": "low",
+   "area": "Vertrag A-20 / Code",
+   "where": "scripts/race3d/layers/lights.gd:49 (SPOT_SPECULAR); Vertrag §11.3 A-20, erster Spiegelstrich",
+   "problem": "SPOT_SPECULAR wirkt auf nichts Geprüftes. Das Abblendlicht der Fahrbahn kommt aus inc/headlight.gdshaderinc (ce_headlight_light), und diese Stelle ist geschützt. Das bestätigt die Vertragsfrage von RINT.",
+   "evidence": "gemessen: SPOT_SPECULAR 0,5→0 → vehicle_lights OK und nass_kegel bitgleich 0,219. ce_headlight_light aus road.gdshader entfernt → nass_kegel FEHLER 0,35× (verlangt ≥ 0,7). Dateien: .../m1/QA-RINT-SYSTEM/out/rmut/spotspec_*.log, roadlight_nass.log",
+   "repro": ".../m1/QA-RINT-SYSTEM/sh/render_mut.sh spotspec bzw. roadlight (in der Kopie)",
+   "fix": "A-20 Satz 1 auf ce_headlight_light der Fahrbahn beziehen; SPOT_SPECULAR entfernen oder eine Prüfung für seinen eigentlichen Zweck ergänzen."
+  },
+  {
+   "id": "B-07",
+   "severity": "low",
+   "area": "Regel 8 (anderes Paket: R7a, nicht diese Montage)",
+   "where": "~/.local/share/godot/app_userdata/Crossing Europe – A Racing Xperience/logs/",
+   "problem": "Mindestens sechs Sonden des parallel laufenden Pakets R7a schrieben heute zwischen 08:55 und 09:50 ohne XDG_DATA_HOME in den echten Benutzerordner. Die Log-Rotation hat dabei ältere Protokolle verdrängt. Außerdem liegen dort noch die 31 Shader-Cache-Dateien aus dem Verstoß, den RINT selbst gemeldet hat. Meine Läufe haben den Ordner nicht berührt.",
+   "evidence": "gemessen: Protokollköpfe 'BENCH iterations=188000' (= m1/R7a/probe/bench.gd), 'SHORT lanes' (= R7a/probe/short_arc.gd), 'STEPS long cam', 'ENV safe1', 'CORR'. Dateien: .../m1/QA-RINT-SYSTEM/out/real_userfolder_logs_today.txt und real_userfolder_godot_log_0855.txt; find -newer gegen den Stand des Vorgängers",
+   "repro": "ls -l --time-style=full-iso im Ordner '~/.local/share/godot/app_userdata/Crossing Europe – A Racing Xperience/logs' und die ersten Zeilen jedes Protokolls lesen",
+   "fix": "R7a setzt in allen Sonden ein absolutes XDG_DATA_HOME im eigenen Arbeitsordner. Die Leitung löscht die Shader-Cache-Reste von RINT (harmlos, aber nicht zuzuordnen)."
+  }
+ ],
+ "checked_ok": [
+  "Eingefrorene Arcade-Dateien (Liste aus Regel 1): git diff gegen main und gegen die Basis 515dd51 ist leer, 462 Dateien (gemessen)",
+  "Arcade ERGEBNIS und jede Verkehrssekunde (Hash) bitgleich v0.7.0 = Kopf: Kiel–Hamburg, Testetappe 22 Uhr Regen, Bern–Mailand Schnee, Testetappe mit Blitzer, Polizei, 2 Tankstopps, Grenze und Tunnel (gemessen)",
+  "Regel 3: Modern = Arcade (ERGEBNIS ohne gfx, alle Hashes) kopflos auf 4 Läufen und mit echtem Zeichnen unter Xvfb/deck auf 3 Läufen (gemessen)",
+  "Arcade-Klang: test_arcade_identity (Mischer, Effekte, Verkehr/Raum byte-gleich zu v0.7.0) grün; die Montage ändert keine Klangdatei (gemessen)",
+  "tools/golden.sh check: arcade 20/20 und arcade-ui 17/17; erkennt schon 1 LSB in Palette.ROAD (race_s1 0/1) und ROAD_CITY (hamburg 0/2) (gemessen)",
+  "golden.sh modern-check: 6/6 identisch, modern-gles OK (2/255, 73,2 dB) (gemessen)",
+  "Vertrag §11.3 zeichengleich mit lead/contract_11_3.md, nur angehängt (+70 Zeilen) (gemessen)",
+  "run_tests.sh 803/0 (Vorgänger auf demselben Stand); run_render_checks.sh all 28/28, Exit 0; test_chunk_services 3× unter Last grün (gemessen)",
+  "Mutationen werden rot: VPBR_STATIC aus → instanzen_wald 306>230 mit 144 Ablehnungen; eye_lamp_spec 1 → abblendlicht; Fahrbahn ohne Abblendlicht → nass_kegel 0,35×; Nachtschein 1,0 → bremsschein + test_model_glow_gain; vpbr ohne Tönung → test_props; A-18 Endstütze → test_structures (gemessen)",
+  "A-19 Wald 216/230, Stadt 171, Kiel–Hamburg 141, keine Ablehnung durch die Engine (gemessen)",
+  "Texturspeicher (A-6): Modern 144,5 MB < Arcade 197,9 MB, Kiel–Hamburg, Hoch, 1280×720 (gemessen)",
+  "Exportgröße: Linux tar.gz 191,3 MB, Windows-ZIP 200,9 MB, jeder Teil im Budget; Arbeitsbaum nach dem Build sauber (gemessen)",
+  "--gfx-debug=fail, fehlendes und kaputtes Manifest → Arcade, richtige Meldung, gfx_fallback selftest:debug/manifest, 16:9, Startwächter-Marke weg (gemessen)",
+  "--bench=all: Exit 0, --bench-out gleich user://leistungstest.json, alle dokumentierten Felder, 3 Szenen, Urteil too_slow→arcade (gemessen)",
+  "Langsamkeitswächter: Hoch→Mittel im Countdown bei Regen und bei Schnee, Meldung erscheint, Teilchen 4000→1500, solange ein Bild < 1 s dauert (gemessen)",
+  "Beenden (Fenster schließen) und Neustart in 13 Bildschirmen plus im Pausenmenü: 0 Fehler- oder Leckzeilen, keine Marke übrig, Neustart bleibt in Modern (gemessen)",
+  "2 × 20 min Modern (GameFlow Kiel–Hamburg; Bern–Mailand km 120→161,9 in die Dämmerung): 0 Fehler- und Warnzeilen (gemessen)",
+  "smoke_modern.sh auf eigenem Testbuild: linux OK, linux_opengl3_es OK, windows (wine64) OK, jeweils Arcade und Modern; Nutzerordner im Prüfordner (gemessen; ANGLE/D3D und Deck nur gefolgert)",
+  "Echter Benutzerordner von keinem meiner Läufe berührt (find -newer); worktree sauber auf 9b02f05, keine Commits"
+ ],
+ "media": [
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-RINT-SYSTEM/bericht.md",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-RINT-SYSTEM/bilder/gfxfail.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-RINT-SYSTEM/bilder/nomanifest.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-RINT-SYSTEM/bilder/badmanifest.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-RINT-SYSTEM/bilder/wd_rain.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-RINT-SYSTEM/bilder/wd_snow.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-RINT-SYSTEM/bilder/waechter_schnee_640.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-RINT-SYSTEM/bilder/smoke_linux_arcade_modern_01.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-RINT-SYSTEM/bilder/smoke_windows_arcade_modern_01.jpg"
+ ]
+}

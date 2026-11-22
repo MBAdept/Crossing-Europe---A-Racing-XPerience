@@ -1,0 +1,43 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/customs_booth",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 4.4, "height_m": 3.05, "length_m": 3.8},
+  "extent_m": {"left": 2.2, "right": 2.2},
+  "aabb": [-2.2, 0, -3.2, 2.2, 3.055, 0.7],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 206,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/customs_booth/lod0_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "lights": [
+   {
+    "role": "lights",
+    "pos": [0, 2.72, 0.7],
+    "dir": [0, 0, 1],
+    "size": 0.653,
+    "color": "#ffe2a0"
+   }
+  ],
+  "textures": {"albedo": "props/customs_booth/albedo.png"},
+  "roughness": 0.6,
+  "auto_lod": false,
+  "tags": ["prop", "border"],
+  "bytes": 70348,
+  "hash": "31c59ad9fbb27fe60b7111a5eaf38ec4e0cc8288"
+ },
+ "sets": {
+  "props/customs_booth": {"model": "props/customs_booth"}
+ }
+}

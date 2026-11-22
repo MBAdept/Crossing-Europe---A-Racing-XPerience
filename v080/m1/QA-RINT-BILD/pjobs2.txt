@@ -1,0 +1,24 @@
+head|KH|modern|deck|--stage=kiel_hamburg --from=kiel --vehicle=limousine --hour=12 --weather=normal --seed=7 --timescale=40 --max-seconds=2700
+base|KH|modern|deck|--stage=kiel_hamburg --from=kiel --vehicle=limousine --hour=12 --weather=normal --seed=7 --timescale=40 --max-seconds=2700
+head|KH|modern|high|--stage=kiel_hamburg --from=kiel --vehicle=limousine --hour=12 --weather=normal --seed=7 --timescale=40 --max-seconds=2700
+base|KH|modern|high|--stage=kiel_hamburg --from=kiel --vehicle=limousine --hour=12 --weather=normal --seed=7 --timescale=40 --max-seconds=2700
+head|DN|modern|deck|--stage=dev_testetappe --vehicle=limousine --hour=22 --weather=rain --seed=7 --timescale=40 --max-seconds=2700
+base|DN|modern|deck|--stage=dev_testetappe --vehicle=limousine --hour=22 --weather=rain --seed=7 --timescale=40 --max-seconds=2700
+head|DN|modern|high|--stage=dev_testetappe --vehicle=limousine --hour=22 --weather=rain --seed=7 --timescale=40 --max-seconds=2700
+head|KH1|modern|deck|--stage=kiel_hamburg --from=kiel --vehicle=limousine --hour=12 --weather=normal --seed=7 --timescale=1 --max-seconds=900
+head|DN1|modern|deck|--stage=dev_testetappe --vehicle=limousine --hour=22 --weather=rain --seed=7 --timescale=1 --max-seconds=900
+base|DN1|modern|deck|--stage=dev_testetappe --vehicle=limousine --hour=22 --weather=rain --seed=7 --timescale=1 --max-seconds=900
+base|KH1|modern|deck|--stage=kiel_hamburg --from=kiel --vehicle=limousine --hour=12 --weather=normal --seed=7 --timescale=1 --max-seconds=900
+head|MEM|modern|high|--stage=bern_mailand --from=bern --start-km=100 --vehicle=limousine --hour=21 --weather=rain --seed=7 --timescale=4 --max-seconds=1200 --sample-s=20
+base|DN|modern|high|--stage=dev_testetappe --vehicle=limousine --hour=22 --weather=rain --seed=7 --timescale=40 --max-seconds=2700
+head|KH|modern|medium|--stage=kiel_hamburg --from=kiel --vehicle=limousine --hour=12 --weather=normal --seed=7 --timescale=40 --max-seconds=2700
+head|KH|modern|low|--stage=kiel_hamburg --from=kiel --vehicle=limousine --hour=12 --weather=normal --seed=7 --timescale=40 --max-seconds=2700
+head|KH2|modern|deck|--stage=kiel_hamburg --from=kiel --vehicle=limousine --hour=12 --weather=normal --seed=7 --timescale=40 --max-seconds=2700
+base|KH|modern|medium|--stage=kiel_hamburg --from=kiel --vehicle=limousine --hour=12 --weather=normal --seed=7 --timescale=40 --max-seconds=2700
+base|KH|modern|low|--stage=kiel_hamburg --from=kiel --vehicle=limousine --hour=12 --weather=normal --seed=7 --timescale=40 --max-seconds=2700
+head|KH|arcade|-|--stage=kiel_hamburg --from=kiel --vehicle=limousine --hour=12 --weather=normal --seed=7 --timescale=40 --max-seconds=2700
+head|DN|modern|low|--stage=dev_testetappe --vehicle=limousine --hour=22 --weather=rain --seed=7 --timescale=40 --max-seconds=2700
+head|DN|modern|medium|--stage=dev_testetappe --vehicle=limousine --hour=22 --weather=rain --seed=7 --timescale=40 --max-seconds=2700
+base|KH|modern|high|--stage=kiel_hamburg --from=kiel --vehicle=limousine --hour=12 --weather=normal --seed=7 --timescale=40 --max-seconds=2700
+head|MEMF|modern|high|--stage=bern_mailand --from=bern --vehicle=limousine --hour=21 --weather=rain --seed=7 --timescale=4 --max-seconds=1500 --sample-s=10
+head|DN|modern|high|--stage=dev_testetappe --vehicle=limousine --hour=22 --weather=rain --seed=7 --timescale=40 --max-seconds=2700

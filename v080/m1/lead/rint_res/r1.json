@@ -1,0 +1,303 @@
+{
+ "package": "RINT-M2",
+ "branch": "wip/v080-rint-m2",
+ "commit": "9b02f05",
+ "worktree": "/home/user/crossing-europe---a-racing-xperience/.claude/worktrees/wf_9927a373-337-1",
+ "summary": "Zweite Montage des Schubs M2 abgeschlossen; Endstand 9b02f05 auf wip/v080-rint-m2 (nach jedem Commit gepusht).\n\nZusammenbau:\n- Vier Merges mit --no-ff in der verlangten Reihenfolge: R4 b156763, R5 80b8141, R6 2b7dcc0, AS5a 7153381. Konflikte gab es nur in modern_slice und in der Doku-Nummerierung (§15/§16).\n- Vertrag §11.3 wörtlich angehängt (8999769).\n\nLeitungsnotizen:\n- Notizen 3, 4, 5, 6, 7, 9, 11 a–e und 12: erfüllt.\n- Notiz 5: Die erste Fassung der Tönung färbte Modelle grün. Ursache ist das Verhalten von INSTANCE_CUSTOM im Compatibility-Renderer; mit Sonden eingegrenzt und in a3120e4 behoben.\n- Notiz 8: Neuer Zustand mit warm_step() und 1200 m Vorlauf. collect() der Tankstelle liegt auf „Deck“ bei höchstens 1,36 ms (Mittel 0,11; vorher 3,41). Alle Bausteine blieben in diesem Lauf ≤ 1,36 ms. Die Entscheide sind netzweit unverändert (1909 Dächer, 0 verschieden).\n- Notiz 10: Lack gemessen; keine Konstante bringt ihn in ±15 %, darum gelistet.\n\nTore:\n- run_tests: 802/0 und 803/0 (zwei Läufe).\n- Arcade-Goldens einmal geprüft: 20/20 und 17/17.\n- Modern-Goldens neu erzeugt, nachdem ich die Bilder angesehen hatte; auf dem Endstand 6/6, GLES OK.\n- Render-Prüfungen: 27/28, die eine angepasst und danach OK. Die Strukturprüfungen auf dem Endstand 7/7.\n- Sicht 6/6, Pfad 2/2.\n- ERGEBNIS auf drei Etappen identisch.\n- Texturspeicher 109/111 MB.\n- Builds 191,1 und 200,9 MB.\n- Rauchtest auf Linux, GLES und Windows: OK.\n\nA/B:\n- Alle Bögen (Hoch, Mittel, Deck), 26 Bilder weiterer Stellen und zwei Clips angesehen.\n- Ehrliche Liste in Abschnitt 7: die Kurveninnenseiten (A-17 → R7) und der Lack der Limousine in der Dämmerung sind schlechter.\n\nSelbst gefundener Regelverstoß:\n- Ein Hilfsskript (rc_snap.sh) setzte XDG_DATA_HOME nicht. Rund 20 Einzelprüfungen liefen dadurch im echten Benutzerordner (Logs, Start-Lock, Shader-Cache).\n- Behoben, meine Logs dort entfernt und berichtet.\n\nBericht: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/bericht.md",
+ "files_changed": [
+  "docs/dev/v080_contract.md",
+  "assets/shaders/modern/baked.gdshader",
+  "assets/shaders/modern/billboard.gdshader",
+  "assets/shaders/modern/glass.gdshader",
+  "assets/shaders/modern/leaves.gdshader",
+  "assets/shaders/modern/road.gdshader",
+  "assets/shaders/modern/vpbr.gdshader",
+  "docs/modelle.md",
+  "docs/renderer-modern-tunnel-bruecken.md",
+  "docs/renderer-modern.md",
+  "scripts/race3d/builders/props.gd",
+  "scripts/race3d/builders/radar.gd",
+  "scripts/race3d/builders/road.gd",
+  "scripts/race3d/builders/roadside.gd",
+  "scripts/race3d/builders/station.gd",
+  "scripts/race3d/chunk_streamer.gd",
+  "scripts/race3d/environment_rig.gd",
+  "scripts/race3d/layers/flares.gd",
+  "scripts/race3d/layers/lights.gd",
+  "scripts/race3d/layers/vehicles.gd",
+  "scripts/race3d/modern_materials.gd",
+  "scripts/race3d/vehicle_pose3d.gd",
+  "tests/golden/modern_slice.env",
+  "tests/golden/modern_slice.md5",
+  "tests/race3d/render/check_instance_budget.gd",
+  "tests/race3d/render/check_instance_budget_stadt.gd",
+  "tests/race3d/render/check_instance_budget_stadt.gd.uid",
+  "tests/race3d/render/check_instance_budget_wald.gd",
+  "tests/race3d/render/check_night.gd",
+  "tests/race3d/render/check_night_nass.gd",
+  "tests/race3d/render/check_props_render.gd",
+  "tests/race3d/render/check_tunnel_bridge.gd",
+  "tests/race3d/render/check_vehicle_lights.gd",
+  "tests/unit/race3d/test_light_pool.gd",
+  "tests/unit/race3d/test_props.gd",
+  "tests/unit/race3d/test_structures.gd",
+  "tests/unit/race3d/test_vehicles.gd"
+ ],
+ "acceptance": [
+  {
+   "check": "Merge R4 (b156763) --no-ff",
+   "result": "pass",
+   "evidence": "04de79f; nur modern_slice.{md5,env} im Konflikt (R4s Seite, später neu erzeugt)"
+  },
+  {
+   "check": "Merge R5 (80b8141) --no-ff",
+   "result": "pass",
+   "evidence": "9fec3a7; modern_slice.md5 und Doku-Nummerierung (R4 §15, R5 §16)"
+  },
+  {
+   "check": "Merge R6 (2b7dcc0) --no-ff",
+   "result": "pass",
+   "evidence": "5c451f2; nur modern_slice.*"
+  },
+  {
+   "check": "Merge AS5a (7153381) --no-ff",
+   "result": "pass",
+   "evidence": "cee4590; nur modern_slice.*, manifest.json seit Basis nur von AS5a geändert"
+  },
+  {
+   "check": "Vertrag §11.3 wörtlich angehängt",
+   "result": "pass",
+   "evidence": "8999769"
+  },
+  {
+   "check": "Notiz 3: Abblendlicht behält Glanz, Fahrzeuge dämpfen im Material",
+   "result": "pass",
+   "evidence": "2322092; SPOT_SPECULAR 0,5; eye_lamp_spec im vpbr/glass; Lkw 60 m 44,1/44,1, 20 m 57,0/63,0; Mutation eye_lamp_spec 1 → 171,5; nasse Fahrbahn pixelgleich (N-03-Annahme widerlegt)"
+  },
+  {
+   "check": "Notiz 4: Brems-/Blaulichtzuschlag nach Tageslicht, nachts ≤ Arcade +10 %, Prüfung fällt mit Verstärkung 1,0",
+   "result": "pass",
+   "evidence": "71ed4b7; bremsschein Tag 33,1 ≥ 29 (Verstärkung 1,0: 25,0 → FEHLER), Nacht 28,3 ≤ 57 (voller Zuschlag 68,9 → FEHLER), Limousine 20 m 436 ≤ 500; Blaulicht-Zuschlag bleibt nachts (Blau nachts 0,5 × Arcade) – als Abweichung gelistet"
+  },
+  {
+   "check": "Notiz 5: Tönung über MultiMesh-Daten, A/B-Bilder, Unit-Test",
+   "result": "pass",
+   "evidence": "a3120e4 (nach eigenem Grünstich in b04d28a); Farbe+Custom-Daten je Instanz; test_model_instances_carry_the_placement_tint; bilder/n5_*.jpg"
+  },
+  {
+   "check": "Notiz 6: Instanzbudget ≤ 230 (Kiel–Hamburg, Wald, Nürnberg-Stadt), Waldprüfung fällt ohne VPBR_STATIC",
+   "result": "pass",
+   "evidence": "instanzen 141, instanzen_wald 216, instanzen_stadt 171, 0 Ablehnungen; ohne VPBR_STATIC 306 / 144 Ablehnungen → FEHLER"
+  },
+  {
+   "check": "Notiz 7: Dächer ohne Stütze am Mast; scan_f1 0 Paare ≥ 6 px",
+   "result": "pass",
+   "evidence": "4fc3d35; 3 Dächer hängen am Mast links; scan_f1: 0 Paare ≥ 6 px auf Spieltafeln; einziges Paar town_ahead an Grenze Amsterdam–Lüttich km 210,175 (keine Spieltafel) gelistet"
+  },
+  {
+   "check": "Notiz 8: collect() je Baustein ≤ 2 ms auf Deck, sonst Arbeitsfaden/prepare()",
+   "result": "pass",
+   "evidence": "6347e41 Messung je Baustein; Sichtlinien auf WorkerThreadPool; warm_step() (b903797) + 1200 m Vorlauf (9b02f05): Tankstelle max 1,36 ms / Mittel 0,11 (Merge-Stand 3,41/0,20), alle Bausteine ≤ 1,36 ms; jobpath 1909 Dächer 0 verschieden. Einschränkung: ein Lauf auf belasteter VM, Höchstwerte streuen (Requisiten 0,12–4,19 ms)"
+  },
+  {
+   "check": "Notiz 9: Lichtebenen, Flares, Blitzer",
+   "result": "pass",
+   "evidence": "747fa30; Stärke je Bild, halo/glow-Schlüssel, Blitzer-Kegel; test_static_lamp_energy_is_read_every_frame"
+  },
+  {
+   "check": "Notiz 10: Lack ±15 % oder Liste",
+   "result": "partial",
+   "evidence": "gemessen: Limousine 0,95×, Testetappe 1,00×, Kompakt N1 1,23×, Gran Turismo N2 0,77× – keine Konstante löst beide, gelistet (Asset-Frage); Dämmerung 19:30 Farbton 271° statt 242° neu gelistet"
+  },
+  {
+   "check": "Notiz 11 a–e: Ausfahrt-Blendung, Tunnellicht der Fahrbahn, Docken, Boote, Lampenprofil-Cache mit Prüfung",
+   "result": "pass",
+   "evidence": "eb417a7, 58eba9e, 5294d00; U1_ausfahrt 0,66 × Arcade; Balustrade nach Arcade (0,14 m Docken, Abweichung zu 0,35 m gelistet); laternen Profil bis 15,84 m, flaches Profil → FEHLER"
+  },
+  {
+   "check": "Notiz 12: nichts gegen das Flackern",
+   "result": "pass",
+   "evidence": "keine Änderung am Lackflackern (A-21)"
+  },
+  {
+   "check": "Gate import",
+   "result": "pass",
+   "evidence": "Exit 0, 0 Fehlerzeilen (1cd689d)"
+  },
+  {
+   "check": "Gate check_scripts",
+   "result": "pass",
+   "evidence": "330 Skripte, 0 fehlerhaft auf 1cd689d und auf dem Endstand 9b02f05 (Exit 0)"
+  },
+  {
+   "check": "Gate run_tests (höchstens 2 Läufe)",
+   "result": "pass",
+   "evidence": "Lauf 1 (1cd689d) 802/0, 150 CHECK OK; Lauf 2 (9b02f05) 803/0, 150 CHECK OK"
+  },
+  {
+   "check": "Gate Arcade-Goldens einmal",
+   "result": "pass",
+   "evidence": "GOLDEN arcade 20/20, arcade-ui 17/17 (ein Lauf)"
+  },
+  {
+   "check": "Gate modern-make nach Ansicht, dann modern-check + GLES",
+   "result": "pass",
+   "evidence": "alle 6 angesehen (bilder/goldens_modern_sechs.jpg), 6b17293; modern-check 6/6 + GLES OK (2/255, 73,2 dB) auf 6b17293 und erneut auf 9b02f05"
+  },
+  {
+   "check": "Gate Render-Prüfungen all",
+   "result": "pass",
+   "evidence": "27/28 auf b673df5; props_spiegel-Erwartung veraltet (Einfamilienhaus seit AS5a Modell) → ab2a400, einzeln OK; Strukturen + Strukturen-Licht auf 9b02f05 7/7 OK"
+  },
+  {
+   "check": "Gate Sicht und Pfad --full",
+   "result": "pass",
+   "evidence": "modern_sight 6/6 OK, modern_path_check 2/2 OK"
+  },
+  {
+   "check": "Gate Validator, Schlüssel, Sprite-Geometrie, audio_qc",
+   "result": "pass",
+   "evidence": "CHECK models OK; cache_keys OK (98); sprite_geometry OK; audio_qc 98 Klänge 0 Fehler"
+  },
+  {
+   "check": "Gate Export-Determinismus",
+   "result": "pass",
+   "evidence": "Kontor und Einfamilienhaus je zweimal --force: Cache und Assets byte-gleich, git status assets/models 0"
+  },
+  {
+   "check": "Gate ERGEBNIS auf 3 Etappen",
+   "result": "pass",
+   "evidence": "Kiel–Hamburg, Testetappe, Saragossa–Pau: je 28 Schlüssel identisch (außer gfx)"
+  },
+  {
+   "check": "Gate Leistung neben 515dd51",
+   "result": "pass",
+   "evidence": "gemessen (bericht §4.1): KH Mittel Median +13 %, Deck +11 %, Dresden–Leipzig +3 % (p95 +66 %) durch mehr Primitive der neuen Inhalte, alles unter den Budgets; Testetappe Deck −11 %; collect je Stück 3,96 ms (Basis 4,34)"
+  },
+  {
+   "check": "Gate Texturspeicher",
+   "result": "pass",
+   "evidence": "Modern 109,2 / 110,8 MB, Arcade 201,7 / 200,6 MB"
+  },
+  {
+   "check": "Gate Builds im Größenbudget",
+   "result": "pass",
+   "evidence": "Linux 191,1 MB, Windows-ZIP 200,9 MB (Budget 277, Warnung 300)"
+  },
+  {
+   "check": "Gate Rauchtest Linux, GLES, Wine",
+   "result": "pass",
+   "evidence": "SMOKE linux OK, linux_opengl3_es OK, windows OK"
+  },
+  {
+   "check": "A/B-Bögen alle Stellen Hoch + Mittel, Deck S1/N2/U1",
+   "result": "pass",
+   "evidence": "14 + 14 + 3 Bögen und Übersichten, alle angesehen, Urteile §5.1/§5.2"
+  },
+  {
+   "check": "A/B weitere Stellen (Tunnel, Brücken, Tankstelle km 15, Grenze, Start/Ziel, Hamburg/Kiel 12/19:30/22, Nürnberg)",
+   "result": "pass",
+   "evidence": "26 Bilder in ab_weitere/, alle angesehen, Urteile §5.3 (Tankstelle nach erstem Fehlversuch mit Start km 14,3 wiederholt)"
+  },
+  {
+   "check": "Zwei 30-s-Clips",
+   "result": "pass",
+   "evidence": "clips/koehlbrand_nacht_regen.mp4, clips/gotthard_ausfahrt.mp4; je 6 Einzelbilder (Gotthard +4) angesehen"
+  },
+  {
+   "check": "Regel 1: eingefrorene Arcade-Dateien unverändert",
+   "result": "pass",
+   "evidence": "git diff 515dd51..9b02f05 über alle Dateien der Rule-1-Liste leer"
+  },
+  {
+   "check": "XDG_DATA_HOME absolut im Arbeitsordner für jeden Spiellauf",
+   "result": "fail",
+   "evidence": "sh/rc_snap.sh exportierte XDG_DATA_HOME nicht: rund 20 Einzelprüfungen (06:16–13:57) liefen im echten Benutzerordner (Logs, modern_start.lock, 31 Shader-Cache-Dateien). Selbst gefunden, Skript behoben, meine 5 Logs gesichert und entfernt, Lock nicht vorhanden; danach unberührt (geprüft nach p096). A/B-Werkzeuge nutzten bis 13:57 einen leeren absoluten Ordner unter /tmp"
+  },
+  {
+   "check": "Sicherungskopie nach jedem Commit, nie force, nie v0.8.0/main",
+   "result": "pass",
+   "evidence": "jeder Commit nach wip/v080-rint-m2 gepusht, Endstand 9b02f05 = origin"
+  }
+ ],
+ "tests_total": 803,
+ "tests_failed": 0,
+ "deviations": [
+  "Notiz 11 c: Docken 0,14 m nach Arcades _balustrade statt 0,35 m des Auftrags.",
+  "Notiz 4: Blaulicht-Zuschlag bleibt nachts (Blau nachts ohnehin etwa 0,5 × Arcade); nur der Bremszuschlag fällt nach Tageslicht und Abstand.",
+  "Notiz 4: Prüfung bremsschein misst aufsummiertes Rot statt Pixelzahl.",
+  "Notiz 6: mit 48 eingespeisten Autos bindet die Szenengrenze 230 statt der Fahrzeug-Ebenen-Grenze 128.",
+  "Determinismus mit zwei AS5a-Modellen statt allen elf.",
+  "Nach dem ersten Einfrieren (1cd689d) noch fünf Code-Schritte am Tankstellendach (c72d484, b673df5, 02051f7, b903797, 9b02f05) und eine Prüfungsanpassung (ab2a400); Render-Prüfungen gesamt auf b673df5, Strukturen, Tests, Goldens, Builds, Rauchtest auf dem Endstand.",
+  "XDG-Regel verletzt: rc_snap.sh ohne export XDG_DATA_HOME, rund 20 Einzelprüfungen im echten Benutzerordner (behoben, Logs entfernt, Shader-Cache-Dateien liegen noch dort).",
+  "A/B-Bilder bis 13:57 mit leerem absolutem XDG unter /tmp statt im Arbeitsordner (TMPDIR der Werkzeuge).",
+  "Notiz 8: Nachweis aus einem Messlauf auf belasteter VM, nicht auf dem Gerät."
+ ],
+ "contract_issues": [
+  "NACH-M2 N-03 nahm an, die nasse Fahrbahn verliere mit SPOT_SPECULAR 0 ihren Glanz – gemessen pixelgleich; A-20 erster Spiegelstrich ist für die Fahrbahn gegenstandslos.",
+  "A-19: Wald mit 48 gleichzeitig gezeigten Autos 216 von 230 – harte Obergrenze gezeigter Modellautos oder globaler Puffer (buffer_size) als Vertragsregel?",
+  "A-19 Tönung: Regel „MultiMesh mit vpbr/baked/leaves/billboard trägt Farbe UND Custom-Daten oder keins von beiden“ (Godot 4.7.2 Compatibility) in den Vertrag?",
+  "A-20: Blaulicht hat nur eine obere Grenze, nachts liegt es bei 0,5 × Arcade – untere Grenze als eigene Aufgabe?"
+ ],
+ "notes_for_next": [
+  "Kurveninnenseiten in Bergetappen (A-17 → R7): T1–T4 und nach der Gotthard-Ausfahrt fehlen Bäume/Felsen innen – größter sichtbarer Unterschied zu Arcade.",
+  "Lack: Gran Turismo im Modell silbern statt Arcades dunkelblaugrau (N2 0,77×), Kompakt nachts 1,23× – Asset-Nacharbeit.",
+  "Lack der Limousine in der Dämmerung 19:30 grau-lila (Farbton 271° statt 242°) – vermutlich Abendhimmel im Lack, nicht untersucht.",
+  "FIX-R5 8.6 Geländewasser unter Brücken und NACH-R5 N-01 Mondlichtstreifen am Portalhügel offen.",
+  "Abblendlicht ohne Hell-Dunkel-Grenze wie Arcades Kegel; Limousine im Tunnel dunkler als Arcades Sprite.",
+  "Grenzstation Amsterdam–Lüttich km 210,175: Endstütze gegen Tafel town_ahead (22 %), keine Spieltafel.",
+  "Wald 216 von 230 Instanzen mit 48 Autos – wenig Luft.",
+  "collect()-Höchstwerte auf der belasteten VM streuen stark (Requisiten 0,12–4,19 ms) – auf dem Deck oder mit mehreren Läufen bestätigen; längstes Einhängen bis 6,8 ms (Budget 3,0, Basis schon 4,2).",
+  "test_chunk_services services_reach_collect_and_commit_on_the_main_thread fiel einmal in einem Einzellauf zeitabhängig (25/23), sonst grün – beobachten.",
+  "Dresden–Leipzig p95 +66 % auf llvmpipe (AS5a-Stadthäuser) – auf echter GPU messen.",
+  "Werkzeuge: Hilfsskripte müssen XDG_DATA_HOME exportieren; tools/ab_shot.sh/ab_clip.sh mit TMPDIR im Arbeitsordner aufrufen.",
+  "Lackflackern weißer PKW weiter pausiert (A-21)."
+ ],
+ "look_verdict": "Ehrlich gegen Arcade.\n\nBesser:\n- S2: echtes Tankstellendach.\n- S4: Einfamilienhäuser jetzt rosa getönt wie Arcade, Hansehäuser und Kran in 3D.\n- Tunnel Valík bei Tag: das Portal hat Hügel und Bäume statt einer flachen Stirnwand.\n- Grenze nachts: warme Häuschenfenster mit Rahmen statt weißer Flächen; bei Tag (klein) Dach auf Stützen.\n- Köhlbrandbrücke bei Tag (klein): das Wasser ist sichtbar.\n- Clip Köhlbrandbrücke nachts im Regen: die nasse Fahrbahn spiegelt Laternen und Rücklichter; bei Arcade ist sie matt.\n\nGleich:\n- Bezugsstellen S1, S3, S5, C1, N1, N2, U1 und DEV, bei Hoch und Mittel; Deck S1, N2, U1, wobei Modern den 16:10-Schirm füllt.\n- Gotthard nachts, Valík innen, Köhlbrand nachts und die Augustusbrücke (Balustrade wie Arcade).\n- Start und Ziel, Hamburg Mitte und Kiel (12 und 22 Uhr), Nürnberg Altstadt, Tankstelle km 15 bei Tag und 21 Uhr.\n- Die Gotthard-Ausfahrt: weniger überstrahlt als bei Arcade, so gewollt.\n\nSchlechter:\n- Kurveninnenseiten in Bergetappen (T1–T4 und der Clip nach der Gotthard-Ausfahrt): Fichten und Felsen fehlen, wo Arcade welche zeigt. Das ist der größte Unterschied (A-17, kommt mit R7).\n- Lack der Limousine um 19:30 grau-lila statt kräftig blau.\n- Die Limousine wirkt im Tunnel dunkler.\n- Tankstelle nachts: unter dem Dach etwas dunkler (0,88 ×), die Dachleuchten sind kleine Punkte statt großer Flächen.\n\nFehlt:\n- Bewegung (Flackern, Springen) ist nur in den Clips beurteilbar; aus Einzelbildern nicht bewertet.\n- Auf einer echten GPU oder einem Steam Deck nichts gesehen; alles stammt von llvmpipe.",
+ "media": [
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/bericht.md – Bericht der Montage RINT-M2",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_boegen/uebersicht_hoch.jpg – Arcade | Modern, alle 14 Bezugsstellen, Voreinstellung Hoch",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_boegen/uebersicht_mittel.jpg – Arcade | Modern, alle 14 Bezugsstellen, Voreinstellung Mittel",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_boegen/uebersicht_deck.jpg – Arcade | Modern, Steam Deck: S1, N2, U1",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_boegen/T2_high_ab_00.jpg – Kuppe Kassel–Würzburg: links fehlen bei Modern die Bäume (Kurvenkorridor, schlechter)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_boegen/S4_high_ab_00.jpg – Stadtgrenze Hamburg: Einfamilienhäuser getönt wie Arcade (besser)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/gotthard_innen_22uhr.jpg – Gotthard innen 22 Uhr (gleich)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/tunnel_valik_einfahrt_12uhr.jpg – Kurzer Tunnel Valík, Einfahrt 12 Uhr: Portal mit Hügel (besser)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/tunnel_valik_innen_12uhr.jpg – Tunnel Valík innen 12 Uhr, überstrahlte Ausfahrt (gleich)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/tunnel_valik_einfahrt_22uhr.jpg – Tunnel Valík, Einfahrt 22 Uhr",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/tunnel_valik_innen_22uhr.jpg – Tunnel Valík innen 22 Uhr (gleich)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/koehlbrandbruecke_12uhr.jpg – Köhlbrandbrücke 12 Uhr, Wasser sichtbar (besser, klein)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/koehlbrandbruecke_22uhr.jpg – Köhlbrandbrücke 22 Uhr (gleich)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/steinbruecke_dresden_12uhr_a.jpg – Steinbrücke (Augustusbrücke) 12 Uhr, Balustrade wie Arcade",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/steinbruecke_dresden_12uhr_b.jpg – Steinbrücke 12 Uhr, zweites Bild",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/steinbruecke_dresden_22uhr_a.jpg – Steinbrücke 22 Uhr, warme Kandelaber",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/steinbruecke_dresden_22uhr_b.jpg – Steinbrücke 22 Uhr, zweites Bild",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/tankstelle_kiel_hamburg_km15_12uhr_a.jpg – Tankstelle Kiel–Hamburg km 15, 12 Uhr (gleich)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/tankstelle_kiel_hamburg_km15_12uhr_b.jpg – Tankstelle km 15, 12 Uhr, an den Zapfsäulen",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/tankstelle_kiel_hamburg_km15_21uhr_a.jpg – Tankstelle km 15, 21 Uhr: unter dem Dach etwas dunkler als Arcade",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/tankstelle_kiel_hamburg_km15_21uhr_b.jpg – Tankstelle km 15, 21 Uhr, Shop und Preistafel",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/grenze_niederlande_12uhr.jpg – Grenze Niederlande 12 Uhr, Dach auf Stützen (besser, klein)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/grenze_niederlande_22uhr.jpg – Grenze Niederlande 22 Uhr, warme Häuschenfenster (besser)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/start_kiel_hamburg.jpg – Start Kiel–Hamburg (gleich)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/ziel_kiel_hamburg.jpg – Ziel Kiel–Hamburg (gleich)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/hamburg_mitte_12uhr.jpg – Hamburg Mitte 12 Uhr (gleich)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/hamburg_mitte_19_30uhr.jpg – Hamburg Mitte 19:30, Lack der Limousine grau-lila (Wagen schlechter)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/hamburg_mitte_22uhr.jpg – Hamburg Mitte 22 Uhr (gleich)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/kiel_stadtrand_12uhr.jpg – Kiel Stadtrand 12 Uhr (gleich)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/kiel_stadtrand_19_30uhr.jpg – Kiel Stadtrand 19:30, Lack grau-lila (Wagen schlechter)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/kiel_stadtrand_22uhr.jpg – Kiel Stadtrand 22 Uhr (gleich)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/ab_weitere/nuernberg_altstadt_12uhr.jpg – Nürnberg Altstadt 12 Uhr (gleich)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/clips/koehlbrand_nacht_regen.mp4 – Clip 30 s: Köhlbrandbrücke nachts im Regen, Arcade | Modern",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/clips/gotthard_ausfahrt.mp4 – Clip 30 s: Gotthard-Ausfahrt und offene Strecke, Arcade | Modern",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/clips/koehlbrand_nacht_regen_bilder.jpg – Sechs Einzelbilder aus dem Köhlbrand-Clip",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/clips/gotthard_ausfahrt_bilder.jpg – Sechs Einzelbilder aus dem Gotthard-Clip",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/clips/gotthard_ausfahrt_portal.jpg – Vier Bilder um die Gotthard-Ausfahrt (3–5,2 s)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/bilder/n5_gruenstich_vorher_nachher.jpg – Notiz 5: Grünstich der ersten Tönung und behobener Stand",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/bilder/n5_toenung_hamburg_rand.jpg – Notiz 5: Tönung Arcade / vorher / jetzt am Hamburger Stadtrand",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/bilder/n5_gruenstich_kiel.jpg – Notiz 5: Grünstich bei Kiel vorher/nachher",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/bilder/n5_sonde_instanzdaten.jpg – Notiz 5: Sonde INSTANCE_CUSTOM mit/ohne Farbe und Custom-Daten",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/bilder/n3_N2_22uhr_regen_nasse_fahrbahn.jpg – Notiz 3: nasse Fahrbahn N2 22 Uhr Regen",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/bilder/goldens_modern_sechs.jpg – Die sechs Modern-Goldens, angesehen vor modern-make",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/bilder/lack_daemmerung_hamburg_19_30.jpg – Ausschnitt: Lack der Limousine um 19:30, Arcade blau, Modern grau-lila"
+ ]
+}

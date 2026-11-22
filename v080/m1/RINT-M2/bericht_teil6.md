@@ -13,14 +13,13 @@
   1,0 nicht sicher).
 - Determinismus: zwei AS5a-Modelle zweimal erzwungen exportiert und gebacken (nicht alle elf; AS5aR1 hat alle elf
   echt exportiert und zwei davon so geprüft).
-- Nach dem ersten Einfrieren (`1cd689d`) noch Code am Tankstellendach (`c72d484`, `b673df5`, `02051f7`, Notiz 8) und
-  eine Render-Prüfung (`ab2a400`). Die Goldens `6b17293` entstanden auf `c72d484`; die späteren Schritte ändern keinen
-  Entscheid (Sonde über das ganze Netz, 1909 Dächer, 0 verschieden) – `modern-check` auf dem Endstand: @@MC2@@.
-  Run_tests Lauf 2 und Builds liefen auf dem Endstand, die Render-Prüfungen auf `b673df5` (`02051f7` ändert nur, woher
-  die Schilder gelesen werden; `test_structures` und die Strukturprüfung danach erneut: @@STRUCT@@).
-- Notiz 8: Ziel 2 ms im Höchstwert um 0,4 ms verfehlt (2,40 ms, Mittel 0,14) – das Sammeln der Strecke bleibt im
-  Hauptfaden (Track nicht fadensicher), der Entscheid läuft auf dem Arbeitsfaden.
-
+- Nach dem ersten Einfrieren (`1cd689d`) noch Code am Tankstellendach (`c72d484`, `b673df5`, `02051f7`, `b903797`,
+  `9b02f05`, Notiz 8) und eine Render-Prüfung (`ab2a400`). Die Goldens `6b17293` entstanden auf `c72d484`; die
+  späteren Schritte ändern keinen Entscheid (Sonde über das ganze Netz, 1909 Dächer, 0 verschieden) – `modern-check`
+  auf dem Endstand: 6 von 6 identisch, GLES OK. Run_tests Lauf 2, Builds und Rauchtest liefen auf dem Endstand, die Render-Prüfungen
+  auf `b673df5`, die Strukturprüfungen auf dem Endstand erneut: 7 von 7 OK.
+- Notiz 8: „≤ 2 ms“ ist in einem Messlauf auf einer belasteten VM erfüllt (1,36 ms); Höchstwerte streuen dort stark
+  (Requisiten 0,12–4,19 ms in vier Läufen ohne Änderung) – auf dem Gerät nicht gemessen.
 - **Regelverstoß, selbst gefunden (14:00 Uhr):** mein Hilfsskript für einzelne Render-Prüfungen (`sh/rc_snap.sh`)
   legte zwar einen eigenen Ordner an, exportierte aber `XDG_DATA_HOME` nicht. Rund 20 Läufe (Bremsschein, Laternen, Budget, Wald, Stadt,
   Strukturen, Requisiten; 06:16–13:57 Uhr) liefen deshalb mit dem echten Benutzerordner

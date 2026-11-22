@@ -1,0 +1,2 @@
+hh_nacht_regen|10|--stage=kiel_hamburg --from=kiel --vehicle=limousine --seed=11 --autopilot --autopilot-refuel=never --traffic-warmup --no-countdown --start-km=87.6 --hour=22 --weather=rain --start-speed=60
+valik_morgen_schnee|10|--stage=prag_nuernberg --from=prag --vehicle=sportwagen --seed=22 --autopilot --autopilot-refuel=never --traffic-warmup --no-countdown --start-km=87.3 --hour=8 --weather=snow --start-speed=80

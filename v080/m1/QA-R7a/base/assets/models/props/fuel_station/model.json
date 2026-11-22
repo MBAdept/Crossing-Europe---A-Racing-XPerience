@@ -1,0 +1,92 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/fuel_station",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 31, "height_m": 7, "length_m": 12},
+  "extent_m": {"left": 9.94, "right": 18.69},
+  "aabb": [-9.8, 0, -12.2, 19.7, 7, -1.2],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 1480,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/fuel_station/lod0_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "lights": [
+   {
+    "role": "lights",
+    "pos": [-4.6, 4.89, -8.3667],
+    "dir": [0, -1, 0],
+    "size": 1.236,
+    "color": "#fff0cf"
+   },
+   {
+    "role": "lights",
+    "pos": [-4.6, 4.89, -3.3667],
+    "dir": [0, -1, 0],
+    "size": 1.236,
+    "color": "#fff0cf"
+   },
+   {
+    "role": "lights",
+    "pos": [-3.8, 4.89, -8.0333],
+    "dir": [0, -1, 0],
+    "size": 1.236,
+    "color": "#fff0cf"
+   },
+   {
+    "role": "lights",
+    "pos": [-3.8, 4.89, -3.0333],
+    "dir": [0, -1, 0],
+    "size": 1.236,
+    "color": "#fff0cf"
+   },
+   {
+    "role": "lights",
+    "pos": [3.8, 4.89, -8.3667],
+    "dir": [0, -1, 0],
+    "size": 1.236,
+    "color": "#fff0cf"
+   },
+   {
+    "role": "lights",
+    "pos": [3.8, 4.89, -3.3667],
+    "dir": [0, -1, 0],
+    "size": 1.236,
+    "color": "#fff0cf"
+   },
+   {
+    "role": "lights",
+    "pos": [4.6, 4.89, -8.0333],
+    "dir": [0, -1, 0],
+    "size": 1.236,
+    "color": "#fff0cf"
+   },
+   {
+    "role": "lights",
+    "pos": [4.6, 4.89, -3.0333],
+    "dir": [0, -1, 0],
+    "size": 1.236,
+    "color": "#fff0cf"
+   }
+  ],
+  "textures": {"albedo": "props/fuel_station/albedo.png", "emit": "props/fuel_station/emit.png"},
+  "roughness": 0.6,
+  "auto_lod": false,
+  "tags": ["prop", "fuel", "wide"],
+  "bytes": 267630,
+  "hash": "d1b16558edcb169abb5e6292c5b22e6eba09b1ef"
+ },
+ "sets": {
+  "props/fuel_station": {"model": "props/fuel_station"}
+ }
+}

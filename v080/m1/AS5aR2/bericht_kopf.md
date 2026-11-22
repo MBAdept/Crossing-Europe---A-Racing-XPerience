@@ -6,6 +6,9 @@
   `french`, `paris`, `swiss`) – jeder selbst nachgeprüft, die bestätigten hohen und mittleren behoben, die billigen
   niedrigen auch. Weil zwei Korrekturen in Formeln liegen, die beide Chargen teilen (Ladenlicht, Fernfenster), sind
   alle **23** Stadthäuser neu exportiert (Charge 1: `german`, `german_old`, `hanse`).
+- Ablauf: der erste Lauf baute, exportierte und prüfte alles bis 047e10f (16.11.); nach einem Neustart der Maschine
+  hat ein Nachfolger-Lauf (22.11.) die zwei Modern-Bilder angesehen, `modern-make` übernommen (89ccc33), die Ursache
+  von K2 gemessen (Abschnitt 4, Doku 216ac5c) und diesen Bericht abgeschlossen.
 - **gemessen** = auf dieser VM (Mesa llvmpipe unter Xvfb, Godot 4.7.2, Renn-Licht bzw. das Rennen selbst);
   **angesehen** = Urteil nach Bildern; **gefolgert** = hier nicht messbar (echte Grafikkarte, Steam Deck, Wirkung auf
   einen Menschen) oder gerechnet.

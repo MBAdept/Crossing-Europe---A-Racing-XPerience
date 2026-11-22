@@ -1,0 +1,17 @@
+v0.8.0 RINT-M2: Tankstellendach – 1200 m Vorlauf, collect() höchstens 1,36 ms (A-18)
+
+Mit warm_step() erzeugt das Vorwärmen die Strecke nur noch in Stücken; der
+Vorlauf WARM_AHEAD_M darf darum 1200 statt 600 m sein (die 18-ms-Spitze bei
+2000 m kam vom Erzeugen auf einmal). So bleiben genug Aufrufe, bis das Stück
+eines Dachs gebraucht wird – mit 600 m und 0,7 ms je Aufruf war ein Dach zu
+spät (8,7 ms).
+
+Gemessen (Testetappe ganz, „Steam Deck“, llvmpipe, neben AS5a2; Kopie mit
+Ausgaben im Bedarfsfall): collect() der Tankstelle höchstens 1,36 ms,
+Mittel 0,11 (vorher 2,08 / 0,12, davor 2,40 / 0,14); alle neun Dächer beim
+Stück gesammelt und entschieden, Rest dort 0,02–0,18 ms, keines inline. Alle
+Bausteine in diesem Lauf höchstens 1,36 ms. Sonde jobpath 1909 Dächer,
+0 verschieden; test_structures 14/14. Doku §17.5, §17.9.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

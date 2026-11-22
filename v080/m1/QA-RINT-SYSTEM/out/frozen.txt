@@ -1,0 +1,6 @@
+main = e3505e2  head = 9b02f05
+--- diff --stat main HEAD -- frozen (empty = unchanged):
+--- working tree vs HEAD for frozen:
+head files: 462  main files: 462
+--- diff --stat 515dd51 HEAD frozen:
+done

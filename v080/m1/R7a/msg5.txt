@@ -1,0 +1,9 @@
+v0.8.0 R7a (WIP): Grenzdach – Pfeiler gegen die genaue Hülle der Sichtlinien (A-18)
+
+pillar_in_sight(): ein Pfeiler fällt nur, wenn seine Fläche zur Straße in der
+Hülle der wirklichen Sichtlinien steht; netzweit hängen statt 4 nur noch 3
+Dächer an Masten (Belgrad - Sofia km 340 steht wieder auf vier Pfeilern).
+Test der Testetappe prüft gegen dieselbe Hülle.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

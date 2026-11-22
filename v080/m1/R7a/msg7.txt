@@ -1,0 +1,4 @@
+v0.8.0 R7a: UID des Einheitstests Sichtkorridor
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

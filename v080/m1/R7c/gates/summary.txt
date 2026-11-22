@@ -1,0 +1,12 @@
+19:09 check_lod_band exit 1 RENDER-CHECK lod_ueberblenden   FEHLER  city_german_old_barock bei 34 m: größte Änderung je 0,5 m hart 7.1 %, mit Band 9.3 %; Deckung im Band −0.0 % (68706 px)  –  FEHLT: Überblenden: größter Schritt 9.3 % gegen hart 7.1 % RENDER-CHECK lod_baum           OK      tree_oak bei 150 m: größte Änderung je 0,5 m hart 36.6 %, mit Band 1.1 %; Deckung im Band −0.0 % (855 px) RENDER-CHECKS FEHLER  (1 fehlgeschlagen) 
+19:11 far078 fertig
+19:14 cutout CUTOUT-COST props/city_paris_haussmann { "cutout": [845.7, 877.6], "opaque": [480.3, 401.5] } CUTOUT-COST props/city_french_sud { "cutout": [681.4, 669.9], "opaque": [285.7, 274.4] } 
+20:41 pics 20 Läufe, 20 sauber
+20:58 basepics 4 Läufe
+21:17 wald AB wald medium h22 exit 0 Fehlerzeilen 0 216 s 21:13 AB wald medium h12 exit 0 Fehlerzeilen 0 221 s 21:17 
+21:17 queue fertig: wald
+21:17 queue fertig: lodcheck far078 (Rest wald)
+21:18 check_lod_band exit 0 RENDER-CHECK lod_ueberblenden   OK      city_german_old_barock bei 34 m: größte Änderung je 0,5 m hart 7.1 %, mit Band 0.6 %; Deckung im Band −0.0 % (68706 px) RENDER-CHECK lod_baum           OK      tree_oak bei 150 m: größte Änderung je 0,5 m hart 36.6 %, mit Band 1.1 %; Deckung im Band −0.0 % (855 px) RENDER-CHECKS OK  (0 fehlgeschlagen) 
+21:34 run_tests exit 0 – 808 Tests, 0 fehlgeschlagen – 150 CHECK OK, 0 CHECK FEHLER
+21:41 golden check exit 0 – GOLDEN arcade: 20 von 20 identisch (180 s) GOLDEN arcade-ui: 17 von 17 identisch (210 s) 
+21:55 modern-check exit 1 – GOLDEN modern: 0 von 6 identisch (665 s) GOLDEN modern-gles: modern_s3_hoch OpenGL ES gegen OpenGL: OK max. Abweichung 2/255, PSNR 73.2 dB, 8552 Pixel verschieden (191 s) 

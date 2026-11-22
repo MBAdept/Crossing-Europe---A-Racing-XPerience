@@ -1,0 +1,11 @@
+v0.8.0 R7c: Merge wip/v080-as5ar2 (Stadthäuser Charge 2 und Neuexport aller 23)
+
+Stadthäuser dutch/belgian/french/paris/swiss (AS5a2) und die Nacharbeit
+AS5aR2 auf RINT-M2 (9b02f05). Manifest neu erzeugt (--manifest-only,
+110 Modelle, 183 Sets), validate_models: CHECK models OK.
+Konflikt in tests/golden/modern_slice.{env,md5}: Stand der Basis behalten;
+die Modern-Goldens werden nach Ansicht der Bilder in einem eigenen Commit
+erneuert.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
