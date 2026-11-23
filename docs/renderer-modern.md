@@ -267,6 +267,7 @@ dazu `seg_len`, `lane_w`, `shoulder_w`, `length_z`, `cfg`, `scenery_db`, `levels
 | `shoulder_edge(reihe, seite)`, `ring_offset(…)`, `ring_height(…)`, `ribbon_width(z, seite)` | Bankettkante ab Mitte, Ringe, Breite des Bands |
 | `in_corridor(z, x)` | liegt im Sichtkorridor (kein Boden über der Fahrbahn) |
 | `in_bend_corridor(z, x)` | liegt im Sichtkorridor einer Kurveninnenseite – dort steht keine schmückende Vegetation |
+| `in_sight_envelope(z, x, reach, half_len)`, `bend_intrusion(…)` | liegt ein Teil des Fußabdrucks in der genauen Hülle der Sichtlinien (A-17) / wie tief (m, quer zur Straße; negativ = draußen) – FIX-R7a, 5.3 |
 
 Eine Requisite auf dem Boden: `ctx.frame(z, x, ctx.ground(z, x))`.
 
@@ -384,7 +385,9 @@ schnellsten fahrbaren Geschwindigkeit am Wagen, genau wie `fairness.speed_profil
 trocken, Regen und Schnee – der Korridor hängt also nicht vom Wetter des Rennens ab. Wo eine Sichtlinie die Straße
 verlässt, ist der Korridor diese Hülle, mindestens aber der schlichte Streifen + 0,55 m (`BEND_FLOOR_M`: so zählt
 `ChunkContext.in_bend_corridor()` ihn als Kurvenkorridor); sonst der schlichte Streifen `corridor_min_m` (8 m ab
-Fahrbahnrand). Engste Kurve des Netzes: 83,6 m.
+Fahrbahnrand). Engste Kurve des Netzes: 83,6 m. Die Hülle selbst, ohne diese Mindestbreite, liefert
+`envelope_width(k, seite)` (0, wo keine Sichtlinie die Straße verlässt; `rows()["envelope"]`) – sie prüfen der
+Stadtzaun, der Fußabdruck der Requisiten (unten) und die Grenzpfeiler (FIX-R7a).
 
 - **Verfahren** (`scripts/race3d/sight_corridor.gd`): eine Kamera auf jeder Reihe, auf der äußersten Spurmitte links
   und rechts (die Sichtlinien der Spuren dazwischen liegen in deren konvexer Hülle; rechts gilt die Mitte der Tankspur,
@@ -408,34 +411,59 @@ Fahrbahnrand). Engste Kurve des Netzes: 83,6 m.
   Band 74 m). Eine Gerade vor der Kurve ist frei, soweit
   keine Sichtlinie in die Kurve über sie läuft (mehr als eine Sehne L vor der Kurve immer).
 - **Rechnung**: faul und schrittweise, wenn Reihen gelesen werden (`ensure()`), jede Kamera einmal je Etappe; dazu
-  rechnet der Streamer in Bildern ohne Sammeln und Festschreiben höchstens 0,25 ms (und mindestens eine Kamera) voraus
-  (`TerrainProfile.warm()`), bis zwei Stücke über `landmark_path_m` hinaus (die fernen Wahrzeichen lesen das Gelände
-  ihrer Reihe so weit voraus); beim Laden diese ganze Strecke auf einmal, und solange der Korridor hinter dem liegt,
-  was das nächste Sammeln braucht, bis 2 ms je Bild – ein gesammeltes Stück findet seine Reihen fertig vor.
-  `perf_stats()` zeigt, was trotzdem im Hauptthread nachgerechnet wird (`corridor_sync_ms_max`, `_sum`, `_calls`;
-  bei Zeitraffer 40 – 1,3 s Fahrt je Bild – unvermeidlich, bei Zeitraffer 4 nach dem Laden kein Aufruf, gemessen). Ein Start mitten in der Etappe kennt die Kameras vor dem ersten Pfadpunkt (150–246 m hinter der
+  rechnet der Streamer voraus (`TerrainProfile.warm()`), bis zwei Stücke über `landmark_path_m` hinaus (die fernen
+  Wahrzeichen lesen das Gelände ihrer Reihe so weit voraus) – in Bildern, die nichts sammeln und in denen die
+  Festschreibe-Schleife nichts zu tun hat (`_commit_pending()` entscheidet vor der Schleife: kein Bau fertig, kein
+  Stück halb festgeschrieben – so auch, wenn Stücke in Schritten über mehrere Bilder festgeschrieben werden), höchstens
+  0,25 ms je Bild; beim Laden diese ganze Strecke auf einmal, und solange der Korridor hinter dem liegt, was das nächste
+  Sammeln braucht, bis 2 ms je Bild – ein gesammeltes Stück findet seine Reihen fertig vor. `warm()` arbeitet in
+  Schritten und hört vor dem Schritt auf, der die Frist überschritte: ein Block Geometrie (etwa 0,25 ms je 32 Kameras)
+  und ein Block F2-Bedarf (etwa 0,16 ms) sind je ein eigener Schritt und nur der erste eines Aufrufs, ein Fächer
+  (0,03–0,06 ms) nur, solange sein laufendes Mittel noch passt (FIX-R7a, gemessen mit 0,25 ms Frist: Mittel 0,21 statt
+  0,31 ms, p99 0,29–0,39 statt 0,50–0,67 ms). `perf_stats()` zeigt unter `streamer.corridor` die Zeit des Vorrechnens
+  (`warm_ms_avg`, `_max`, `warm_calls`) und was trotzdem im Hauptthread nachgerechnet wird (`sync_ms_max`, `_sum`,
+  `sync_calls`); `reset_stats()` setzt beides zurück, die Werte nach dem Laden zeigen also die Fahrt (bei Zeitraffer 40
+  – 1,3 s Fahrt je Bild – ist Nachrechnen unvermeidlich, bei Zeitraffer 4 nach dem Laden kein Aufruf, gemessen). Ein Start mitten in der Etappe kennt die Kameras vor dem ersten Pfadpunkt (150–246 m hinter der
   Kamera) nicht: an den 13 Bildstellen sind die Reihen ab der Kamera an 11 Stellen gleich, an zweien weichen 4 bzw. 8
   Reihenseiten direkt an der Kamera um höchstens 0,56 m ab (gemessen).
 
 Im Korridor liegt der Boden nie über der Fahrbahn: Relief bekommt ein Ring nur, wenn schon sein **innerer Nachbar**
 außerhalb des Korridors liegt – damit ist auch die gerade Linie zwischen zwei Ringen im Korridor nie über null.
 `ChunkContext.in_bend_corridor()` sagt dem Requisiten-Builder, wo nichts über 0,5 m stehen darf (Bodendecker füllen
-den Korridor), der Stadt-Builder lässt dort Zaun-, Hecken- und Mauerstücke weg (ein Stück, sobald seine Mitte oder eines
-seiner Enden darin liegt), der Grenz-Builder prüft seine Pfeiler gegen die genaue Hülle (`pillar_in_sight()`).
+den Korridor); der Stadt-Builder lässt Zaun-, Hecken- und Mauerstücke weg, sobald ihre Mitte oder eines ihrer Enden in
+der **genauen** Hülle liegt (`in_sight_envelope()`, Rand 0,3 m für Abdeckung und Pfeiler – FIX-R7a, Befund QR7a-05:
+die Mindestbreite am Kurvenende ließ Stücke weg, die in keiner Sichtlinie stehen); der Grenz-Builder prüft seine
+Pfeiler gegen dieselbe genaue Hülle (`pillar_in_sight()`).
 Gemessen im ganzen Netz (128 Etappenrichtungen, gleiche Strecken, Sonde des Pakets R7a): von 203.367 Requisiten im
 Band ließ das alte Band 37.368 im Kurvenkorridor weg (18,4 %), die Hülle 14.342 (7,1 %) – 23.026 kommen zurück
 (16.947 Bäume, 2.947 Pflanzen, 952 Felsen, 1.944 Häuser, davon 1.878 in Städten), keines fällt neu weg. Stadtzäune:
-Arcade zeichnet 79.662 Stücke, das alte Band ließ 64,3 % stehen, die Hülle 75,3 %. Grenzdächer: von 48 hängen 3 an
-Masten (vorher 4; Belgrad – Sofia km 340 steht wieder auf vier Pfeilern).
+Arcade zeichnet 79.662 Stücke, das alte Band ließ 64,3 % stehen, die Hülle 75,3 %, die genaue Hülle 75,9 % (60.473,
+FIX-R7a, echte Bauten). Grenzdächer: von 48 hängen 3 an Masten (vorher 4; Belgrad – Sofia km 340 steht wieder auf vier
+Pfeilern).
 
-**Fußabdruck (offen für den Requisiten-Builder):** `in_bend_corridor(z, x)` prüft nur den Fuß; der Requisiten-Builder
-gibt den Anker (bei `align: edge` die Vorderkante plus die Ausdehnung des Modells). Gemessen (128 Richtungen,
-`probe/intrude.gd` von R7a): Requisiten über 0,5 m, deren Fuß außerhalb der Hülle steht, deren Vorderkante oder Krone
-aber hineinreicht – mit dem alten Band 1.124, mit der Hülle 5.832 (3.654 Bäume, 1.496 Stadthäuser, bis 19 m tief).
-Dafür hat `in_bend_corridor(z, x, reach, half_len)` zwei optionale Argumente: `reach` = wie weit das Objekt vom Fuß
-zur Straße reicht (Vorderkante, Kronenradius), `half_len` = halbe Länge längs der Straße. Mit ihnen blieben 269
-(nur nicht weglassbare Objekte: gesetzte Gebäude, Windräder), zurück kämen 15.954 statt 22.432, und 1.223 Stücke, die
-die Basis zeichnet, fielen weg. Der Aufruf gehört dem Besitzer von `builders/props.gd` (R7c).
+**Fußabdruck (FIX-R7a, Befund QR7a-01 von QA-R7a):** `in_bend_corridor(z, x)` prüft nur den Fuß, und der
+Requisiten-Builder gibt nur ihn (bei `align: edge` den Anker = Vorderkante plus Ausdehnung). Mit der schmaleren
+wirklichen Hülle stehen zurückgekehrte Requisiten genau an ihrem Rand – Fuß draußen, Krone oder Fassade drin: gemessen
+an echten Bauten (128 Richtungen) 5.630 Requisiten über 0,5 m (3.604 Bäume bis 12 m tief, 1.563 Stadthäuser bis 19 m;
+Basis 974) – das strenge Lesen von A-17 hält so nicht. Der Kern bietet dafür:
+- `ChunkContext.in_sight_envelope(z, x, reach, half_len)` – liegt ein Teil des Fußabdrucks in der genauen Hülle;
+  `reach` = wie weit das Objekt vom Fuß zur Straße reicht (Kronenradius, Anker bis Vorderkante), `half_len` = halbe
+  Länge längs der Straße (abgetastet je halbe Reihe; zwischen zwei Reihen zählt die größere Hülle der beiden);
+- `ChunkContext.bend_intrusion(…)` – wie tief der Abdruck quer zur Straße hineinreicht (negativ: draußen): um so viel
+  hinausgeschoben steht er draußen;
+- der Schnappschuss hält die Hülle 8 Reihen über beide Enden des Stücks hinaus (`ENV_MARGIN`), ein Abdruck am Ende
+  eines Stücks reicht in die Reihen des Nachbarn.
+
+Der Aufruf gehört dem Besitzer von `builders/props.gd` (R7c); FIX-R7a übergibt ihn als Änderung (Bericht FIX-R7a,
+`notes_for_next`): `drop_reason()` prüft den Abdruck gegen die genaue Hülle, und vorher schiebt `push_out()` eine
+Requisite, deren Fuß draußen steht und deren Abdruck hineinreicht, um die Tiefe + 0,3 m hinaus (höchstens 6 m; tiefer
+oder dann jenseits des Bands: weggelassen). Gemessen an echten Bauten (128 Richtungen, Kopie mit der Änderung): 217.517
+Requisiten gezeichnet; gegen die Basis 23.540 zurück und 191 neu weg (180 Stadthäuser, die tiefer als 6 m hineinragen),
+gegen R7a 1.708 zurück (Bäume, Pflanzen, Felsen: die genaue Hülle statt der Mindestbreite) und 794 weg (548
+Stadthäuser); kein Baum, keine Pflanze, kein Fels mehr mit dem Abdruck in der Hülle. Netzprüfung
+`tests/race3d/props_footprint.gd` (`--full`: alle 128 Richtungen): 0 Requisiten über 0,5 m mit dem Abdruck in der
+Hülle mit der Änderung, 5.6xx ohne – sie ist noch keine Gate-Datei (ihr Name beginnt nicht mit `check_`) und wird nach
+dem Einbau der Änderung in `check_props_footprint.gd` umbenannt.
 
 ### 5.4 Konfiguration `graphics.modern.terrain`
 
