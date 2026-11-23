@@ -97,6 +97,7 @@ var _static_count := 0
 var _ranked: Array = []             ## the nearest lamps: [parent, entry], re-ranked when the camera enters a new segment
 var _rank_seg := -1
 var _reflector_count := 0
+var _viewport_h := -1.0              ## picture height last handed to the glints' material (sync_viewport())
 var _pool_pos := PackedVector4Array()
 var _pool_col := PackedVector4Array()
 var _pool_dir := PackedVector4Array()
@@ -292,7 +293,19 @@ func release_under(root: Node) -> void:
 			store.remove_at(i)
 
 
+## RINT-M3 (lead note 8): the height of the picture for the glints' minimum size in pixels (reflector.gdshader
+## viewport_h – VIEWPORT_SIZE reads 0 in the vertex stage of the Compatibility renderer); set when it changes.
+func sync_viewport() -> void:
+	if _glints == null or not is_inside_tree():
+		return
+	var h := get_viewport().get_visible_rect().size.y
+	if h > 0.0 and h != _viewport_h:
+		_viewport_h = h
+		(_glints.material_override as ShaderMaterial).set_shader_parameter(&"viewport_h", h)
+
+
 func update(view: Dictionary, _dt: float) -> void:
+	sync_viewport()
 	if _renderer == null:
 		return
 	var pal: Dictionary = view.get("palette", {})

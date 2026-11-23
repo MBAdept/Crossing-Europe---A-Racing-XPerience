@@ -11,6 +11,7 @@ render_mode unshaded, blend_add, depth_draw_never, cull_disabled, shadows_disabl
 
 uniform float min_px = 2.4;
 uniform float core = 0.22;        // radius of the bright core as a part of the glow
+uniform float viewport_h = 720.0; // height of the picture in pixels (set by layers/lights.gd)
 
 varying vec2 v_p;
 varying vec4 v_col;
@@ -18,8 +19,12 @@ varying vec4 v_col;
 void vertex() {
 	vec3 centre = (MODELVIEW_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
 	float dist = max(-centre.z, 0.5);
-	float px_per_m = PROJECTION_MATRIX[1][1] * 0.5 * VIEWPORT_SIZE.y / dist;
-	float radius_m = max(length(MODEL_MATRIX[0].xyz), min_px * (VIEWPORT_SIZE.y / 720.0) / px_per_m);
+	// RINT-M3 (lead note 8, the bug FIX-R7b found in the landmark glow): in the Compatibility renderer the projection's
+	// y scale is NEGATIVE in the vertex stage (the scene is drawn upside down into its buffer) and VIEWPORT_SIZE reads 0
+	// there – with the signed value the minimum never applied (a reflector at 400 m was a sub-pixel speck, render check
+	// check_reflector_glint): abs() and the picture height from the layer
+	float px_per_m = abs(PROJECTION_MATRIX[1][1]) * 0.5 * viewport_h / dist;
+	float radius_m = max(length(MODEL_MATRIX[0].xyz), min_px * (viewport_h / 720.0) / max(px_per_m, 1.0e-4));
 	v_p = VERTEX.xy * 2.0;
 	v_col = COLOR;
 	POSITION = PROJECTION_MATRIX * vec4(centre + vec3(v_p * radius_m, 0.0), 1.0);
