@@ -180,10 +180,91 @@ func test_context_snapshot() -> void:
 	var cb := ChunkContext.new()
 	cb.capture(4, 128, 160, pb, tpb, tb)
 	var eb := tpb.edge(140, 1)
-	assert_true(cb.in_bend_corridor(420.0, eb + 20.0), "Kurveninnenseite: 20 m neben dem Bankett liegt im Kurvenkorridor")
-	assert_false(cb.in_bend_corridor(420.0, -(eb + 20.0)), "Kurvenaußenseite nicht")
+	var cwb := tpb.corridor_width(140, 1)
+	assert_true(cwb > cb.corridor_min + 0.5, "Kurveninnenseite: die Sichtlinien verlassen die Straße (%.1f m)" % cwb)
+	assert_true(cb.in_bend_corridor(420.0, eb + cwb * 0.5), "Kurveninnenseite: die halbe Korridorbreite neben dem Bankett liegt im Kurvenkorridor")
+	assert_false(cb.in_bend_corridor(420.0, -(eb + cwb * 0.5)), "Kurvenaußenseite nicht")
 	assert_false(cb.in_bend_corridor(420.0, 0.0), "die Fahrbahn selbst zählt nicht")
 	assert_false(cb.in_bend_corridor(420.0, eb + tpb.corridor_width(140, 1) + 5.0), "jenseits des Korridors nicht")
+	# a footprint larger than its foot (R7a): the near edge or a crown reaching in counts, along the road too
+	var far := eb + cwb + 5.0
+	assert_false(cb.in_bend_corridor(420.0, far, 4.0), "Fuß 5 m jenseits, Reichweite 4 m: nicht im Korridor")
+	assert_true(cb.in_bend_corridor(420.0, far, 6.0), "Fuß 5 m jenseits, Reichweite 6 m: die Vorderkante reicht hinein")
+	assert_true(cb.in_bend_corridor(420.0, far, far + 50.0), "Reichweite über das Bankett hinaus: zählt")
+	assert_false(cb.in_bend_corridor(420.0, -(eb + 2.0), 30.0), "Kurvenaußenseite auch mit Reichweite nicht")
+	assert_false(cb.in_bend_corridor(420.0, 1.0, 3.0), "Fuß auf der Fahrbahn: kein Kurvenkorridor-Fall")
+	# FIX-R7a (QR7a-01): the exact envelope and how deep a footprint reaches into it – moving the object that much
+	# farther out clears it
+	var envb := tpb.envelope_width(140, 1)
+	assert_near(envb, cwb, 1.0e-4, "Bogenmitte: Hülle = Korridor des Geländes (%.2f m)" % envb)
+	assert_true(cb.in_sight_envelope(420.0, eb + envb * 0.5), "Bogenmitte: die halbe Hülle liegt in der Hülle")
+	assert_false(cb.in_sight_envelope(420.0, -(eb + envb * 0.5)), "Kurvenaußenseite nicht")
+	assert_near(cb.bend_intrusion(420.0, far, 6.0), 1.0, 1.0e-3, "Reichweite 6 m bei 5 m Abstand: 1 m tief")
+	assert_true(cb.bend_intrusion(420.0, far, 4.0) < 0.0, "Reichweite 4 m: draußen")
+	assert_near(cb.bend_intrusion(420.0, far, 4.0), -1.0, 1.0e-3, "… und zwar 1 m")
+	var deep := cb.bend_intrusion(420.0, eb + 3.0, 2.0, 4.0)
+	assert_true(deep > 0.0 and not cb.in_sight_envelope(420.0, eb + 3.0 + deep + 0.01, 2.0, 4.0), \
+		"um die Tiefe (%.2f m) + 1 cm hinausgeschoben steht der Abdruck draußen" % deep)
+	assert_true(cb.bend_intrusion(420.0, -(eb + 2.0), 30.0) < 0.0, "Kurvenaußenseite: keine Tiefe")
+	assert_true(cb.bend_intrusion(420.0, 1.0, 3.0) < 0.0, "Fuß auf der Fahrbahn: keine Tiefe")
+	# along the road: just behind the end of a short bend's corridor (straight – arc – straight)
+	var ts: Track = SynTrack.new()
+	ts.fill(cfg(), SynTrack.join([SynTrack.straight(150), SynTrack.arc(60, 150.0), SynTrack.straight(250)]))
+	var ps := RoadPath3D.new()
+	ps.setup(ts, 0, 120.0)
+	var tps := TerrainProfile.new()
+	tps.setup(ps, ts, {}, {})
+	var cmin := maxf(0.0, tps.corridor_min_m - ts.shoulder_w)
+	var r_end := -1
+	var r_any := -1
+	for k in range(150, 440):
+		if tps.corridor_width(k, 1) > cmin + 0.5:
+			r_end = k
+		if tps.envelope_width(k, 1) > 0.0:
+			r_any = k
+	assert_true(r_end > 210 and r_end < 420, "der Korridor des kurzen Bogens endet auf der Geraden danach (Reihe %d)" % r_end)
+	var cs := ChunkContext.new()
+	cs.capture(9, r_end - 16, r_end + 16, ps, tps, ts)
+	var zb := float(r_end + 3) * 3.0
+	var xb := tps.edge(r_end + 3, 1) + 1.0
+	assert_false(cs.in_bend_corridor(zb, xb), "9 m hinter dem Korridorende: der Fuß allein nicht")
+	assert_true(cs.in_bend_corridor(zb, xb, 0.0, 12.0), "mit halber Länge 12 m reicht das Objekt in den Korridor zurück")
+	assert_false(cs.in_bend_corridor(zb, xb, 0.0, 6.0), "mit halber Länge 6 m nicht")
+	# FIX-R7a (QR7a-05): where a sight line just leaves the road the terrain's corridor keeps the plain strip + 0.55 m
+	# free; the exact envelope only what the sight lines reach (city fence pieces a little farther out stand again)
+	var ra := r_any
+	assert_true(ra > 210 and ra <= r_end + 1, "die Hülle endet mit dem Korridor (Reihe %d, Korridor %d)" % [ra, r_end])
+	var cz := ChunkContext.new()
+	cz.capture(10, ra - 16, ra + 16, ps, tps, ts)
+	var za := float(ra) * 3.0
+	var envz := tps.envelope_width(ra, 1)
+	assert_true(tps.corridor_width(ra, 1) >= cmin + 0.5, "Korridor des Geländes am Ende der Hülle: Streifen + 0,55 m")
+	assert_true(envz > 0.0 and envz < cmin, "die Hülle selbst ist dort schmaler als der Streifen (%.2f m)" % envz)
+	assert_true(cz.in_bend_corridor(za, tps.edge(ra, 1) + envz + 1.0), "1 m jenseits der Hülle: im Korridor des Geländes …")
+	assert_false(cz.in_sight_envelope(za, tps.edge(ra, 1) + envz + 1.0), "… aber in keiner Sichtlinie")
+	assert_true(cz.in_sight_envelope(za, tps.edge(ra, 1) + envz * 0.5), "in der Hülle: nicht frei")
+	# a footprint at the end of a chunk reaches into the next chunk's rows: the snapshot holds ENV_MARGIN rows more,
+	# so an object near either end of its chunk gets the answer of a context around it – here where the envelope runs
+	# out, at a chunk boundary 4 rows before its end
+	var cl := ChunkContext.new()
+	cl.capture(11, ra - 36, ra - 4, ps, tps, ts)
+	var cr := ChunkContext.new()
+	cr.capture(12, ra - 4, ra + 28, ps, tps, ts)
+	var cw2 := ChunkContext.new()
+	cw2.capture(13, ra - 20, ra + 12, ps, tps, ts)
+	assert_true(tps.envelope_width(ra - 12, 1) > tps.envelope_width(ra - 4, 1) + 0.5, "die Hülle ändert sich an der Stückgrenze (%.2f / %.2f m)" % [
+		tps.envelope_width(ra - 12, 1), tps.envelope_width(ra - 4, 1)])
+	var xq := tps.edge(ra - 4, 1) + 2.5
+	for zq: float in [float(ra - 6) * 3.0, float(ra - 5) * 3.0 + 1.0, float(ra - 4) * 3.0 - 0.5, float(ra - 4) * 3.0, float(ra - 3) * 3.0,
+			float(ra - 2) * 3.0 + 2.0]:
+		var own := cl if zq < float(ra - 4) * 3.0 else cr
+		var d := own.bend_intrusion(zq, xq, 1.0, 14.0)
+		var ref := cw2.bend_intrusion(zq, xq, 1.0, 14.0)
+		assert_near(d, ref, 1.0e-4, "Stückgrenze, z %.1f: das eigene Stück wie ein Stück darum (%.3f / %.3f m)" % [zq, d, ref])
+	var zc := float(ra + 3) * 3.0
+	var xc := tps.edge(ra + 3, 1) + 0.5
+	assert_false(cz.in_sight_envelope(zc, xc), "9 m hinter dem Ende der Hülle: frei")
+	assert_true(cz.in_sight_envelope(zc, xc, 0.0, 12.0), "mit halber Länge 12 m reicht das Objekt in die Hülle zurück")
 	# plain track values for the worker thread
 	assert_near(ctx.seg_len, 3.0, 1.0e-6, "seg_len")
 	assert_near(ctx.lane_w, t.lane_w, 1.0e-6, "lane_w")

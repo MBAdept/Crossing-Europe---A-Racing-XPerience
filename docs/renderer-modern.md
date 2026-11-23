@@ -20,6 +20,7 @@ Kerne); „abgeleitet“ heißt gerechnet, nicht gemessen. Zeiten auf einer echt
 | `scripts/race3d/road_path.gd` | `RoadPath3D` | echter Weltpfad der Strecke: Mittellinie aus den Kurvenwerten integriert, schwimmender Ursprung, Talsohle, freie Breite (Mittelachse) |
 | `scripts/race3d/chase_camera.gd` | `ChaseCamera3D` | Verfolgerkamera = Arcades Projektion plus Blick in die Kurve; reine Mathematik, kein Knoten |
 | `scripts/race3d/terrain_profile.gd` | `TerrainProfile` | Gelände als Band neben der Straße: Ringabstände, Höhen, Sichtkorridor – reine Zahlen |
+| `scripts/race3d/sight_corridor.gd` | `SightCorridor` | Sichtkorridor der Kurven aus der wirklichen Geometrie: Hülle aller Sichtlinien bis zum F2-Bedarf (Nachtrag A-17, 5.3) |
 | `scripts/race3d/chunk_context.gd` | `ChunkContext` | Schnappschuss eines Straßenstücks (33 Reihen) für die Builder, mit `local()`, `frame()`, `ground()` |
 | `scripts/race3d/chunk_builder.gd` | `ChunkBuilder` | Basisklasse aller Builder: `collect` → `build` (Arbeiter-Thread) → `commit` |
 | `scripts/race3d/chunk_streamer.gd` | `ChunkStreamer` | lädt und entlädt Stücke nach Wegstrecke, besitzt ihre Knoten und Transformationen |
@@ -266,6 +267,7 @@ dazu `seg_len`, `lane_w`, `shoulder_w`, `length_z`, `cfg`, `scenery_db`, `levels
 | `shoulder_edge(reihe, seite)`, `ring_offset(…)`, `ring_height(…)`, `ribbon_width(z, seite)` | Bankettkante ab Mitte, Ringe, Breite des Bands |
 | `in_corridor(z, x)` | liegt im Sichtkorridor (kein Boden über der Fahrbahn) |
 | `in_bend_corridor(z, x)` | liegt im Sichtkorridor einer Kurveninnenseite – dort steht keine schmückende Vegetation |
+| `in_sight_envelope(z, x, reach, half_len)`, `bend_intrusion(…)` | liegt ein Teil des Fußabdrucks in der genauen Hülle der Sichtlinien (A-17) / wie tief (m, quer zur Straße; negativ = draußen) – FIX-R7a, 5.3 |
 
 Eine Requisite auf dem Boden: `ctx.frame(z, x, ctx.ground(z, x))`.
 
@@ -376,16 +378,93 @@ irgendwo Gelände über Fahrbahnniveau. Das Relief ist also mild; `relief_m` ist
 
 ### 5.3 Sichtkorridor (Fairness-Regel F7)
 
-`corridor_width(k, seite)` (Meter jenseits des Banketts): auf der Kurveninnenseite die Pfeilhöhe einer Sehne von
-`corridor_chord_m` (300 m), gemessen ab dem Fahrbahnrand mit dessen Radius – `300² / (8 · (R − halbe Fahrbahn))` –
-für die stärkste Krümmung zu dieser Seite innerhalb einer halben Sehne Weg davor und dahinter; sonst
-`corridor_min_m` (8 m) ab Fahrbahnrand. Engste Kurve des Netzes: 83,6 m.
+`corridor_width(k, seite)` (Meter jenseits des Banketts) ist seit R7a (Nachtrag A-17) die **Hülle der wirklichen
+Sichtlinien** (`SightCorridor`): von einer Kamera in jeder Spur zu einem Fahrzeug in jeder Spur, bis
+L = min(`corridor_chord_m` = 300 m, F2-Bedarf / 0,6 + 9 m Kamera) Weg voraus. Der F2-Bedarf ist der Anhalteweg bei der
+schnellsten fahrbaren Geschwindigkeit am Wagen, genau wie `fairness.speed_profile()` ihn rechnet (7.2), der größte von
+trocken, Regen und Schnee – der Korridor hängt also nicht vom Wetter des Rennens ab. Wo eine Sichtlinie die Straße
+verlässt, ist der Korridor diese Hülle, mindestens aber der schlichte Streifen + 0,55 m (`BEND_FLOOR_M`: so zählt
+`ChunkContext.in_bend_corridor()` ihn als Kurvenkorridor); sonst der schlichte Streifen `corridor_min_m` (8 m ab
+Fahrbahnrand). Engste Kurve des Netzes: 83,6 m. Die Hülle selbst, ohne diese Mindestbreite, liefert
+`envelope_width(k, seite)` (0, wo keine Sichtlinie die Straße verlässt; `rows()["envelope"]`) – sie prüfen der
+Stadtzaun, der Fußabdruck der Requisiten (unten) und die Grenzpfeiler (FIX-R7a).
+
+- **Verfahren** (`scripts/race3d/sight_corridor.gd`): eine Kamera auf jeder Reihe, auf der äußersten Spurmitte links
+  und rechts (die Sichtlinien der Spuren dazwischen liegen in deren konvexer Hülle; rechts gilt die Mitte der Tankspur,
+  sobald sie öffnet – `Track.fuel_lane_x()`); Ziele sind die äußersten Spurmitten jeder Reihe bis L und das genaue Ende.
+  Vom fernen Ende zur Kamera zurück ist die Sichtlinie mit dem größten Peilwinkel nach rechts (links) die äußerste,
+  die den Querschnitt der eben erreichten Reihe noch kreuzt; ihr Schnittpunkt ist dort der Rand. Dreht die Straße bis
+  L weniger als 1,2 rad, genügt je Seite ein Kamera- und ein Zielpunkt; sonst zählen beide äußersten Linien auf beiden
+  Seiten (jenseits einer Vierteldrehung kehrt sich die Reihenfolge der Schnittpunkte um – in Kehren dadurch bis 2,4 m
+  vorsichtiger als nötig). Nie über die Mittelachse zu einem anderen Teil der Straße hinaus (`clearance()`, beim
+  Lesen angewandt); Ziele, die gegen die Kamera mehr als 2,6 rad gedreht sind, zählen nicht. Gegen eine vollständige
+  Referenz (jede Kamerareihe, jede Spurmitte, jede Zielreihe, jeder Schnittpunkt jeder Sichtlinie mit jedem
+  Querschnitt) **ohne Fehlbetrag** (Unit-Test `test_sight_corridor.gd`: langer und kurzer Bogen, Gerade vor der Kurve,
+  S-Kurve, Kehre, drei Spuren mit Tankspur; gröbere Kameraschritte verfehlen Knicke der Hülle um bis zu 1 m und wurden
+  verworfen).
+- **Was das heißt**: das Band läuft an Anfang und Ende einer Kurve aus; in der Kurvenmitte ist es schmal, wo das
+  Tempo klein ist (Bergkurven T3/T4: L = 118–119 m, Pfeilhöhe 11–13 m statt 83 m), am Kurvenanfang breit, solange die
+  Anfahrt schnell ist – die Sichtlinien der schnellen Anfahrt schneiden in die Kurve (Autobahnbogen R = 200 m: Mitte
+  10 m, die ersten 100 m bis 43 m, das alte Band überall 55 m). Eine kurze Kurve bekommt nicht die Pfeilhöhe ihres
+  eigenen Bogens, sondern den Abstand der Sichtlinien von den Geraden davor und danach über ihre Ecke (60-m-Bogen
+  R = 150 m nach langer Geraden, L = 300 m: Scheitel 22,5 m jenseits des Banketts; der Bogen allein −1,4 m, das alte
+  Band 74 m). Eine Gerade vor der Kurve ist frei, soweit
+  keine Sichtlinie in die Kurve über sie läuft (mehr als eine Sehne L vor der Kurve immer).
+- **Rechnung**: faul und schrittweise, wenn Reihen gelesen werden (`ensure()`), jede Kamera einmal je Etappe; dazu
+  rechnet der Streamer voraus (`TerrainProfile.warm()`), bis zwei Stücke über `landmark_path_m` hinaus (die fernen
+  Wahrzeichen lesen das Gelände ihrer Reihe so weit voraus) – in Bildern, die nichts sammeln und in denen die
+  Festschreibe-Schleife nichts zu tun hat (`_commit_pending()` entscheidet vor der Schleife: kein Bau fertig, kein
+  Stück halb festgeschrieben – so auch, wenn Stücke in Schritten über mehrere Bilder festgeschrieben werden), höchstens
+  0,25 ms je Bild; beim Laden diese ganze Strecke auf einmal, und solange der Korridor hinter dem liegt, was das nächste
+  Sammeln braucht, bis 2 ms je Bild – ein gesammeltes Stück findet seine Reihen fertig vor. `warm()` arbeitet in
+  Schritten und hört vor dem Schritt auf, der die Frist überschritte: ein Block Geometrie (etwa 0,25 ms je 32 Kameras)
+  und ein Block F2-Bedarf (etwa 0,16 ms) sind je ein eigener Schritt und nur der erste eines Aufrufs, ein Fächer
+  (0,03–0,06 ms) nur, solange sein laufendes Mittel noch passt (FIX-R7a, gemessen mit 0,25 ms Frist: Mittel 0,21 statt
+  0,31 ms, p99 0,29–0,39 statt 0,50–0,67 ms). `perf_stats()` zeigt unter `streamer.corridor` die Zeit des Vorrechnens
+  (`warm_ms_avg`, `_max`, `warm_calls`) und was trotzdem im Hauptthread nachgerechnet wird (`sync_ms_max`, `_sum`,
+  `sync_calls`); `reset_stats()` setzt beides zurück, die Werte nach dem Laden zeigen also die Fahrt (bei Zeitraffer 40
+  – 1,3 s Fahrt je Bild – ist Nachrechnen unvermeidlich, bei Zeitraffer 4 nach dem Laden kein Aufruf, gemessen). Ein Start mitten in der Etappe kennt die Kameras vor dem ersten Pfadpunkt (150–246 m hinter der
+  Kamera) nicht: an den 13 Bildstellen sind die Reihen ab der Kamera an 11 Stellen gleich, an zweien weichen 4 bzw. 8
+  Reihenseiten direkt an der Kamera um höchstens 0,56 m ab (gemessen).
 
 Im Korridor liegt der Boden nie über der Fahrbahn: Relief bekommt ein Ring nur, wenn schon sein **innerer Nachbar**
 außerhalb des Korridors liegt – damit ist auch die gerade Linie zwischen zwei Ringen im Korridor nie über null.
-`ChunkContext.in_bend_corridor()` sagt dem Requisiten-Builder, wo keine schmückende Vegetation stehen darf. Gemessen
-in den zwölf härtesten Etappenrichtungen: 5.230 von 18.518 Landschafts-Requisiten (28,2 %) stehen in einem
-Kurvenkorridor, davon 4.033 von 13.628 Bäumen und Büschen (29,6 %).
+`ChunkContext.in_bend_corridor()` sagt dem Requisiten-Builder, wo nichts über 0,5 m stehen darf (Bodendecker füllen
+den Korridor); der Stadt-Builder lässt Zaun-, Hecken- und Mauerstücke weg, sobald ihre Mitte oder eines ihrer Enden in
+der **genauen** Hülle liegt (`in_sight_envelope()`, Rand 0,3 m für Abdeckung und Pfeiler – FIX-R7a, Befund QR7a-05:
+die Mindestbreite am Kurvenende ließ Stücke weg, die in keiner Sichtlinie stehen); der Grenz-Builder prüft seine
+Pfeiler gegen dieselbe genaue Hülle (`pillar_in_sight()`).
+Gemessen im ganzen Netz (128 Etappenrichtungen, gleiche Strecken, Sonde des Pakets R7a): von 203.367 Requisiten im
+Band ließ das alte Band 37.368 im Kurvenkorridor weg (18,4 %), die Hülle 14.342 (7,1 %) – 23.026 kommen zurück
+(16.947 Bäume, 2.947 Pflanzen, 952 Felsen, 1.944 Häuser, davon 1.878 in Städten), keines fällt neu weg. Stadtzäune:
+Arcade zeichnet 79.662 Stücke, das alte Band ließ 64,3 % stehen, die Hülle 75,3 %, die genaue Hülle 75,9 % (60.473,
+FIX-R7a, echte Bauten). Grenzdächer: von 48 hängen 3 an Masten (vorher 4; Belgrad – Sofia km 340 steht wieder auf vier
+Pfeilern).
+
+**Fußabdruck (FIX-R7a, Befund QR7a-01 von QA-R7a):** `in_bend_corridor(z, x)` prüft nur den Fuß, und der
+Requisiten-Builder gibt nur ihn (bei `align: edge` den Anker = Vorderkante plus Ausdehnung). Mit der schmaleren
+wirklichen Hülle stehen zurückgekehrte Requisiten genau an ihrem Rand – Fuß draußen, Krone oder Fassade drin: gemessen
+an echten Bauten (128 Richtungen) 5.630 Requisiten über 0,5 m (3.604 Bäume bis 12 m tief, 1.563 Stadthäuser bis 19 m;
+Basis 974) – das strenge Lesen von A-17 hält so nicht. Der Kern bietet dafür:
+- `ChunkContext.in_sight_envelope(z, x, reach, half_len)` – liegt ein Teil des Fußabdrucks in der genauen Hülle;
+  `reach` = wie weit das Objekt vom Fuß zur Straße reicht (Kronenradius, Anker bis Vorderkante), `half_len` = halbe
+  Länge längs der Straße (abgetastet je halbe Reihe; zwischen zwei Reihen zählt die größere Hülle der beiden);
+- `ChunkContext.bend_intrusion(…)` – wie tief der Abdruck quer zur Straße hineinreicht (negativ: draußen): um so viel
+  hinausgeschoben steht er draußen;
+- der Schnappschuss hält die Hülle 8 Reihen über beide Enden des Stücks hinaus (`ENV_MARGIN`), ein Abdruck am Ende
+  eines Stücks reicht in die Reihen des Nachbarn.
+
+Der Aufruf gehört dem Besitzer von `builders/props.gd` (R7c); FIX-R7a übergibt ihn als Änderung (Bericht FIX-R7a,
+`notes_for_next`): `drop_reason()` prüft den Abdruck gegen die genaue Hülle, und vorher schiebt `push_out()` eine
+Requisite, deren Fuß draußen steht und deren Abdruck hineinreicht, um die Tiefe + 0,3 m hinaus (höchstens 12 m; tiefer
+oder dann jenseits des Bands: weggelassen). Gemessen an echten Bauten (128 Richtungen, Kopie mit der Änderung): 218.103
+Requisiten gezeichnet; gegen die Basis 23.943 zurück und 8 neu weg (Stadthäuser, die tiefer als 12 m hineinragen),
+gegen R7a 1.711 zurück (Bäume, Pflanzen, Felsen: die genaue Hülle statt der Mindestbreite) und 211 weg; mit höchstens
+6 m wären es 191 bzw. 794 (548 Stadthäuser) – u. a. das Eckhaus an C1. Kein Teil einer Requisite über 0,5 m mehr in der
+Hülle. Verdeckungssonde: C1 bei 270 m in zwei von drei Spuren wieder sichtbar (6/16/18 px; R7a 6/0/0), T3/T4 wie R7a.
+Netzprüfung `tests/race3d/props_footprint.gd` (`--full`: alle 128 Richtungen): 0 Requisiten über 0,5 m mit dem
+Abdruck in der Hülle mit der Änderung, 5.728 ohne – sie ist noch keine Gate-Datei (ihr Name beginnt nicht mit
+`check_`) und wird nach dem Einbau der Änderung in `check_props_footprint.gd` umbenannt.
 
 ### 5.4 Konfiguration `graphics.modern.terrain`
 
@@ -401,7 +480,7 @@ Alle Schlüssel sind optional; die Standardwerte stehen im Code.
 | `cap_power` | 1,6 | Verteilung der Ringe in einem gekürzten Band |
 | `profile` | siehe 5.2 | Bankett und Graben als Liste `[m, Höhe]` |
 | `relief_m`, `relief_wavelength_m`, `relief_from_m`, `relief_full_m`, `relief_ramp_m`, `hill_factors` | 3; 260; 30; 100; 120; 0,4 / 0,7 / 1,0 / 1,5 | Relief |
-| `corridor_chord_m`, `corridor_min_m` | 300, 8 | Sichtkorridor – nicht ohne die Projektleitung ändern |
+| `corridor_chord_m`, `corridor_min_m` | 300, 8 | Sichtkorridor: längste Sichtlinie L (darunter der F2-Bedarf) und schlichter Streifen ab Fahrbahnrand – nicht ohne die Projektleitung ändern |
 
 Weitere Schlüssel in `graphics.modern`: `max_chunks` (16; steht seit der Korrektur nach der Abnahme von
 Bauabschnitt 0 ausdrücklich in `config/game_config.json` – vorher galt nur die Vorgabe im Code, und die offene
@@ -488,6 +567,7 @@ F4–F6 (Nebel, Ausblenden, Lichtgrößen) sind Render-Prüfungen des Renderers.
 | F2 Jenseits davon: Anhalteweg bei der schnellsten fahrbaren Geschwindigkeit ≤ 0,6 × Entfernung des Ziels, das Arcade zeigt und Modern noch nicht | `modern_sight_f2`: jede Stichprobe beider Abtastungen; trocken, Regen, Schnee | ≤ 0,60 |
 | F3 Kuppen: kein Fahrzeug (0,75 m) und kein Schild (2,8 m) wird später gesehen als in Arcade **und** dann innerhalb des Anhaltewegs | `modern_sight_f3`: Ziele alle 300 m, wo die Straße davor nicht flach ist | 0 Fälle |
 | F7 Gelände im Sichtkorridor nie über der Fahrbahn | `modern_sight_f7`: jede Reihe, beide Seiten | 0 Verstöße |
+| F7 der Korridor ist die Hülle der Sichtlinien (A-17) | `modern_sight_f7`: unabhängige Referenz `Fairness.sight_envelope()` (jede 7. Kamerareihe, jede Spurmitte, Bedarf aus `speed_profile()`, doppelte Genauigkeit): jede ihrer Sichtlinien jenseits des Banketts liegt im Korridor, und er zählt dort als Kurvenkorridor | 0 nicht abgedeckt, 0 nicht gezählt |
 | – | `modern_sight_model`: die schnelle Rechenschleife gegen `ChaseCamera3D.transform()` / `project()` und `RoadProjection.project()` | 0 Abweichungen |
 | – | `modern_sight_model`, Augpunkt: F3 rechnet mit einem eigenen Auge (Kamerahöhe aus `RoadProjection` über der Fahrbahn am Wagen). Für jede nachgerechnete Stichprobe wird die Bildhöhe des Ziels aus `ChaseCamera3D.transform()` / `project()` mit der dieses Auges verglichen (`horizon_y − focal · (Zielhöhe − Augenhöhe) / Tiefe`) | 0 Stichproben über 0,5 px |
 
@@ -585,9 +665,9 @@ Die Auswahl enthält die ungünstigsten Fälle des ganzen Netzes: ihr Lauf liefe
 - **Tunnel**: `TerrainProfile` liefert auch für Tunnelreihen ein Profil (ohne Relief); die Debug-Straße zeichnet dort
   kein Gelände. Portal und Hügel muss der Tunnel-Builder schließen – von außen endet das Band sonst am Portal.
 - **Spalt an der Mittelachse und Loch im Kurvenmittelpunkt** (5.1) schließt der Fernboden.
-- **Sichtkorridor und Vegetation**: die Regel nimmt in Bergstrecken knapp 30 % der Bäume weg (5.3). Wirkt das kahl,
-  ließe sich der Korridor aus der wirklichen Sehne statt aus der stärksten Krümmung rechnen – eine Änderung im
-  Kern mit neuem Lauf von `modern_sight.gd`, zu entscheiden von der Projektleitung.
+- **Sichtkorridor und Vegetation**: seit R7a aus der wirklichen Geometrie (A-17, 5.3); in Städten bleibt L meist 300 m
+  (die schnellste fahrbare Geschwindigkeit kennt keine Tempolimits), Häuser in Stadtkurven kommen daher nur zum Teil
+  zurück.
 - **Stückzahl**: wird `load_path_m` oder `max_chunks` geändert, ändert sich `clear_reach_m` und damit, wie weit die
   Strecke vorauserzeugt wird (3.6).
 - **Bilder**: Draufsichten und Kamerabilder der Debug-Straße an den Referenzpositionen liegen im Abgabeordner des
@@ -1583,8 +1663,8 @@ still (`ce_time` ist Spielzeit). Render-Prüfung `rotor` in `check_props_render.
   `props/cover_bush` und `props/cover_grass` ersetzt (`graphics.modern.props.bend_cover`), höchstens 0,5 m hoch –
   ein Stück je Busch, drei je Baum über seinen Fuß verteilt, nie näher als 0,8 m an der Fahrbahnkante, nicht in den
   City Limits (Grasbüschel auf dem Pflaster eines Stadtzentrums, gesehen an C1). Felsen und
-  Häuser einer Landschaftsregel bleiben im Korridor weggelassen (strengere Lesart von R2, bis die Projektleitung mit
-  den Bergbildern von Zwischenstand 2 entscheidet). Bilder T2/T4 vorher/nachher im Abgabeordner.
+  Häuser einer Landschaftsregel bleiben im Korridor weggelassen (strenge Lesart, A-17: nichts über 0,5 m in der Hülle
+  der Sichtlinien); der Korridor selbst ist seit R7a die Hülle der wirklichen Sichtlinien (5.3).
 - **Ende der Sicht**: die „hellen Rauten“ am Horizont von S1 waren Fernbilder ferner Bäume jenseits des Nebelendes –
   reine Nebelfarbe vor den dunstigen Silhouetten des Hintergrunds (gemessen: ohne die Fernbild-Knoten verschwinden
   sie, ohne die Kontaktschatten nicht). `billboard.gdshader` und `leaves.gdshader` blenden zwischen 0,85 und 1,0 des
@@ -2054,7 +2134,7 @@ Grundlage: die Befunde von QA-M2-BILD (B-…) und QA-M2-SYSTEM (M2S-…) auf `6e
 - Keine Sonnenscheibe am Tag; kein überstrahltes Draußen an der Tunnelausfahrt. *Seit R4 behoben (§15.6, §15.8).*
 - Spielerautos: Limousine mit steiler Heckscheibe statt Arcades Fließheck, Kompakt mit schwarzem Dach (Modellnacharbeit).
 - Kurveninnenseiten in Bergetappen kahler als Arcade (Sichtkorridor F7: Bäume werden durch Bodendecker ersetzt –
-  Entscheidung der Leitung nach A-3).
+  Entscheidung der Leitung nach A-3). *Seit R7a nur noch, wo die Sichtlinien laufen (A-17, 5.3).*
 - Die Leistung auf echter Hardware ist nur über den Leistungstest messbar.
 
 ## 15. Licht, Nacht, Wetter (Bauabschnitt R4)
@@ -2455,7 +2535,7 @@ für die Modellnacharbeit.
 - `collect()` je Baustein auf „Deck“ nur in einzelnen Läufen auf der belasteten VM gemessen (Tankstelle 1,36 ms,
   Höchstwerte anderer Bausteine streuen bis 4,19 ms) – auf dem Gerät nicht gemessen.
 - Geländewasser unter Brücken (FIX-R5 8.6) und Mondlichtstreifen am Portalhügel (NACH-R5 N-01) offen.
-- Kurveninnenseiten in Bergetappen: Sichtkorridor nach A-17 kommt mit R7 (A/B T1–T4: Bäume und Felsen innen fehlen).
+- Kurveninnenseiten in Bergetappen: Sichtkorridor nach A-17 mit R7a (5.3); was in Stadtkurven fehlt, bleibt (L = 300 m).
 - Lackflackern des weißen Autos (Testbuild 1): pausiert (A-21).
 
 ### 17.10 Prüfungen

@@ -85,25 +85,39 @@ func test_medial_axis_cut() -> void:
 	assert_near((s[2] as TerrainProfile).ring_offsets(304, -1)[5], 220.0, 1.0e-3, "die inneren Ringe bleiben")
 
 
+## The sight corridor (A-17) is the envelope of SightCorridor where a sight line leaves the road – at least the plain
+## strip + BEND_FLOOR_M, so that ChunkContext.in_bend_corridor() counts it – and the plain strip elsewhere (the
+## envelope itself: tests/unit/race3d/test_sight_corridor.gd).
 func test_sight_corridor() -> void:
 	# two-lane road: 300 straight, 300 segments of a right bend with R = 134 m, straight
 	var m := _make(SynTrack.join([SynTrack.straight(300), SynTrack.arc(300, 134.0), SynTrack.straight(300)]), PackedFloat32Array(),
 		{"lanes": 2.0, "road": "landstrasse"}, {"relief_m": 0.0})
 	var tp: TerrainProfile = m[2]
-	var half := 3.75
-	var want := 300.0 * 300.0 / 8.0 / (134.0 - half) - 2.5
-	assert_near(tp.corridor_width(448, 1), want, 0.3, "Kurveninnenseite: Pfeilhöhe einer 300-m-Sehne am Innenrand (%.1f m ab Bankett)" % want)
-	assert_near(tp.corridor_width(448, -1), 5.5, 1.0e-3, "Kurvenaußenseite: 8 m ab Fahrbahnrand")
-	assert_near(tp.corridor_width(100, 1), 5.5, 1.0e-3, "weit vor der Kurve: 8 m ab Fahrbahnrand")
-	assert_near(tp.corridor_width(272, 1), want, 0.3, "84 m vor der Kurve gilt schon ihr Korridor (halbe Sehne voraus)")
-	assert_near(tp.corridor_width(632, 1), want, 0.3, "und 96 m dahinter noch")
-	assert_near(tp.corridor_width(720, 1), 5.5, 1.0e-3, "360 m dahinter nicht mehr")
+	var sc := tp.sight
+	var strip := 8.0 - 2.5
+	for k: int in [100, 272, 300, 448, 600, 632, 720, 880]:
+		for side: int in [-1, 1]:
+			var env := sc.width(k, side)
+			var want := maxf(env, strip + TerrainProfile.BEND_FLOOR_M) if sc.width_near(k, side) > 0.0 else strip
+			assert_near(tp.corridor_width(k, side), want, 1.0e-4, "Reihe %d Seite %d: Hülle der Sichtlinien oder der schlichte Streifen" % [k, side])
+	# in the bend: the sagitta of the sight line L the F2 need gives there (a slow bend: far less than 300 m)
+	var L := sc.chord_at(440)
+	assert_true(L < 200.0, "R = 134 m: L aus dem F2-Bedarf %.0f m" % L)
+	var want_mid := (134.0 - 1.875) * (1.0 - cos(L / 134.0 * 0.5)) - 1.875 - 2.5
+	assert_near(tp.corridor_width(448, 1), maxf(want_mid + SightCorridor.MARGIN_M, strip + TerrainProfile.BEND_FLOOR_M), 0.5,
+		"Kurveninnenseite: Pfeilhöhe der Sehne %.0f m zwischen den inneren Spurmitten" % L)
+	assert_near(tp.corridor_width(448, -1), strip, 1.0e-3, "Kurvenaußenseite: 8 m ab Fahrbahnrand")
+	assert_near(tp.corridor_width(100, 1), strip, 1.0e-3, "weit vor der Kurve: 8 m ab Fahrbahnrand")
+	assert_true(tp.corridor_width(296, 1) > strip, "kurz vor der Kurve kreuzen die Sichtlinien in die Kurve")
+	assert_near(tp.corridor_width(720, 1), strip, 1.0e-3, "360 m dahinter nicht mehr")
 	# the corridor is narrower than the cut ribbon of the same bend, so ground exists beyond it
 	assert_true(tp.corridor_width(448, 1) < tp.limit(448, 1), "Korridor %.1f m < Band %.1f m" % [tp.corridor_width(448, 1), tp.limit(448, 1)])
-	# other chord and minimum from the configuration
+	# longest sight line and the plain strip from the configuration
 	var m2 := _make(SynTrack.arc(400, 400.0), PackedFloat32Array(), {}, {"corridor_chord_m": 200.0, "corridor_min_m": 12.0})
 	var tp2: TerrainProfile = m2[2]
-	assert_near(tp2.corridor_width(200, 1), maxf(12.0, 200.0 * 200.0 / 8.0 / (400.0 - 5.625)) - 2.5, 0.1, "Sehne 200 m, mindestens 12 m")
+	assert_true(tp2.sight.chord_at(200) <= 200.0 + 1.0e-4, "L höchstens corridor_chord_m")
+	var w200 := (400.0 - 3.75) * (1.0 - cos(tp2.sight.chord_at(196) / 400.0 * 0.5)) - 1.875 - 2.5
+	assert_near(tp2.corridor_width(200, 1), maxf(w200 + SightCorridor.MARGIN_M, 12.0 - 2.5 + TerrainProfile.BEND_FLOOR_M), 0.3, "Sehne höchstens 200 m, mindestens 12 m")
 	assert_near(tp2.corridor_width(200, -1), 12.0 - 2.5, 1.0e-3, "Mindestkorridor außen")
 
 
@@ -231,6 +245,9 @@ func test_rows_and_shared_rows() -> void:
 			assert_near(l.x if si == 0 else l.y, tp.limit(k, side), 1.0e-6, "rows().limit")
 			var c: Vector2 = (a["corridor"] as PackedVector2Array)[q]
 			assert_near(c.x if si == 0 else c.y, tp.corridor_width(k, side), 1.0e-6, "rows().corridor")
+			var ev: Vector2 = (a["envelope"] as PackedVector2Array)[q]
+			assert_near(ev.x if si == 0 else ev.y, tp.envelope_width(k, side), 1.0e-6, "rows().envelope = envelope_width()")
+			assert_true((ev.x if si == 0 else ev.y) <= (c.x if si == 0 else c.y) + 1.0e-6, "die Hülle liegt im Korridor des Geländes")
 		assert_near((a["floor"] as PackedFloat64Array)[q], p.floor_y(k), 1.0e-9, "rows().floor = floor_y()")
 		assert_near(tp.ring_heights(k, 1)[6], p.floor_y(k) - p.height(k), 1.0e-4, "letzter Ring = Talsohle relativ zur Fahrbahn")
 	# the next chunk, taken later: the path was extended and trimmed like the streamer does in between

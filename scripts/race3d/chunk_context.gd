@@ -19,6 +19,7 @@ extends RefCounted
 
 ## Every TrackSegment field that is copied into segs (tests/unit/race3d/test_chunk_streamer.gd checks the list
 ## against the class).
+const ENV_MARGIN := 8                   ## rows of the envelope snapshot beyond either end of the chunk (24 m)
 const SEG_FIELDS: Array[String] = ["index", "z", "km", "curve", "y", "lanes", "lane_count", "fuel_lane", "road", "scenery",
 	"country", "speed_limit", "tunnel", "city", "guardrail", "runout", "fuel_zone", "cover", "cover_front", "country_to",
 	"bridge", "bridge_i", "water", "water_depth", "water_level", "bank", "sprites"]
@@ -36,8 +37,13 @@ var floor_y := PackedFloat32Array()     ## valley floor per row, chunk-local y
 var rings := 0                          ## terrain rings per side
 var ring_x := PackedFloat32Array()      ## terrain ring distances beyond the shoulder per row and side
 var ring_h := PackedFloat32Array()      ## terrain heights at those rings, relative to the road of the row
-var corridor := PackedVector2Array()    ## sight corridor beyond the shoulder per row (left, right), fairness rule F7
+var corridor := PackedVector2Array()    ## sight corridor beyond the shoulder per row (left, right), fairness rule F7 (A-17)
 var corridor_min := 5.5                 ## its width away from bends (TerrainProfile.corridor_min_m - shoulder)
+## The exact envelope of the sight lines beyond the shoulder (left, right; 0: none leaves the road) for the rows
+## seg_a - ENV_MARGIN .. seg_b + ENV_MARGIN – a footprint near the end of the chunk reaches into its neighbours' rows –
+## and the outer shoulder edges of those rows (m from the centre, positive on both sides).
+var envelope := PackedVector2Array()
+var env_edge := PackedVector2Array()
 var origin := Vector3.ZERO              ## origin-relative position of row 0 when the snapshot was taken
 var seg_len := 3.0
 var lane_w := 3.75
@@ -90,6 +96,15 @@ func capture(chunk_index: int, a: int, b: int, p: RoadPath3D, t: TerrainProfile,
 	ring_x = tp["x"]
 	ring_h = tp["h"]
 	corridor = tp["corridor"]
+	var ne := count + 2 * ENV_MARGIN
+	envelope.resize(ne)
+	env_edge.resize(ne)
+	for q in ne:
+		var k := a - ENV_MARGIN + q
+		var se := tr.get_segment(k)
+		var he := se.lanes * lane_w * 0.5
+		env_edge[q] = Vector2(he + shoulder_w, he + se.fuel_lane * lane_w + shoulder_w)
+		envelope[q] = Vector2(t.envelope_width(k, -1), t.envelope_width(k, 1))
 	corridor_min = maxf(0.0, t.corridor_min_m - shoulder_w)
 	var floors: PackedFloat64Array = tp["floor"]
 	floor_y.resize(count)
@@ -210,16 +225,68 @@ func in_corridor(z: float, x: float) -> bool:
 	return m <= (c.x if si == 0 else c.y)
 
 
-## True when (z, x) lies inside the sight corridor of a bend, on its inside – where fairness rule F7 allows no
-## decorative vegetation (the props builder leaves such props out). Away from bends the corridor is only the
-## corridor_min strip beside the road, and that strip does not count here.
-func in_bend_corridor(z: float, x: float) -> bool:
-	var f := z / seg_len - float(seg_a)
-	var i := clampi(int(floor(f)), 0, rows_o.size() - 2)
-	var t := clampf(f - float(i), 0.0, 1.0)
+## True when (z, x) lies inside the sight corridor of a bend – the envelope of the real sight lines (SightCorridor,
+## contract A-17) where one leaves the road, at least the plain strip + TerrainProfile.BEND_FLOOR_M – where fairness
+## rule F7 allows nothing taller than 0.5 m (the props builder leaves such props out or puts ground cover there).
+## Away from bends the corridor is only the corridor_min strip beside the road, and that strip does not count here.
+## Near the ends of a bend this is a little wider than the sight lines need (the floor); in_sight_envelope() tests the
+## exact envelope.
+## Without the optional arguments only the foot (z, x) is tested. An object that is larger than its foot passes
+## reach = how far it extends from x towards the road (m: the near edge of an edge-aligned building, a crown's
+## radius) and half_len = half its length along the road (m): then true when any part of that footprint beyond the
+## shoulder lies in the corridor (A-17: nothing taller than 0.5 m inside the envelope; R7a measured props whose foot
+## is outside but whose near part reaches in).
+func in_bend_corridor(z: float, x: float, reach: float = 0.0, half_len: float = 0.0) -> bool:
 	var si := 0 if x < 0.0 else 1
-	var e := rows_edge[i].lerp(rows_edge[i + 1], t)
-	var m := (-x + e.x if si == 0 else x - e.y) - shoulder_w
-	var c := corridor[i].lerp(corridor[i + 1], t)
-	var cw := c.x if si == 0 else c.y
-	return cw > corridor_min + 0.5 and m > 0.0 and m <= cw
+	var n := 0 if half_len <= 0.0 else int(ceil(half_len * 2.0 / seg_len))
+	for q in n + 1:
+		var zq := z if n == 0 else z - half_len + half_len * 2.0 * float(q) / float(n)
+		var f := zq / seg_len - float(seg_a)
+		var i := clampi(int(floor(f)), 0, rows_o.size() - 2)
+		var t := clampf(f - float(i), 0.0, 1.0)
+		var e := rows_edge[i].lerp(rows_edge[i + 1], t)
+		var m := (-x + e.x if si == 0 else x - e.y) - shoulder_w
+		var c := corridor[i].lerp(corridor[i + 1], t)
+		var cw := c.x if si == 0 else c.y
+		if cw > corridor_min + 0.5 and m > 0.0 and m - maxf(reach, 0.0) <= cw:
+			return true
+	return false
+
+
+## True when any part of the footprint of an object (foot (z, x), reach and half_len as in in_bend_corridor()) beyond
+## the shoulder lies in the exact envelope of the sight lines of a bend (TerrainProfile.envelope_width(): no floor at
+## the ends of a bend, nothing where no sight line leaves the road) – contract A-17 to the letter: nothing taller than
+## 0.5 m stands in it. FIX-R7a (QR7a-05): the city's fence pieces test this; the border pillars test the same
+## envelope on the TerrainProfile (BorderB.pillar_in_sight()).
+func in_sight_envelope(z: float, x: float, reach: float = 0.0, half_len: float = 0.0) -> bool:
+	return bend_intrusion(z, x, reach, half_len) >= 0.0
+
+
+## How deep (m) the footprint of an object (foot (z, x), reach and half_len as in in_bend_corridor()) reaches into the
+## envelope of the sight lines of a bend, measured across the road: moving the object this much farther away from the
+## road clears it (plus a margin of the caller's choice). Negative when no part of it is inside (how far its nearest
+## part stays outside, or -1.0 where no sight line leaves the road); a sample whose foot lies on the road or the
+## shoulder is not a corridor case. Along the road the footprint is sampled every half row; between two rows the
+## larger envelope of the two counts. Worker-safe (snapshot arrays only). FIX-R7a (QR7a-01): what a builder
+## needs to push such an object out instead of leaving it out.
+func bend_intrusion(z: float, x: float, reach: float = 0.0, half_len: float = 0.0) -> float:
+	var si := 0 if x < 0.0 else 1
+	var n := 0 if half_len <= 0.0 else int(ceil(half_len * 2.0 / seg_len))
+	var depth := -INF
+	for q in n + 1:
+		var zq := z if n == 0 else z - half_len + half_len * 2.0 * float(q) / float(n)
+		var f := zq / seg_len - float(seg_a - ENV_MARGIN)
+		var i := clampi(int(floor(f)), 0, envelope.size() - 2)
+		var t := clampf(f - float(i), 0.0, 1.0)
+		var e := env_edge[i].lerp(env_edge[i + 1], t)
+		var m := (-x - e.x if si == 0 else x - e.y)
+		if m <= 0.0:
+			continue
+		# the larger of the two rows around the sample, not their mean: near the start and the end of a bend the
+		# envelope changes by up to 2 m from row to row, and nothing tells how it runs in between
+		var c0 := envelope[i]
+		var c1 := envelope[i + 1]
+		var cw := maxf(c0.x, c1.x) if si == 0 else maxf(c0.y, c1.y)
+		if cw > 0.0:
+			depth = maxf(depth, cw - (m - maxf(reach, 0.0)))
+	return depth if depth > -INF else -1.0

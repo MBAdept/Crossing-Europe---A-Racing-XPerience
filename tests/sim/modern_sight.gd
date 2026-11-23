@@ -11,7 +11,12 @@ extends SceneTree
 ##                          of a target Arcade shows and Modern not yet – dry, rain, snow, every sample of both scans
 ##   modern_sight_f3        crests: no vehicle (0.75 m) or sign (2.8 m) is seen later than in Arcade and then inside
 ##                          the stopping sight distance
-##   modern_sight_f7        the terrain is never above the road inside the sight corridor
+##   modern_sight_f7        the terrain is never above the road inside the sight corridor, and the corridor is the
+##                          envelope of the real sight lines (contract A-17): it reaches every sight line of an
+##                          independent reference (every 7th camera row, every lane, Fair.sight_envelope()) and counts
+##                          there as a bend's (nothing taller than 0.5 m stands in it); the exact envelope (without the
+##                          terrain's floor at the ends of a bend: ChunkContext.in_sight_envelope(), the city's fences)
+##                          reaches every such sight line too (FIX-R7a)
 ##   modern_sight_model     the fast inner loop agrees with ChaseCamera3D.transform() / project() and RoadProjection,
 ##                          and the shipped camera has the eye F3 and F7 compute with (cam_height above the road at
 ##                          the car, no pitch, no roll): vertical pixel within 0.5 px of that eye's
@@ -77,7 +82,10 @@ func _initialize() -> void:
 		f3[tg] = {"later": 0, "later30": 0, "earlier": 0, "short_a": 0, "short_3": 0, "fail": 0, "limited": 0,
 			"da": PackedFloat32Array(), "d3": PackedFloat32Array(), "worst": []}
 	var f7 := {"rows": 0, "sides": 0, "violations": 0, "worst_m": 0.0, "cut": 0, "min_limit_m": INF, "max_corridor_m": 0.0,
-		"max_height_m": -INF, "raised": 0}
+		"max_height_m": -INF, "raised": 0, "env_sides": 0, "env_short": 0, "env_short_m": 0.0, "env_flag": 0, "env_over_sum": 0.0,
+		"env_cams": 0, "sight_ms": 0.0, "exact_rows": 0, "exact_short": 0, "exact_short_m": 0.0, "exact_flag": 0, "exact_over_sum": 0.0}
+	var env_opts := {"chord_max_m": float(ConfigLoader.lookup(cfg, "graphics.modern.terrain.corridor_chord_m", 300.0)),
+		"camera_offset_m": float(ConfigLoader.lookup(cfg, "render.camera_distance_m", 9.0)), "cam_every": 7, "cam_offset": 3}
 	var segments := 0
 	for dir: Dictionary in dirs:
 		var t := Time.get_ticks_msec()
@@ -141,10 +149,18 @@ func _initialize() -> void:
 			a["d3"] = d3
 			(a["worst"] as Array).append_array(b["worst"])
 		t = Time.get_ticks_msec()
-		var k := Fair.scan_corridor(geo, terr)
+		var env := Fair.sight_envelope(geo, profiles, env_opts)
+		var k := Fair.scan_corridor(geo, terr, env)
 		times["f7"] += Time.get_ticks_msec() - t
-		for key: String in ["rows", "sides", "violations", "cut", "raised"]:
+		for key: String in ["rows", "sides", "violations", "cut", "raised", "env_sides", "env_short", "env_flag", "exact_rows",
+				"exact_short", "exact_flag"]:
 			f7[key] = int(f7[key]) + int(k[key])
+		f7["exact_short_m"] = maxf(float(f7["exact_short_m"]), float(k["exact_short_m"]))
+		f7["exact_over_sum"] = float(f7["exact_over_sum"]) + float(k["exact_over_m"]) * float(k["env_sides"])
+		f7["env_short_m"] = maxf(float(f7["env_short_m"]), float(k["env_short_m"]))
+		f7["env_over_sum"] = float(f7["env_over_sum"]) + float(k["env_over_m"]) * float(k["env_sides"])
+		f7["env_cams"] = int(f7["env_cams"]) + int(env["cameras"])
+		f7["sight_ms"] = float(f7["sight_ms"]) + float((terr["terrain"] as TerrainProfile).sight.usec) / 1000.0
 		f7["worst_m"] = maxf(float(f7["worst_m"]), float(k["worst_m"]))
 		f7["min_limit_m"] = minf(float(f7["min_limit_m"]), float(k["min_limit_m"]))
 		f7["max_corridor_m"] = maxf(float(f7["max_corridor_m"]), float(k["max_corridor_m"]))
@@ -204,6 +220,12 @@ func _initialize() -> void:
 	print("SIGHT F7 %d Querschnittsseiten: Gelände im Sichtkorridor über der Fahrbahn: %d (höchstens %.2f m); Band gekürzt an %d Seiten (schmalstes %.1f m), breitester Korridor %.1f m, höchstes Gelände %.2f m über der Fahrbahn, an %d Seiten über Fahrbahnniveau" % [
 		int(f7["sides"]), int(f7["violations"]), float(f7["worst_m"]), int(f7["cut"]), float(f7["min_limit_m"]),
 		float(f7["max_corridor_m"]), float(f7["max_height_m"]), int(f7["raised"])])
+	print("SIGHT F7 Hülle der Sichtlinien (A-17): %d Querschnittsseiten, die eine Sichtlinie der Stichprobe (%d Kamerareihen, jede 7., jede Spur) jenseits des Banketts kreuzt; Korridor schmaler: %d (höchstens %.2f m), nicht als Kurvenkorridor gezählt: %d; im Mittel %.2f m breiter als die Stichprobe; Kern %.1f s" % [
+		int(f7["env_sides"]), int(f7["env_cams"]), int(f7["env_short"]), float(f7["env_short_m"]), int(f7["env_flag"]),
+		float(f7["env_over_sum"]) / maxf(1.0, float(f7["env_sides"])), float(f7["sight_ms"]) / 1000.0])
+	print("SIGHT F7 genaue Hülle (ohne Mindestbreite am Kurvenende, FIX-R7a): schmaler als die Stichprobe an %d Seiten (höchstens %.2f m), dort keine Hülle: %d; im Mittel %.2f m breiter als die Stichprobe" % [
+		int(f7["exact_short"]), float(f7["exact_short_m"]), int(f7["exact_flag"]),
+		float(f7["exact_over_sum"]) / maxf(1.0, float(f7["env_sides"]))])
 	var secs := float(Time.get_ticks_msec() - t0) / 1000.0
 	print("SIGHT Zeit %.1f s: Strecken %.1f, Gelände %.1f, F1/F2 %.1f, Spuren %.1f, F3 %.1f, F7 %.1f" % [secs, float(times["geo"]) / 1000.0,
 		float(times["terrain"]) / 1000.0, float(times["f12"]) / 1000.0, float(times["lanes"]) / 1000.0, float(times["f3"]) / 1000.0,
@@ -219,7 +241,8 @@ func _initialize() -> void:
 			ok2 = false
 	var f3_fail := int(f3["car"]["fail"]) + int(f3["sign"]["fail"])
 	var ok3 := f3_fail == 0 and int(f3["targets"]) > 0
-	var ok7 := int(f7["violations"]) == 0 and int(f7["sides"]) > 0
+	var ok7 := int(f7["violations"]) == 0 and int(f7["sides"]) > 0 and int(f7["env_short"]) == 0 and int(f7["env_flag"]) == 0 \
+		and int(f7["env_sides"]) > 0 and int(f7["exact_rows"]) > 0 and int(f7["exact_short"]) == 0 and int(f7["exact_flag"]) == 0
 	var okm := check_bad == 0 and check_vert == 0 and check_eye == 0 and check_n > 0
 	print("CHECK modern_sight_f1       %s %d Fälle bis %.0f m (erster Fall bei %s) in %d Stichproben, %d Etappenrichtungen" % [
 		"OK    " if ok1 else "FEHLER", f1_cases, F1_LIMIT_M, ("%d m" % first_d) if first_d >= 0 else "–", samples, dirs.size()])
@@ -230,8 +253,9 @@ func _initialize() -> void:
 		"OK    " if ok2 else "FEHLER", ratios[0], ratios[1], ratios[2], F2_RATIO])
 	print("CHECK modern_sight_f3       %s %d von %d Zielen (Fahrzeug) und %d (Schild) später als in Arcade und innerhalb des Anhaltewegs" % [
 		"OK    " if ok3 else "FEHLER", int(f3["car"]["fail"]), int(f3["targets"]), int(f3["sign"]["fail"])])
-	print("CHECK modern_sight_f7       %s %d von %d Querschnittsseiten mit Gelände über der Fahrbahn im Sichtkorridor" % [
-		"OK    " if ok7 else "FEHLER", int(f7["violations"]), int(f7["sides"])])
+	print("CHECK modern_sight_f7       %s %d von %d Querschnittsseiten mit Gelände über der Fahrbahn im Sichtkorridor; Hülle der Sichtlinien: %d von %d Seiten nicht abgedeckt, %d nicht als Kurvenkorridor gezählt; genaue Hülle: %d nicht abgedeckt, %d ohne Hülle" % [
+		"OK    " if ok7 else "FEHLER", int(f7["violations"]), int(f7["sides"]), int(f7["env_short"]), int(f7["env_sides"]), int(f7["env_flag"]),
+		int(f7["exact_short"]), int(f7["exact_flag"])])
 	print("CHECK modern_sight_model    %s %d Stichproben über ChaseCamera3D/RoadProjection nachgerechnet: %d abweichend, %d senkrecht außerhalb, %d mit dem Augpunkt mehr als %.1f px neben dem der Sichtprüfung (größte Abweichung %.4f px) (%.0f s)" % [
 		"OK    " if okm else "FEHLER", check_n, check_bad, check_vert, check_eye, Fair.EYE_TOLERANCE_PX, check_eye_max, secs])
 	quit(0 if ok1 and ok1b and ok2 and ok3 and ok7 and okm else 1)

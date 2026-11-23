@@ -463,16 +463,17 @@ func test_chunk_lod_shows_one_representation() -> void:
 
 func test_bend_corridor_and_density() -> void:
 	var t := _track()
-	# chunk 16 = segments 512..544: inside the right bend (R = 200 m): its inside is the right roadside
+	# chunk 13 = segments 416..448: the first 100 m of the right bend (R = 200 m), its inside is the right roadside –
+	# the sight lines of the fast approach cross it there (corridor of A-17: 37–43 m beyond the shoulder)
 	for i in 8:
-		_put(t, 514 + i * 3, {"kind": "prop", "set": "props/tree_birch", "side": 1, "x": _x(t, 1, 12.0 + float(i)), "scale": 1.0})
-		_put(t, 515 + i * 3, {"kind": "prop", "set": "props/tree_birch", "side": -1, "x": _x(t, -1, 12.0 + float(i)), "scale": 1.0})
-	_put(t, 540, {"kind": "prop", "set": "props/farmhouse", "side": 1, "x": _x(t, 1, 30.0), "scale": 1.0})
-	_put(t, 541, {"kind": "prop", "set": "props/radar_camera", "side": 1, "x": _x(t, 1, 0.3), "scale": 1.0, "offset": 0.3})
-	_put(t, 542, {"kind": "prop", "set": "props/tree_oak", "side": 1, "x": _x(t, 1, 20.0), "scale": 1.0, "offset": 20.0})
-	var ctx := _ctx(t, 16)
-	assert_true(ctx.in_bend_corridor(520.0 * 3.0, _x(t, 1, 15.0)), "Kurveninnenseite: Sichtkorridor")
-	assert_false(ctx.in_bend_corridor(520.0 * 3.0, _x(t, -1, 15.0)), "Außenseite: kein Kurvenkorridor")
+		_put(t, 418 + i * 3, {"kind": "prop", "set": "props/tree_birch", "side": 1, "x": _x(t, 1, 12.0 + float(i)), "scale": 1.0})
+		_put(t, 419 + i * 3, {"kind": "prop", "set": "props/tree_birch", "side": -1, "x": _x(t, -1, 12.0 + float(i)), "scale": 1.0})
+	_put(t, 444, {"kind": "prop", "set": "props/farmhouse", "side": 1, "x": _x(t, 1, 30.0), "scale": 1.0})
+	_put(t, 445, {"kind": "prop", "set": "props/radar_camera", "side": 1, "x": _x(t, 1, 0.3), "scale": 1.0, "offset": 0.3})
+	_put(t, 446, {"kind": "prop", "set": "props/tree_oak", "side": 1, "x": _x(t, 1, 20.0), "scale": 1.0, "offset": 20.0})
+	var ctx := _ctx(t, 13)
+	assert_true(ctx.in_bend_corridor(424.0 * 3.0, _x(t, 1, 15.0)), "Kurveninnenseite: Sichtkorridor")
+	assert_false(ctx.in_bend_corridor(424.0 * 3.0, _x(t, -1, 15.0)), "Außenseite: kein Kurvenkorridor")
 	var b := Props.new()
 	var part := b.build(ctx, b.collect(ctx))
 	var d: Dictionary = part["dropped"]

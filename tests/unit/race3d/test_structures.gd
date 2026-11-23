@@ -360,6 +360,17 @@ func test_station_warm_step_prepares_what_the_halves_read() -> void:
 
 # --- border --------------------------------------------------------------------------------------------------------
 
+## True when road point (z, x) lies beyond the shoulder inside the envelope of the real sight lines of a bend
+## (TerrainProfile.sight, contract A-17), the rows around z – BorderB.pillar_in_sight() for a point.
+func _in_sight(ctx: ChunkContext, z: float, x: float) -> bool:
+	var side := -1 if x < 0.0 else 1
+	var k := int(floor(z / ctx.seg_len))
+	var env := maxf(ctx.terrain.sight.width_near(k, side), ctx.terrain.sight.width_near(k + 1, side))
+	var row := clampi(k - ctx.seg_a, 0, ctx.row_count() - 1)
+	var m := absf(x) - ctx.shoulder_edge(row, side)
+	return env > 0.0 and m > 0.0 and m <= env
+
+
 func test_border_station_of_the_test_stage() -> void:
 	var t := _real("dev_testetappe")
 	assert_true(t != null and not t.plan.borders.is_empty(), "Testetappe mit Grenze")
@@ -391,7 +402,8 @@ func test_border_station_of_the_test_stage() -> void:
 		var fronts_here: Array = []
 		for p: Array in part.get("pillar_at", []):
 			if str(p[2]) != "front":
-				assert_false(ctx.in_bend_corridor(float(p[0]), float(p[1])), "Pfeiler %s nicht in der Sichtschneise einer Kurve (F7)" % str(p))
+				assert_false(_in_sight(ctx, float(p[0]), float(p[1]) - signf(float(p[1])) * BorderB.PILLAR_W * 0.5),
+					"Pfeiler %s nicht in den Sichtlinien einer Kurve (F7, A-17)" % str(p))
 			else:
 				fronts_here.append(p)
 			# the main-thread corridor test of the builder = the chunk's
@@ -401,14 +413,15 @@ func test_border_station_of_the_test_stage() -> void:
 					corridor_mismatch += 1
 		# the roof keeps Arcade's height over the road and its shoulders: nothing lower than its soffit (6 m) there but
 		# the luminaires of the light bars (Arcade hangs them at 5.95 m, here 0.1 m below the soffit); in a bend's sight
-		# corridor nothing below the soffit but Arcade's front pillars (F7: masts, stays and beams stay above the slab)
+		# corridor nothing below the soffit but Arcade's front pillars (F7: masts, stays and beams stay above the slab; the
+		# envelope of the real sight lines, A-17 – BorderB.pillar_in_sight())
 		for v: Vector3 in (part["arrays"] as Array)[Mesh.ARRAY_VERTEX]:
 			var rc := _road_coords(ctx, v)
 			var ed := t.road_edges_at(rc.x)
 			if rc.y > ed.x - t.shoulder_w + 0.01 and rc.y < ed.y + t.shoulder_w - 0.01 and rc.z > 0.05 \
 					and rc.z < ARCADE_ROOF_H - BorderB.BAR_DROP - 0.02:      # (a rigid luminaire on a sloping road: ±1–2 cm)
 				low += 1
-			if rc.z < ARCADE_ROOF_H - 0.05 and ctx.in_bend_corridor(rc.x, rc.y):
+			if rc.z > 0.5 and rc.z < ARCADE_ROOF_H - 0.05 and _in_sight(ctx, rc.x, rc.y * 0.995):
 				var arcade_pillar := false
 				for p: Array in fronts_here:
 					if absf(rc.x - float(p[0])) <= BorderB.PLINTH_HALF + 0.05 and absf(rc.y - float(p[1])) <= BorderB.PLINTH_HALF + 0.05:
@@ -587,9 +600,10 @@ func test_city_fences_stay_out_of_bend_corridors() -> void:
 		for v: Vector3 in arrays[Mesh.ARRAY_VERTEX]:
 			var rc := _road_coords(ctx, v)
 			if rc.z > 0.1:
-				assert_false(ctx.in_bend_corridor(rc.x, rc.y * 0.98), "kein Zaun im Sichtkorridor der Kurve (z %.0f, x %.1f)" % [rc.x, rc.y])
-	# 5 chunks × 32 segments × 2 sides: the inside of the bend (and the straights next to it: the corridor follows the
-	# strongest curvature nearby) loses its pieces, the outside keeps them
+				# FIX-R7a (QR7a-05): the exact envelope of the sight lines (A-17), not the terrain's wider corridor
+				assert_false(ctx.in_sight_envelope(rc.x, rc.y * 0.98), "kein Zaun in den Sichtlinien der Kurve (z %.0f, x %.1f)" % [rc.x, rc.y])
+	# 5 chunks × 32 segments × 2 sides: the inside of the bend (and the straight before it, as far as the sight lines
+	# into the bend reach – A-17) loses its pieces, the outside keeps them
 	assert_true(dropped >= 60, "auf der Innenseite der Kurve fallen Stücke weg (%d)" % dropped)
 	assert_true(drawn >= 140, "auf der Außenseite steht der Zaun (%d)" % drawn)
 	assert_eq(drawn + dropped, 5 * 32 * 2, "jedes Segment, jede Seite: gezeichnet oder weggelassen")

@@ -30,6 +30,7 @@ const LAMP_COLOUR := Color("fff0cf")
 ## Arcade's procedural street light (fallback without the model)
 const POLE_H := 8.5
 const POLE_W := 0.18
+const FENCE_REACH_M := 0.3         ## sight test of a fence piece: its coping and piers reach 7 cm nearer the road, + margin
 const ARM := 2.2
 const POLE_C := Color("5b6066")
 const HEAD_C := Color(1.0, 0.9, 0.65)
@@ -228,7 +229,11 @@ static func _fence(ctx: ChunkContext, kit: Station.Kit, i: int, z0: float, fd: D
 		var xa := float(side) * (ctx.shoulder_edge(i, side) + off)
 		var xb := float(side) * (ctx.shoulder_edge(i + 1, side) + off)
 		var zm := (z0 + z1) * 0.5
-		if ctx.in_bend_corridor(zm, (xa + xb) * 0.5):
+		# the envelope of the sight lines (A-17) runs out at the ends of a bend: a piece goes when any part of it is
+		# inside – the exact envelope (FIX-R7a, QR7a-05: the terrain's corridor, which keeps the plain strip + 0.55 m
+		# free wherever a sight line leaves the road, dropped 941 pieces of the network that stand in no sight line)
+		if ctx.in_sight_envelope(zm, (xa + xb) * 0.5, FENCE_REACH_M) or ctx.in_sight_envelope(z0, xa, FENCE_REACH_M) \
+				or ctx.in_sight_envelope(z1, xb, FENCE_REACH_M):
 			dropped += 1
 			continue
 		drawn += 1

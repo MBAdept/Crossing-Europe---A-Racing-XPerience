@@ -16,11 +16,15 @@ extends RefCounted
 ##    the section, none in City Limits, tunnels and on bridges), the last ring on the valley floor
 ##    (RoadPath3D.floor_y(): below every road nearby, so it cannot hide anything). On a bridge the rings lie on the
 ##    water (TrackSegment.water_level).
-##  * Sight corridor (fairness rule F7): on the inside of a bend up to the sagitta of a corridor_chord_m chord
-##    (measured from the paved edge with the radius of that edge, the sharpest curvature within half a chord of
-##    path), elsewhere corridor_min_m from the paved edge. Inside it the ground is never above the road: relief is
-##    only added to a ring whose inner neighbour already lies outside the corridor.
-## Everything is a pure function of the road around the row, so two chunks that share a row get the same numbers.
+##  * Sight corridor (fairness rule F7, contract A-17): the envelope of the real sight lines of SightCorridor – from a
+##    camera in any lane to a vehicle in any lane up to L = min(corridor_chord_m, F2 need / 0.6 + camera offset) of
+##    path ahead – wherever such a line leaves the road (at least corridor_min_m from the paved edge plus BEND_FLOOR_M,
+##    so that ChunkContext.in_bend_corridor() counts it as a bend's), elsewhere corridor_min_m from the paved edge.
+##    Inside it the ground is never above the road: relief is only added to a ring whose inner neighbour already lies
+##    outside the corridor. The envelope itself, without that floor (envelope_width(), rows()["envelope"]), is what
+##    ChunkContext.in_bend_corridor() tests: nothing taller than 0.5 m stands in it (FIX-R7a, finding QR7a-05).
+## Everything is a pure function of the road around the row, so two chunks that share a row get the same numbers (the
+## sight lines from cameras before the first row of the path are missing after a start in the middle of a stage).
 ## Config: graphics.modern.terrain (all keys optional, defaults below). Owner: race3d kernel.
 ## Docs: docs/renderer-modern.md.
 
@@ -28,7 +32,11 @@ const DEFAULT_RINGS: Array[float] = [0.0, 5.0, 15.0, 40.0, 100.0, 220.0, 480.0]
 ## Verge and ditch: [metres beyond the shoulder, height relative to the road] – never above the road.
 const DEFAULT_PROFILE: Array = [[0.0, 0.0], [5.0, -0.35], [15.0, -0.6], [40.0, -1.1], [100.0, -2.6], [220.0, -4.0]]
 const DEFAULT_HILL_FACTORS: Array[float] = [0.4, 0.7, 1.0, 1.5]
-const COARSE := 8                      ## rows between two evaluations of the corridor curvature and the relief level
+const COARSE := 8                      ## rows between two evaluations of the ribbon curvature and the relief level
+## Where a sight line leaves the road, the corridor is at least this much wider than the plain strip beside a straight
+## (corridor_min_m): ChunkContext.in_bend_corridor() and the station builder count a corridor as a bend's only above
+## that strip + 0.5 m. Near the start and the end of a bend this keeps a little more free than the sight lines need.
+const BEND_FLOOR_M := 0.55
 
 var path: RoadPath3D
 var track: Track
@@ -38,8 +46,9 @@ var inside_bend_factor := 0.8
 var clear_margin_m := 6.0              ## the ribbon ends this far before the medial axis to another road part
 var min_width_m := 3.0                 ## smallest ribbon width beyond the shoulder
 var cap_power := 1.6
-var corridor_chord_m := 300.0
+var corridor_chord_m := 300.0          ## longest sight line of the corridor (L at most); also the window of the ribbon cut
 var corridor_min_m := 8.0              ## from the paved edge
+var sight := SightCorridor.new()       ## the envelope of the sight lines (fairness rule F7)
 var relief_m := 3.0                    ## relief amplitude at hills level 2 (m)
 var relief_wavelength_m := 260.0
 var relief_from_m := 30.0              ## relief fades in between these distances beyond the shoulder
@@ -60,6 +69,7 @@ var _ch := PackedFloat32Array()
 var _c_edge := Vector2.ZERO            ## outer shoulder edge from the centreline (left, right; both positive)
 var _c_limit := Vector2.ZERO           ## ribbon width beyond the shoulder
 var _c_corr := Vector2.ZERO            ## sight corridor beyond the shoulder
+var _c_env := Vector2.ZERO             ## the exact envelope of the sight lines beyond the shoulder (0: none leaves the road)
 
 
 func setup(p: RoadPath3D, t: Track, terrain_cfg: Dictionary, scenery: Dictionary) -> void:
@@ -103,6 +113,7 @@ func setup(p: RoadPath3D, t: Track, terrain_cfg: Dictionary, scenery: Dictionary
 		path.floor_drop_m = maxf(0.0, float(terrain_cfg.get("floor_drop_m", 4.5)))
 		_fit_clear_max()
 	_seed = int(t.plan.seed) if t != null and t.plan != null else 0
+	sight.setup(p, t, terrain_cfg)
 	_kappa_cache.clear()
 	_amp_cache.clear()
 	_rows.clear()
@@ -129,12 +140,19 @@ func _fit_clear_max() -> void:
 		path.set_clear_max(maxf(path.clear_max_m, rings[_n - 1] + clear_margin_m + 30.0))
 
 
-## Forgets cached rows before before_index (call it with the path's trim()).
+## Computes the sight corridor (SightCorridor) up to row k until the clock passes deadline_us (< 0: no limit); true
+## when it is done. The streamer calls it in frames without other work, ahead of the chunks it will collect.
+func warm(k: int, deadline_us: int) -> bool:
+	return sight.warm(k, deadline_us)
+
+
+## Forgets cached rows before before_index (call it with the path's trim(); a huge value forgets everything).
 func trim(before_index: int) -> void:
 	for cache: Dictionary in [_kappa_cache, _amp_cache, _rows]:
 		for key: int in cache.keys():
 			if key < before_index - COARSE:
 				cache.erase(key)
+	sight.trim(before_index)
 
 
 ## Outer shoulder edge of row k on one side: metres from the centreline (positive on both sides).
@@ -153,6 +171,12 @@ func limit(k: int, side: int) -> float:
 func corridor_width(k: int, side: int) -> float:
 	var r := _row(k)
 	return r[4] if side < 0 else r[5]
+
+
+## The exact envelope of the sight lines of row k beyond the shoulder (m; SightCorridor.width() without the floor of
+## corridor_width() at the ends of a bend): 0 where no sight line leaves the road there. Main thread.
+func envelope_width(k: int, side: int) -> float:
+	return maxf(0.0, sight.width(k, side))
 
 
 ## Ring distances of row k beyond the shoulder (clamped, strictly increasing).
@@ -189,8 +213,9 @@ static func interp(xs: PackedFloat32Array, ox: int, hs: PackedFloat32Array, oh: 
 
 ## The rows a..b in one pass (chunk snapshots, scans): {"rings": n, "x": ring distances, "h": ring heights – both
 ## n values per row and side, index ((row - a) * 2 + (0 left | 1 right)) * n + ring –, "edge": shoulder edges,
-## "limit": ribbon widths, "corridor": sight corridors – Vector2(left, right) per row –, "floor": RoadPath3D.floor_y()
-## per row}.
+## "limit": ribbon widths, "corridor": sight corridors – Vector2(left, right) per row –, "envelope": the exact
+## envelopes of the sight lines (envelope_width()) – Vector2(left, right) per row –, "floor": RoadPath3D.floor_y() per
+## row}.
 func rows(a: int, b: int) -> Dictionary:
 	var count := maxi(0, b - a + 1)
 	var x := PackedFloat32Array()
@@ -198,11 +223,13 @@ func rows(a: int, b: int) -> Dictionary:
 	var edges := PackedVector2Array()
 	var limits := PackedVector2Array()
 	var corr := PackedVector2Array()
+	var env := PackedVector2Array()
 	x.resize(count * 2 * _n)
 	h.resize(count * 2 * _n)
 	edges.resize(count)
 	limits.resize(count)
 	corr.resize(count)
+	env.resize(count)
 	var floors := path.floor_rows(a, b)
 	var n2 := 2 * _n
 	for q in count:
@@ -214,7 +241,8 @@ func rows(a: int, b: int) -> Dictionary:
 		edges[q] = _c_edge
 		limits[q] = _c_limit
 		corr[q] = _c_corr
-	return {"rings": _n, "x": x, "h": h, "edge": edges, "limit": limits, "corridor": corr, "floor": floors}
+		env[q] = _c_env
+	return {"rings": _n, "x": x, "h": h, "edge": edges, "limit": limits, "corridor": corr, "envelope": env, "floor": floors}
 
 
 func _row(k: int) -> PackedFloat32Array:
@@ -269,7 +297,6 @@ func _compute(k: int, floor_abs: float) -> void:
 	for si in 2:
 		var side := -1.0 if si == 0 else 1.0
 		var e := _c_edge.x if si == 0 else _c_edge.y
-		var paved := paved_l if si == 0 else paved_r
 		# ribbon width: outer ring, medial axis to other road parts, inside of the bend
 		var lim := minf(outer, path.clearance(k, -1 if si == 0 else 1) - clear_margin_m - e)
 		var k_in := maxf(maxf(side * k_ahead, side * k_behind), 0.0)
@@ -281,19 +308,20 @@ func _compute(k: int, floor_abs: float) -> void:
 		if k_near > 1.0e-6:
 			lim = minf(lim, inside_bend_factor / k_near - e)
 		lim = maxf(lim, min_width_m)
-		# sight corridor beyond the shoulder
-		var k_c := kap.x if si == 0 else kap.y
-		var corr := corridor_min_m
-		if k_c > 1.0e-7:
-			var k_edge := k_c / maxf(0.05, 1.0 - k_c * paved)
-			corr = maxf(corr, corridor_chord_m * corridor_chord_m * 0.125 * k_edge)
-		corr = maxf(0.0, corr - sh)
+		# sight corridor beyond the shoulder: the plain strip, or the envelope of the sight lines where one leaves the road
+		var corr := maxf(0.0, corridor_min_m - sh)
+		var envw := 0.0
+		if sight.width_near(k, -1 if si == 0 else 1) > 0.0:
+			envw = maxf(0.0, sight.width(k, -1 if si == 0 else 1))
+			corr = maxf(envw, corr + BEND_FLOOR_M)
 		if si == 0:
 			_c_limit.x = lim
 			_c_corr.x = corr
+			_c_env.x = envw
 		else:
 			_c_limit.y = lim
 			_c_corr.y = corr
+			_c_env.y = envw
 		var o := si * _n
 		var prev_x := 0.0
 		for i in _n:
@@ -328,7 +356,8 @@ func _base(m: float) -> float:
 	return _profile_h[n - 1]
 
 
-## Sharpest curvature towards the left / the right (1/m, >= 0) within half a corridor chord of path around row k.
+## Sharpest curvature towards the left / the right (1/m, >= 0) within half a corridor chord of path around row k – the
+## inside cut of the ribbon (the sight corridor itself comes from SightCorridor).
 ## Evaluated on every COARSE-th row over 12-m steps of the heading; a row in between takes the larger neighbour.
 func _kappa(k: int) -> Vector2:
 	var k0 := (k / COARSE) * COARSE
