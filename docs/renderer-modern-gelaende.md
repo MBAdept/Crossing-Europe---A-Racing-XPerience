@@ -411,8 +411,9 @@ einem Stadthaus 8–32 % seiner Pixel in einem Bild (AS5aR1, AS5aR2). Jetzt:
 - **Stehende Kamera** (FIX-R7c, QR7c-06). Das Band hängt am Abstand; steht die Kamera (Countdown, Stau, Polizei),
   bliebe eine Instanz im Band im Raster zweier Stufen stehen (eine Baumkrone wirkt körnig). Das globale
   `ce_lod_still` (0..1) setzt `props.gd` aus der Kamerageschwindigkeit: unter 1,5 m/s wächst es in 0,4 s auf 1 (wie
-  das `xfade` der Fahrzeuge, A-16), beim Anfahren fällt es ebenso schnell auf 0. Der Shader zieht jedes Band um seine
-  Mitte zusammen (bei 1 auf ±0,5 mm: harter Wechsel in der Bandmitte); das Zusammenziehen über die Zeit ist selbst ein
+  das `xfade` der Fahrzeuge, A-16), beim Anfahren fällt es ebenso schnell auf 0. Der Shader zieht jedes Band zu seinem
+  fernen Ende zusammen (bei 1 auf 1 mm: harter Wechsel am Bandende – im ganzen Band steht die feinere Stufe, beim
+  Countdown also dieselbe Krone wie vor dem Band, nicht die gröbere); das Zusammenziehen über die Zeit ist selbst ein
   Überblenden durch dasselbe Raster. Ohne `props.gd` (Ausstellungsraum, Prüfszenen) bleibt es 0 (Band wie bisher).
   Render-Prüfung `check_lod_band` „…_stand“: mit `ce_lod_still` = 1 sieht jeder Schritt aus wie der harte Wechsel.
 - `quality_lowered(levels)` (Wächter) setzt die Bänder sofort neu.

@@ -13,8 +13,9 @@ extends SceneTree
 ##                     must never lose more than 3 % of its pixels (no hole while the two levels share them) – the
 ##                     hard swap at 60 m changed 8–32 % of a house's pixels in one frame (AS5aR1, AS5aR2).
 ##   lod_baum          the same for a card tree, lod1 -> impostor (the billboard).
-##   lod_*_stand       FIX-R7c (QR7c-06): the same sweep with ce_lod_still = 1 (a standing camera): every step must look
-##                     like the hard swap (no dither of two levels at a standstill: countdown, traffic jam, police stop).
+##   lod_*_stand       FIX-R7c (QR7c-06): the same sweep with ce_lod_still = 1 (a standing camera, the band narrowed to
+##                     its far end): every step must look like the hard swap at that end (no dither of two levels at a
+##                     standstill: countdown, traffic jam, police stop).
 ##   fernlicht         FIX-R7c (QR7c-02 f, lead decision 2 of R7c): the Haussmann house (lod1, the level the game shows
 ##                     beyond 30 m) under a sun with real-time shadows to 120 m ("Mittel"), its far light set by the props
 ##                     builder from the configuration: the mean luminance of the house at 140 and 250 m stays within ±5 %
@@ -145,8 +146,11 @@ func _check(check: String, model_id: String, a: String, b: String, d: float, spa
 				continue          # every other step is enough against the hard swap
 			var end_a := d - span + float(k) * STEP_M
 			var w := clampf(end_a * fade.x, fade.y, fade.z)
-			_set_band(model_id, a, Vector4(-2.0, -1.0, end_a - w, end_a + w))
-			_set_band(model_id, b, Vector4(end_a - w, end_a + w, Props.LOD_ENDLESS, 2.0 * Props.LOD_ENDLESS))
+			# a standing camera narrows the band to its far end: the band (end_a - 2w, end_a) swaps hard at end_a, as
+			# the hard band of the same step does
+			var mid_a := end_a - w if mode == "stand" else end_a
+			_set_band(model_id, a, Vector4(-2.0, -1.0, mid_a - w, mid_a + w))
+			_set_band(model_id, b, Vector4(mid_a - w, mid_a + w, Props.LOD_ENDLESS, 2.0 * Props.LOD_ENDLESS))
 			var img := await _frame()
 			if mode == "stand":
 				stand_worst = maxf(stand_worst, _changed(hard_imgs[k], img))
