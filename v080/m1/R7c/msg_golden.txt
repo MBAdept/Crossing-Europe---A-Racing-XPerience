@@ -1,0 +1,13 @@
+v0.8.0 R7c: Modern-Goldens erneuert (Bilder angesehen), Fernlicht des Chalets 0,3
+
+tools/golden.sh modern-make auf 138c90f. Vorher angesehen: die sechs Bilder gegen die Liste der
+Basis (RINT-M2) – geändert sind 0,6–3,8 % der Pixel, mittlere Helligkeit gleich: Rotorphasen der
+Windräder (Phase je Instanz), Bäume (Wiegen je Instanz, Stufen je Baum), Stadthäuser in Hamburg
+(Stufe je Instanz, Fernlicht, Farb-Mip-Bias; dazu die Modelle von AS5aR2). Das Starttor, das
+Zielbanner und die Tafeln unverändert. Gewollt.
+
+Chalet: far_sun 0,35 lag in lod1 bei 200 m (Hoch) +6,3 % und bei 140 m (Mittel) +5,6 % über dem
+Nahbild; mit 0,3 gemessen +3,6 / +2,8 %. Kein Golden-Bild zeigt ein Chalet.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

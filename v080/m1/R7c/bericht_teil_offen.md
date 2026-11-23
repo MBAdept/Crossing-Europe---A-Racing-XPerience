@@ -15,3 +15,15 @@
   Grenze, Brückenteile), bekommen kein Fernlicht.
 - **A-18 / Brief**: der Vertrag sagt, Pakete erneuern `tests/golden/modern_slice.*` nicht; der Brief verlangt
   `modern-make` nach Ansicht. Ich bin dem Brief gefolgt (Abschnitt 5).
+- **Überblenden über den Weg statt über die Zeit** (A-16: „0,3–0,5 s wie `xfade` der Fahrzeuge“): eine Blende in der
+  Zeit bräuchte je Instanz einen Zustand (Instanz-Uniforms sind nach A-19 tabu, MultiMesh-Daten je Bild neu zu
+  schreiben wäre teuer). Das Band ist ±12 % der Stufengrenze (mind. 4, höchst. 25 m): bei 100 km/h dauert der Wechsel
+  eines Hauses bei 35 m 0,3 s, der eines Baums bei 60 m 0,5 s, lod1 → Fernbild bei 200 m 1,7 s; bei 50 km/h doppelt so
+  lange.
+- **Bilder**: je Stadt drei der sechs Kombinationen (Hoch 12 Uhr, Mittel 19:30, Hoch 22 Uhr), dazu Nürnberg und Paris
+  Mittel 12 Uhr und die Dämmerung in Hamburg (Mittel 19:00 / 19:30 / 22:00) – nicht jede Stadt in jeder Stufe zu jeder
+  Stunde (Rechenzeit; die Stufe verschiebt die Entfernungen, nicht das Licht).
+- **Flimmern ≤ 2 × Sprite** nicht überall erreicht: Fachwerkzeile lod1 bei 100 / 150 m 2,0 / 2,25 ×, Südhaus bei 40 m
+  3 × (Abschnitt 3.2).
+- **Arcade-Goldens** einmal auf `965b8a9` (wie verlangt nur einmal); danach habe ich nur Modern-Dateien geändert
+  (`baked.gdshader`, `props.gd`, Tests, Doku).

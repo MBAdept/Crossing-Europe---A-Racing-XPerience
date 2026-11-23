@@ -1,0 +1,7 @@
+ENDSTAND = `3b3107b`
+GATESKURZ = Import sauber, Skripte 331/0, `run_tests.sh` 816/0 (zweimal, zuletzt auf dem Endstand), Render-Prüfungen 29 von 29 OK (`check_weather` erst nach einer Korrektur dieses Pakets, siehe 5), Sicht und Wege `--full` grün, Arcade-Goldens 20 von 20 und 17 von 17 identisch, Modern-Goldens nach Ansicht erneuert.
+MERGETEST = Zusätzlich in den Bäumen der Zusammenführung (gemessen, `git archive` des `merge-tree`-Ergebnisses + Import): mit FIX-RINT Skripte 331/0 und `test_props` 26/0 (FIX-RINTs `_code_only()` und mein `_shader_code()` nebeneinander), mit FIX-R7a (Korridor nach A-17) Skripte 334/0 und `test_props` 26/0 – der Anbau-Korridor-Test sucht seine Stelle selbst und gilt auch mit der Hülle von A-17.
+MERGENOTE = In den Zusammenführungen mit FIX-RINT und mit FIX-R7a je für sich: Skripte fehlerfrei, `test_props` 26/0 (gemessen); die Dreier-Zusammenführung habe ich nicht geprüft.
+MODERNGOLDENS = der Brief erlaubt `modern-make`, wo ein Modern-Golden gewollt anders ist; ich habe die Bilder vorher angesehen (Abschnitt 5) und erneuert – die Montage erneuert sie ohnehin.
+STARTHIGHLOOK = gleich (bei „Hoch“ liegen die Bänder bei 120 m, im Countdown steht dort keine Instanz im Band)
+STARTHIGH = 318 px

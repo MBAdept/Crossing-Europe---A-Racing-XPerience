@@ -1,0 +1,46 @@
+far/final3_k_high exit 0 
+LODCOL city_hanse_kontor 60m L52.4
+LODCOL city_hanse_kontor 100m L54.2
+LODCOL city_hanse_kontor 140m L54.6
+LODCOL city_hanse_kontor 200m L53.3
+LODCOL city_hanse_kontor 250m L53.4
+far/final3_b_high exit 0 
+LODCOL city_swiss_chalet 60m L74.7
+LODCOL city_swiss_chalet 100m L76.5
+LODCOL city_swiss_chalet 140m L75.3
+LODCOL city_swiss_chalet 200m L79.4
+LODCOL city_swiss_chalet 250m L77.8
+far/final3_c_high exit 0 
+LODCOL city_german_old_fachwerk 60m L106.6
+LODCOL city_german_old_fachwerk 100m L108.1
+LODCOL city_german_old_fachwerk 140m L108.2
+LODCOL city_german_old_fachwerk 200m L107.8
+LODCOL city_german_old_fachwerk 250m L107.7
+LODCOL city_german_old_fachwerk_b 60m L83.1
+LODCOL city_german_old_fachwerk_b 100m L81.7
+LODCOL city_german_old_fachwerk_b 140m L80.8
+LODCOL city_german_old_fachwerk_b 200m L81.5
+LODCOL city_german_old_fachwerk_b 250m L81.4
+far/final3_k_medium exit 0 
+LODCOL city_hanse_kontor 60m L52.4
+LODCOL city_hanse_kontor 100m L53.0
+LODCOL city_hanse_kontor 140m L53.5
+LODCOL city_hanse_kontor 200m L53.7
+LODCOL city_hanse_kontor 250m L53.6
+far/final3_b_medium exit 0 
+LODCOL city_swiss_chalet 60m L75.3
+LODCOL city_swiss_chalet 100m L74.9
+LODCOL city_swiss_chalet 140m L79.5
+LODCOL city_swiss_chalet 200m L77.8
+LODCOL city_swiss_chalet 250m L78.1
+far/final3_c_medium exit 0 
+LODCOL city_german_old_fachwerk 60m L106.4
+LODCOL city_german_old_fachwerk 100m L106.4
+LODCOL city_german_old_fachwerk 140m L107.4
+LODCOL city_german_old_fachwerk 200m L108.2
+LODCOL city_german_old_fachwerk 250m L107.9
+LODCOL city_german_old_fachwerk_b 60m L82.9
+LODCOL city_german_old_fachwerk_b 100m L80.6
+LODCOL city_german_old_fachwerk_b 140m L82.1
+LODCOL city_german_old_fachwerk_b 200m L81.6
+LODCOL city_german_old_fachwerk_b 250m L81.6

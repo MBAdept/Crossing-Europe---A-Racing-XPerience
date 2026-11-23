@@ -1,0 +1,14 @@
+v0.8.0 FIX-R7c: WIP lod0 der Stadthäuser, Band bei stehender Kamera, Haken der Requisiten, Wachen
+
+- QR7c-01: graphics.modern.props.lod0_m ohne "tag:city" – nur Fachwerk (a/b), Haussmann und
+  Pariser Eckhaus enden bei 30 m; Speicher, Kontor usw. behalten ihr max_dist_m (60 m bei Mittel)
+- QR7c-06: neues globales ce_lod_still (props.gd aus der Kamerageschwindigkeit, 0,4 s Rampe):
+  bei stehender Kamera zieht sich jedes Band auf seine Mitte zusammen (kein Raster im Countdown)
+- QR7c-03/-05: _apply_lod geht nur bei gekreuzter Schwelle über die Kinder; Knoten 2 m vor/nach
+  ihrem Band an
+- QR7c-07: Notiz von test_chunk_lod_shows_one_representation in die Funktion (Zusammenbau mit FIX-RINT)
+- QR7c-08: Anbauten jenseits des Stücks werden nicht gestellt, höchstens 8 je Modell
+- QR7c-02: neue Tests für Fernlicht, Shaderregeln, Phasen, ground_sink/align, Anbau im Korridor
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

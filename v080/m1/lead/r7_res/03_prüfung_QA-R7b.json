@@ -1,0 +1,122 @@
+{
+ "verdict": "R7b is solid. Nothing in it is broken, and it can go into RINT-M3 after two small night-look fixes (B-01, B-02). I measured every gate myself on 2c154bc. Arcade golden check: 20/20 and 17/17 identical. A full run_tests passed (945 s). modern_sight and modern_path_check --full both passed. 6 of 6 selected render checks passed, and the stage result matches the base. A data scan of all 143 landmarks in 128 stage directions found no difference from Arcade in representation, set, scale or tint, and every landmark builds headless. The new tests guard their rules: 16 of 18 mutations were caught. The two that slipped through are the floodlight on plain props (B-03). File ownership was kept, apart from one foreign test file that R7b reported itself. The look was judged against Arcade and the base on the same simulation state. By day, the 3D shapes are clearly better than the base, which drew wide stand-in blocks at Dortmund, Madrid, Calais, Hannover and Belgrade. Hannover and Dortmund also look better than Arcade's flat drawings. Sprite landmarks look the same as Arcade. Worse than Arcade: at night the Elbphilharmonie is about 28 % brighter than both Arcade and the base. The aviation light is about 23 times Arcade's dot area, not the 3 times the R7b report claims. Close up, the domed shapes sit lower or to the side: Leipzig's dome is hidden behind a tree, and Belgrade's is about 85 px off. The unmirrored church on the left side stands up to 37.8 m closer to the road than in Arcade. At most 600-m city arrivals, houses hide the landmark in all three modes, so those views cannot show a difference.",
+ "findings": [
+  {
+   "id": "B-01",
+   "severity": "medium",
+   "area": "look/night",
+   "where": "assets/shaders/modern/landmark.gdshader CE_PICTURE, `vec3 col = mix(x, lit, wl)` (~l.236)",
+   "problem": "Sprite landmarks at night are brighter than Arcade and than the base. The picture and its light layer are blended in linear space, while Arcade and billboard.gdshader (l.168) blend in display space. This affects all 32 sprite landmarks that have a light layer, including the Elbphilharmonie on the test-build stage.",
+   "evidence": "Measured: deliver/QA-R7b/raw/hamburg_22_{arcade,basis,modern}_00.png, facade box (300..380, 232..268). Mean luminance Arcade 112.7, base 116.2, R7b 144.5; p90 178/178/197. Zoom: deliver/QA-R7b/bilder/elbphilharmonie_nacht_zoom.png",
+   "repro": "m1/QA-R7b/sh/abc.sh <out> high 1280x720 --stage=kiel_hamburg --from=kiel --start-km=85.6 --hour=22 --weather=normal --vehicle=limousine --seed=11 --autopilot --autopilot-refuel=never --traffic-warmup --no-countdown --start-speed=50 --shot-times=1",
+   "fix": "Blend in display space like billboard.gdshader: disp = mix(min(d,1), min(l.rgb,1), wl); col = srgb_to_lin(disp) + to_lin(base)*headlight_color*v_head*(1-wl). Add a render check that the Elbphilharmonie facade at 22:00 stays at most 1.1x Arcade."
+  },
+  {
+   "id": "B-02",
+   "severity": "medium",
+   "area": "look/night",
+   "where": "scripts/race3d/builders/landmarks.gd _tv_tower/_skyscrapers kit.glow(0.6, 5.0/3.0 m, 2.5 px); landmark.gdshader CE_GLOW",
+   "problem": "The red aviation light of the 3D TV tower and the skyscrapers is much larger than Arcade's dot: about 4.5x the diameter and 23x the area. The post glow pass inflates it further. The R7b report says 'about 3x'. The flugfeuer check only caps it at 3 % of the frame.",
+   "evidence": "Measured: raw/dortmund_22_*, red pixels (r>=110, r>1.8g, r>1.8b): Arcade 10 (4x4 px), R7b 232 (17x19 px). Same on the Deck preset (238 vs about 16). Madrid at 22:00 is similar. Zoom: bilder/dortmund_nacht_flugfeuer_zoom.png",
+   "repro": "abc.sh <out> high 1280x720 --stage=bremen_dortmund --from=bremen --start-km=225.0 --hour=22 (other arguments as in B-01)",
+   "fix": "Use Arcade's size (_lm_glow: radius max(2.5 px, 6 m*s), core 0.35 r), e.g. size 1.5 m, minimum 1.5 px, strength <=0.35 so the glow pass does not bloom it. Bound flugfeuer to at most 3x Arcade's red pixels at the same spot."
+  },
+  {
+   "id": "B-05",
+   "severity": "low",
+   "area": "look/position",
+   "where": "landmarks.gd _domed_church (body to -44 m, main dome at z=-22*k) and _place (turned with the road at the anchor)",
+   "problem": "Domed shapes stand with their front face at the anchor, while Arcade draws the dome at the anchor. Close up, the dome therefore sits lower and smaller, and in bends the shape shows its side wall.",
+   "evidence": "Measured in pictures: raw/nah_leipzig_12_* – Arcade's dome is visible above a tree, but hidden in Modern (bilder/leipzig_nah_kuppel_verdeckt.png). raw/nah_belgrad_12_* – about 85 px right of Arcade and wider. Hannover matches Arcade.",
+   "repro": "abc.sh with --stage=dresden_leipzig --from=dresden --start-km=106.5 --hour=12, and --stage=slavonski_brod_belgrad --from=slavonski_brod --start-km=200.0",
+   "fix": "Move shapes forward by half their depth (main dome at the anchor). Orient each one once, towards the bearing from the path point about 600 m before it, instead of the road heading at the anchor (see contract issue V-1)."
+  },
+  {
+   "id": "B-04",
+   "severity": "low",
+   "area": "position",
+   "where": "landmarks.gd resolve_item -> PropsBuilderMath.edge_anchor_x (unmirrored extents)",
+   "problem": "Arcade mirrors props/church on the left side (mirror_left); Modern never mirrors. As a result the tower stands up to 37.8 m closer to the road. That is 44.7 px at 600 m, inside the 64 px limit, but the report gives 24.7 px as the maximum.",
+   "evidence": "Measured: data scan m1/QA-R7b/scan_landmarks.log, largest offset Magdeburger Dom leipzig_magdeburg__leipzig, Arcade x -90.38 vs Modern -52.62. raw/flood2_bremen_22_*: tower about 63 px right of Arcade's at about 380 m (bilder/bremer_dom_nacht_380m_zoom.png)",
+   "repro": "godot --headless --path <tree> -s m1/QA-R7b/sh/scan_landmarks.gd",
+   "fix": "Lead decision under D24: either place the model at Arcade's mirrored anchor (edge_anchor_x(x, side, true, ext, sc); the body moves away from the road), or mirror the single MeshInstance3D with negative x scale."
+  },
+  {
+   "id": "B-03",
+   "severity": "low",
+   "area": "tests/look",
+   "where": "landmark.gdshader CE_ATLAS `alb = mix(alb, alb*flood_color*1.6, flood)`; tests",
+   "problem": "The floodlight on plain props used as landmarks (43 of 143) only scales the lit albedo, so at night it adds little. No test notices if it is removed.",
+   "evidence": "Measured: raw/flood2_bremen_22_*, tower box mean RGB Arcade 102/106/73, base 79/101/62, R7b 89/106/63. Mutations M16 and M17 (floodlight removed in CE_ATLAS / CE_PICTURE) were NOT caught by test_landmarks or check_landmarks (m1/QA-R7b/mutlogs/mutate_flood.log)",
+   "repro": "python3 m1/QA-R7b/sh/mutate.py <copy> <log> M16 M17",
+   "fix": "Add EMISSION += alb*flood_color*flood*k in CE_ATLAS (as channel 14 does). Add a check, e.g. a render check that the Bremer Dom tower at 22:00 reaches at least 0.85x Arcade."
+  },
+  {
+   "id": "B-06",
+   "severity": "low",
+   "area": "performance",
+   "where": "scripts/race3d/layers/backdrop.gd (_sky_sig rounds alpha to 0.015, so the whole canvas is redrawn on every fade step)",
+   "problem": "Redrawing the skyline causes main-thread spikes.",
+   "evidence": "Measured under load 8-10: backdrop hook max 3.0 / 4.3 ms on whole Deck stages, against 0.56 / 1.43 ms on the base; the averages differ by only +0.02-0.04 ms (gates/perf_*_deck_12.log)",
+   "repro": "m1/QA-R7b/sh/perf.sh (run_stage deck kiel_hamburg / bremen_dortmund, head vs base)",
+   "fix": "Round alpha more coarsely (0.05), or during fades redraw at most every second frame."
+  },
+  {
+   "id": "B-07",
+   "severity": "low",
+   "area": "code",
+   "where": "landmarks.gd proc_key() vs proc_mesh()/_place()",
+   "problem": "Latent cache collision: the key uses height_m*scale, but the mesh is built from height_m and the node carries the scale. Two entries of the same kind and colours with an equal product but different scale would get a wrongly sized mesh. The proc_mesh comment ('node carries no scale') is also wrong.",
+   "evidence": "Code read. The data scan finds no such pair in the network today (inferred: latent only).",
+   "repro": "Code inspection.",
+   "fix": "Key on height_m alone and correct the comment."
+  },
+  {
+   "id": "B-08",
+   "severity": "low",
+   "area": "docs",
+   "where": "docs/renderer-modern.md §18.1/18.2",
+   "problem": "Two statements are wrong. 'Heute: nur landmarks/michel' as a model: in fact 46 of 143 landmarks draw as models (props/church 38, props/building_tall 5, michel 3). '24.7 px' is given as the maximum offset; network-wide it is 44.7 px.",
+   "evidence": "Data scan, m1/QA-R7b/scan_landmarks.log 'SCAN reps'",
+   "repro": "Read §18 next to the scan.",
+   "fix": "Correct both sentences."
+  }
+ ],
+ "checked_ok": [
+  "Arcade identity: tools/golden.sh check gives GOLDEN arcade 20/20 and arcade-ui 17/17 identical (gates/golden_check.log)",
+  "tools/run_tests.sh full: passed in 945 s; 334 scripts/0 broken, 811 unit tests/0 failed, check_landmarks 6/6, test_far_ground_water and test_props hold",
+  "Render checks (selected): check_landmarks_render, start_km0, terrain_cover (K1), light_base, props_render, occlusion – 6/6 OK",
+  "Fairness --full: F1 0 cases up to 270 m (99.4 M samples), lanes 0 up to 260 m, F2 <=0.596, F3 0 of 5923, F7 0 of 2.01 M, model 0 differing; path_check --full OK (267.6 m / 2064 m)",
+  "Ownership: 13 files = own files + backdrop.gd (lead exception) + docs §18; foreign file check_minimal_structures.gd (+4 lines, reported by R7b and needed); no frozen file; props.gd/config unchanged; the duck-typed skip in props.gd (l.88/122/329/539/741) was already in the base",
+  "Data scan of 128 directions and 143 landmarks: representation, set, scale and tint the same as Arcade's _prep_prop; every landmark builds headless; every skyline entry can be drawn",
+  "Arcade law reproduced exactly (range, alpha 0.72 L, haze, night lights to 1900 m, flood 0.55); soft fade above 0.70 L, no dither (render check 'weich' 0.23)",
+  "16 of 18 mutations caught (law, reach, representation, anchor, slimness, A-19, tint N1, path reach, soft fade, skyline fade, position, props skip, procedural, aviation-light size, render position)",
+  "Rule 3: ERGEBNIS of head and base identical on Kiel-Hamburg and Bremen-Dortmund (Deck)",
+  "Performance at Deck: +2 to +4 draw calls and +134 to +4193 primitives per arrival; landmarks hook about 0.05-0.08 ms average; collect() 0.001 ms; render() average equal to the base",
+  "Skyline: S1-S5 show distant land below the horizon, no bright strip; head equals base at S1 and S5; Kassel Herkules drawn as Arcade's 2D silhouette; no doubles near the road landmark",
+  "Look by day: 3D TV tower, skyscrapers, lighthouse, Hannover dome are clearly better than the base stand-ins and at Arcade's place; sprite landmarks the same as Arcade",
+  "R7b clips Hamburg/Paris (contact sheets): Michel and Eiffel tower at Arcade's place, no jumps",
+  "Only 3 straight 640-m landmark approaches in the network (confirmed)"
+ ],
+ "media": [
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7b/bericht.md",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7b/boegen/hamburg.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7b/boegen/dortmund.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7b/boegen/madrid.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7b/boegen/calais.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7b/boegen/nah_hannover.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7b/boegen/nah_belgrad.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7b/boegen/nah_leipzig.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7b/boegen/anstrahlung_kirche.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7b/boegen/horizont_S1_S5.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7b/boegen/deck_1280x800.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7b/boegen/skyline_staedte.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7b/bilder/elbphilharmonie_nacht_zoom.png",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7b/bilder/dortmund_nacht_flugfeuer_zoom.png",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7b/bilder/bremer_dom_nacht_380m_zoom.png",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7b/bilder/leipzig_nah_kuppel_verdeckt.png",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7b/bilder/dortmund_tag_zoom.png",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7b/bilder/madrid_tag_zoom.png",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7b/bilder/calais_tag_zoom.png"
+ ]
+}

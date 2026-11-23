@@ -1,0 +1,129 @@
+{
+ "package": "FIX-R7a",
+ "branch": "worktree-wf_ba4424b4-294-8 (Sicherung origin/wip/v080-fix-r7a)",
+ "commit": "4a43944338a47f188a0ff795f95691e507e515da",
+ "worktree": "/home/user/crossing-europe---a-racing-xperience/.claude/worktrees/wf_ba4424b4-294-8",
+ "summary": "I reproduced all six QA-R7a findings and fixed the ones in my own files. There was no predecessor run; the base is 509bb16.\n\nQR7a-01 (footprint): the kernel part is done. The exact envelope is now in the chunk snapshot with 8 rows of margin, plus in_sight_envelope() and bend_intrusion(). F7 checks the exact envelope, and a network check (tests/race3d/props_footprint.gd) is new. The missing line in R7c's props.gd comes as a measured patch: push props out by up to 12 m instead of dropping them. With the patch, 0 of 218,088 props reach into the envelope (5,728 without it). Against the base, 23,943 props come back and only 8 are newly dropped; QA's drop-only line gave 15,977 back and 1,218 dropped. The München row, the T4 rocks, Belgrad's poplar and C1's corner house all stay. At C1, 270 m, the test car is visible again in 2 of 3 lanes. All numbers measured.\n\nQR7a-02: chunk_streamer.gd now merges with FIX-RINT, R7b, FIX-R7b and R7c without conflicts. In the merged tree, 0 of 3,000 frames both warmed the corridor and committed.\n\nQR7a-03: warm() now works in steps. The p99 per call fell from 0.50–0.67 ms to 0.29–0.39 ms, and reset_stats() now clears the sync counters. Deck-preset drive: 0 recomputations.\n\nQR7a-05: fences are tested against the exact envelope: 75.9 % of Arcade's pieces instead of 75.3 %.\n\nGates all pass: run_tests 811/0, all 28 render check files OK, Arcade goldens 20/20 and 17/17, sight and path --full green, a full Modern stage run identical to the base.",
+ "files_changed": [
+  "scripts/race3d/chunk_context.gd",
+  "scripts/race3d/terrain_profile.gd",
+  "scripts/race3d/sight_corridor.gd",
+  "scripts/race3d/chunk_streamer.gd",
+  "scripts/race3d/builders/city.gd",
+  "tests/race3d/fairness.gd",
+  "tests/sim/modern_sight.gd",
+  "tests/race3d/props_footprint.gd",
+  "tests/race3d/props_footprint.gd.uid",
+  "tests/unit/race3d/test_chunk_streamer.gd",
+  "tests/unit/race3d/test_terrain_profile.gd",
+  "tests/unit/race3d/test_structures.gd",
+  "docs/renderer-modern.md"
+ ],
+ "acceptance": [
+  {
+   "check": "QR7a-01 (high): footprint of props in the A-17 envelope",
+   "result": "partial",
+   "evidence": "Reproduced: props_footprint --full on R7a's state found 5,728 props (QA 5,630). The kernel API, network check and F7 extension are done. The props.gd line is R7c's file, so it is delivered as a patch (patch_props.py, which applies to R7c bd1803b, plus a diff). With the patch: 0 violations, base +23,943/-8, C1 at 270 m 6/16/18 px, T3/T4 equal to R7a (measured). Open until the patch is merged."
+  },
+  {
+   "check": "QR7a-02 (medium): chunk_streamer conflict with FIX-RINT, warm during commit frames",
+   "result": "pass",
+   "evidence": "merge-tree with fix-rint 3248211, r7c, r7b and fix-r7b: no conflicts. Merged tree: kernel tests 9/14/7/8 all 0 failures. probe/warm_vs_commit.gd: 2,894 warm frames, 53 commit frames, 0 frames with both (measured)."
+  },
+  {
+   "check": "QR7a-03 (low): warm() deadline overrun, sync counters not reset",
+   "result": "pass",
+   "evidence": "warmparts.gd at a 0.25 ms budget: mean 0.31 to 0.21 ms, p99 0.50-0.67 to 0.29-0.39 ms, calls over 0.5 ms from 6/102/43 to 0/4/1. reset_stats() now resets sync_us_*. Deck drive: sync_calls 0 (measured). Worker-thread fans not built."
+  },
+  {
+   "check": "QR7a-04 (low): test_props.gd hunk outside ownership",
+   "result": "pass",
+   "evidence": "No change needed: the hunk is kept and merges cleanly with R7c (merge-tree, measured). Noted for the merge."
+  },
+  {
+   "check": "QR7a-05 (low): city fences against the rounded corridor",
+   "result": "pass",
+   "evidence": "city.gd now uses in_sight_envelope() with a 0.3 m margin. Real builds over 128 directions: 60,473 pieces instead of 59,949 (75.9 % instead of 75.3 % of Arcade). test_structures 14/0."
+  },
+  {
+   "check": "QR7a-06 (low): outdated paragraph in renderer-modern-gelaende.md §8",
+   "result": "fail",
+   "evidence": "Confirmed, but the file belongs to R7c/R2, so I did not edit it. Replacement text is in bericht.md §9 and notes_for_next."
+  },
+  {
+   "check": "Gate: import + check_scripts",
+   "result": "pass",
+   "evidence": "Import exit 0 with no errors. 333 scripts checked, 0 broken."
+  },
+  {
+   "check": "Gate: tools/run_tests.sh (one full run)",
+   "result": "pass",
+   "evidence": "811 tests, 0 failed. Every step CHECKS OK, 'Tests bestanden' (1013 s)."
+  },
+  {
+   "check": "Gate: tools/golden.sh check",
+   "result": "pass",
+   "evidence": "GOLDEN arcade 20 von 20, arcade-ui 17 von 17 identisch."
+  },
+  {
+   "check": "Gate: tools/golden.sh modern-check",
+   "result": "partial",
+   "evidence": "2 of 6 identical; GLES OK (PSNR 73.2 dB). The same 4 frames changed as for R7a. Rendered on R7a 509bb16, 5 of 6 are byte-equal and s4_mittel differs by 7 px (a far fence piece; viewed). No modern-make (A-18)."
+  },
+  {
+   "check": "Gate: tools/run_render_checks.sh all",
+   "result": "pass",
+   "evidence": "28 of 28 files OK, 80 check lines OK, 0 FEHLER. terrain_cover T1-T4, S1, C1 and K1 each 0.000 % magenta; start_km0 and light_base OK."
+  },
+  {
+   "check": "Gate: modern_sight --full and modern_path_check --full",
+   "result": "pass",
+   "evidence": "F2 0.593/0.596/0.555. F7: 0 of 2,011,532 sides with terrain above the road. Envelope 0 of 388,907 uncovered; exact envelope 0 uncovered, 0 missing. Path clearance 267.6 m, loops 2,064 m."
+  },
+  {
+   "check": "Gate: Modern autopilot stage with perf_stats next to the base",
+   "result": "pass",
+   "evidence": "Kiel-Hamburg x40: ok, 0 script errors, ERGEBNIS MD5 equal to base; render 4.24 vs 4.47 ms avg, draw calls and primitives equal. Saragossa-Pau Deck preset x4: render avg 2.13 vs 2.04 ms (max 7.78 vs 10.0), collect max 3.37 vs 5.24 ms, commit max 0.99 vs 1.20 ms, corridor warm 0.18 ms avg. llvmpipe measured; Deck inferred."
+  }
+ ],
+ "tests_total": 811,
+ "tests_failed": 0,
+ "deviations": [
+  "QR7a-01: the props.gd line is not on this branch (R7c's file). It is delivered as a measured patch (patch_props.py and props_hinausschieben.diff, including the test_props.gd oracle). Until it is merged, A-17(2) stays violated as it was in R7a.",
+  "tests/race3d/props_footprint.gd is not yet a gate (its name has no check_ prefix): on this head alone it must fail (5,728). Rename it to check_props_footprint.gd after the merge.",
+  "perf_stats corridor numbers moved under streamer.corridor.* (nested). This is needed for the conflict-free merge with FIX-RINT.",
+  "in_bend_corridor() is deliberately unchanged because R7c's test_props oracle uses it. The exact envelope is a separate function (in_sight_envelope/bend_intrusion), conservative between rows (larger of the two rows).",
+  "Fences use a 0.3 m margin against the exact envelope (0.1 m made the structures test fail). Result is 75.9 % instead of QA's estimate of 76.4 %.",
+  "No modern-make (A-18). No medium, night or clip pictures. The 12 m pictures cover only C1, München and Bern; the other places have the same props as the 6 m variant (measured).",
+  "tests/race3d/fairness.gd (modern_sight's library, already edited by R7a) was extended for the exact-envelope check."
+ ],
+ "contract_issues": [
+  "The brief's 'change the semantics in in_bend_corridor(), not the callers' cannot cover the footprint: the kernel does not know object sizes (PropLibrary belongs to the builder). Measured: 5,728 violations without the caller line, 0 with it.",
+  "A-17(4) says 'F7 checks the envelope', but nothing checked built props against it. Proposal for §11.4: check_props_footprint (footprint, network-wide) becomes a gate, owned by R7c/R8.",
+  "Pushing props up to 12 m out of the sight lines moves them away from Arcade's position (C1 house 8-11 m back). A-17 does not decide between 'nothing in the sight lines' and 'as Arcade'. Push-out is the measured option with the fewest losses (8 base items instead of 1,218) and no new occlusion. Lead to confirm."
+ ],
+ "notes_for_next": [
+  "RINT-M3/R7c: apply the props.gd change with python3 deliver/FIX-R7a/patch_props.py <tree> B (applies to R7c bd1803b). It computes the footprint in _place(), calls push_out() (depth + 0.3 m, PUSH_MAX_M 12), and makes drop_reason() use ctx.in_sight_envelope(z, x, reach, half_w). The test_props oracle is patched too.",
+  "After that: git mv tests/race3d/props_footprint.gd (+ .uid) to check_props_footprint.gd so run_tests gates it. With the change, --full measured 0.",
+  "RINT-M3: regenerate tests/golden/modern_slice.md5 after the merge. Props and fences in bends change; look at the frames first.",
+  "RINT-M3: chunk_streamer.gd merges with FIX-RINT without hand resolution. Tools reading the old corridor_* perf keys must read streamer.corridor.{warm_ms_avg,warm_ms_max,warm_calls,sync_ms_max,sync_ms_sum,sync_calls}.",
+  "R7c/DOC (QR7a-06): replace §8 'Kurveninnenseiten' in renderer-modern-gelaende.md with the text in bericht.md §9 item 4 (envelope of A-17; props reaching in only with crown or edge are pushed out up to 12 m).",
+  "R7c: keep R7a's test_props.gd fixture hunk (chunk 13) at the merge; it merges cleanly.",
+  "Owner of station.gd: Station.bend_corridor_at() could read tp.envelope_width() (the exact envelope) instead of corridor_width() with the floor. This is cautious, not unfair, so not urgent.",
+  "Lead: the speed-limit-based F2 need in City Limits is still open. Arcade's C1 park tree, the T4 near fir and Belgrad's sidewalk wall stand in the sight lines and only come back with a smaller need there.",
+  "PERF: measure the corridor warm spikes (up to 1.6 ms on llvmpipe under load) on a real Deck. Worker-thread fans only if needed."
+ ],
+ "look_verdict": "With the delivered push-out change (cap 12 m), Modern keeps every visible gain R7a brought: the München house row, the T4 rock group, Belgrad's poplar, the T2 tree group, the S0 start oak and the Hannover corner house. QA's drop-only line lost the München row, the T4 rocks and the poplar. At C1, R7a's corner house (which hid the test car) stands again 8-11 m further from the road. Here Modern is equal to Arcade's composition and clearly better in light and depth; with a 6 m cap C1 would show an empty square and look worse. Still worse than Arcade: Arcade's C1 park tree, the near T4 fir and Belgrad's sidewalk wall are missing, because they stand in the sight lines (correct under A-17). This head's own pictures equal R7a except for a few city fence pieces (s4_mittel differs by 7 px). The push-out pictures need the props.gd change from the merge. I did not judge night, medium or clips.",
+ "media": [
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7a/bericht.md – Bericht FIX-R7a (Befunde, Messungen, Gates, Übergabe)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7a/vergleich/Muenchen_00_b12.jpg – München: Arcade | R7a | hinausschieben bis 6 m | bis 12 m, die Häuserzeile links bleibt",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7a/vergleich/Muenchen_00.jpg – München: Arcade | R7a | QA-Reichweite (Zeile weg) | hinausschieben",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7a/vergleich/C1_00_b12.jpg – C1: bei 6 m ein leerer Platz rechts, bei 12 m steht das Eckhaus zurückgesetzt wieder",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7a/vergleich/T4_00.jpg – T4: Felsgruppe bleibt (bei der QA-Reichweite fehlt sie)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7a/vergleich/Belgrad_00.jpg – Belgrad: Pappel bleibt, Arcades Mauer am Gehweg fehlt weiter (Sichtlinien)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7a/vergleich/T2_00.jpg – T2: linke Baumgruppe wie R7a",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7a/vergleich/Bern_00_b12.jpg – Bern: Komposition wie R7a und Arcade",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7a/props_hinausschieben.diff – übergebene Änderung für props.gd und test_props.gd (Obergrenze 12 m)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7a/patch_props.py – Skript, das die Änderung auf einen Baum anwendet (auch R7c bd1803b)"
+ ]
+}

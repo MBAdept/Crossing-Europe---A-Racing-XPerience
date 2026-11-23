@@ -1,0 +1,7 @@
+v0.8.0 FIX-R7b: Flugwarnlicht flacher Hochhausdächer an der Vorderkante; Doku Nacht und Anstrahlen
+
+Mit Arcades Leuchtpunktgröße verdeckte die Brüstung das Licht in der Dachmitte von unten
+(Madrid 22 Uhr: kein Licht). Doku §18.3/§18.4 nachgezogen.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

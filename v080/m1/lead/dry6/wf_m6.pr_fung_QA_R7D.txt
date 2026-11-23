@@ -1,0 +1,82 @@
+
+CONTEXT
+- Game: "Crossing Europe – A Racing Xperience" (Godot 4.7.2, GDScript, GL Compatibility renderer), repo /home/user/crossing-europe---a-racing-xperience.
+  German user; docs and player-facing texts in German (tr()), code comments in English. v0.7.0 is released (= main).
+  v0.8.0 adds a graphics option: today's pseudo-3D game becomes the mode "Arcade" (frozen, pixel-identical); the new
+  mode "Modern" is a second, real-3D renderer in the same build with finer models, dynamic light and a "Modern" sound
+  profile. The user's wish, literally: "das gesamte Spiel einer deutlichen grafischen Überarbeitung unterziehen.
+  Detailreiche Grafik soweit möglich, feinere Modelle, bessere Lichteffekte, Sound- und Musiküberarbeitung" and "echtes
+  3D bitte". Wave 0 (session seam, model pipeline, audio core, geometry kernel with fairness tests) is merged in branch
+  v0.8.0. This push (M1) runs as parallel packages: renderer skeleton R1a (done), road/environment R1, terrain/props
+  R2, vehicles/signs R3, vehicle models AS1 (done; an art review and a rework AS1R follow), environment models AS1b,
+  engine sound AU-B (done), options/chooser/showroom/Leistungstest UI1. Then the lead merges everything, QA checks it,
+  and the user gets the first test build (Kiel–Hamburg in Modern, for Steam Deck and Windows).
+- THE BUILD CONTRACT IS BINDING: docs/dev/v080_contract.md (1,800 lines). Read §2 (rules), the decisions of §3 that
+  concern you, your interfaces in §4, §5, your package in §6, §8 and COMPLETELY §11 (amendments after wave 0 – it wins
+  over the older text; A-7 is the renderer facade, A-8 the plan and file ownership of this push). Also read the docs
+  of your area: docs/renderer-modern.md, docs/modelle.md, ARCHITECTURE.md §15. Where the contract is wrong
+  or blocks you: implement the closest sound solution and report it under contract_issues with evidence – never work
+  around it silently. Evidence and prototypes of the design studies (starting points, read before reuse): /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/
+  (renderer3d/out/spike_src, engine-probe/evidence/prototypes, synthesis/out; index in §10 of the contract).
+- YOUR PACKAGE ID: QA-R7D – a review role: no commits, no pushes, no branch of your own
+  that anybody uses. START: if /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/QA-R7D/STAND.md exists, a predecessor of this run was stopped – read it, reuse
+  its worktree (named there) and partial results, and continue. Otherwise, in your fresh worktree:
+  git merge --ff-only c0ffee70000000000000000000000000000000   then  cp -a /home/user/crossing-europe---a-racing-xperience/.godot . && godot --headless --path . --import . You may change
+  files in your worktree for experiments and measurements, but you commit nothing.
+- RESTART PROTOCOL: the container can restart, or an account usage limit can stop you, at any moment; a successor with
+  this same brief is then started (both have already happened in this push). (1) Your START instruction above says how
+  to find and continue a predecessor; its background processes are gone and half-written output files may be
+  incomplete. (2) Keep /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/QA-R7D/STAND.md up to date after every step you finish: worktree path and branch,
+  done / doing now / next / pitfalls, where your scratch results are.
+- Runs: for EVERY game run set XDG_DATA_HOME to an ABSOLUTE folder under your scratch dir; pass --graphics=arcade|modern
+  explicitly. Rendering needs  xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3
+  --audio-driver Dummy …  (software OpenGL, llvmpipe – no real GPU, no loudspeakers here: everything about a Steam
+  Deck, a real GPU or how something sounds to a person is "inferred", never "measured"). The default graphics preset
+  on this machine is "low" (adapter tier software: no shadow casters) – for pictures pass --gfx-preset=medium or high.
+  Up to six agents share the 4 cores and 16 GB: heavy jobs (Godot renders, Blender, audio renders, test suites) one at
+  a time with nice -n 10 and at most 2 worker processes; run the complete tools/run_tests.sh (9–15 min) at most twice
+  (use its filter argument while iterating) and tools/golden.sh check (Arcade identity, must print 20 von 20
+  identisch) once at the end. Tools: godot, python3 (numpy, PIL), ffmpeg, ImageMagick, Blender 5.2 as Python module
+  /home/user/tools/bpyenv/bin/python, tools/run_tests.sh, tools/run_render_checks.sh, tools/golden.sh, tools/ab_shot.sh
+  (in branches that contain R1a), tools/models_contact_sheet.sh, tools/blender/validate_models.py,
+  tools/audio/qc/audio_qc.py.
+- Shell: the Bash tool may refuse compound commands with heredocs or several chained git commands ("too complex"):
+  write helper scripts into your scratch folder and run them one by one; write commit messages to a file and use
+  git commit -F <file>. "-s" scripts must not name autoload-dependent classes statically; compile-check with
+  tests/check_scripts.gd.
+- Rule 1: the frozen Arcade files are never edited. Stay inside your file ownership (§5 with A-8); packages of this push talk to each other only through the facade of A-7 with duck typing.
+- LOOK AT YOUR OWN PICTURES: you can open PNG/JPG files with the Read tool. Judge every picture you deliver honestly
+  against the Arcade frame of the same simulation state. "Modern" has to look clearly better than Arcade, not merely
+  different; say plainly where it does not yet.
+- Scratch for working files: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/QA-R7D/ ; pictures, previews and reports for review: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7D/ (write
+  your full report there as bericht.md). Never commit intermediates or previews. Disk space is limited: delete large
+  scratch items (exports, copies of the tree, caches you no longer need) when you are done.
+- You make no commits and change no branch.
+- Priorities when time gets tight: (1) nothing broken – gates green, Arcade identical, fairness tests green; (2) the interfaces others depend on; (3) the look.
+  Deliver the core solid and list what is left under notes_for_next rather than leaving everything half-done.
+- RESULT: keep it compact – summary at most 250 words; deviations, contract_issues and notes_for_next at most 10
+  entries each, one or two sentences per entry; the details belong into bericht.md. Mark numbers measured/inferred.
+
+YOUR ROLE: INDEPENDENT REVIEW OF R7d "FREIE STRECKE" (head c0ffee70000000000000000000000000000000, branch origin/wip/v080-r7d) – no commits, no pushes.
+Its base is the third M2 assembly c0ffee190000000000000000000000000000000 (/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M3/bericht.md). R7d's brief, in short: on the open motorway Modern must be
+recognisable at first glance and clearly more beautiful than Arcade (contract §11.4 A-27; QA-RINT-BILD F-02 in
+/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-RINT-BILD/bericht.md is why it exists). R7d reports: {"branch":"br-bau:R7D","commit":"c0ffee70000000000000000000000000000000","summary":"s","open":[{"check":"c","result":"partial","evidence":"e"}],"deviations":[],"notes":[],"look":"l"}; its report /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7D/bericht.md.
+Do not trust the report – run and look yourself. LENS: FAIRNESS, RULES, BUDGETS, IDENTITY. Fairness: modern_sight --full and modern_path_check --full; F4 – static
+scenery never fogged more than Arcade at the same road point (measure the contrast of far scenery against Arcade at
+several distances and weathers; the sky's horizon band and hue shifts must not lower it); F5/F6 untouched (vehicles,
+signs, their lights); cloud shadows never on vehicles, signs or lights, on the road at most the soft dimming of A-27
+(measure it); marking contrast ≥ 0.9 × Arcade at 20/60/120 m day/night/dry/wet on the new road surface (Rule 9);
+relief only outside the A-17 envelope (F7, the occlusion probe at T1–T4, C1, S0, S4 unchanged against c0ffee190000000000000000000000000000000);
+check_props_footprint 0. Determinism: the sky uses no TIME – two renders of the same state are byte-identical, goldens
+stable. Budgets: perf_stats of complete autopilot runs per preset (deck, low, medium, high) of Kiel–Hamburg next to
+c0ffee190000000000000000000000000000000 in the same session (render() ms mean/max, the sky's own cost, draw calls, primitives, memory; three runs for
+maxima), §4.10; the Steam Deck keeps sky and cloud shadows (A-27) – infer its cost. Identity: tools/golden.sh check
+20/20 and 17/17, every frozen Arcade file unchanged against main, ERGEBNIS identity Arcade vs Modern (Rule 3) on two
+stages. Tests: run_tests.sh and run_render_checks.sh all green; R7d's new guards really guard – break one line per rule
+in a scratch copy (marking contrast, cloud shadow on the road/vehicles, the F4 fog law, relief inside the envelope) and
+see the test fail. Robustness: --gfx-debug=fail fallback, the Leistungstest writes a valid leistungstest.json, the
+slowness watchdog, 20 minutes of Modern driving without errors in the log.
+Every finding needs where, what, evidence (command + output or picture path, measured or inferred), how to reproduce
+and a concrete fix. Severity: blocker = must not go into the next test build; high = the user will notice at once;
+medium = noticeable; low = polish. Also list what you checked and found fine. Pictures and the report (bericht.md)
+into /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7D/.

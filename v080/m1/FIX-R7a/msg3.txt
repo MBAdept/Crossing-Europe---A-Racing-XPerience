@@ -1,0 +1,10 @@
+v0.8.0 FIX-R7a: Hülle der Sichtlinien im Stückschnappschuss mit 8 Reihen Rand (QR7a-01)
+
+Ein Fußabdruck am Ende eines Stücks reicht in die Reihen des Nachbarstücks; bisher galt dort die
+Randreihe des Stücks. ChunkContext hält die genaue Hülle und die Bankettkanten jetzt für die Reihen
+seg_a - 8 .. seg_b + 8 (ENV_MARGIN, 24 m); bend_intrusion()/in_sight_envelope() lesen sie. Der
+Einheitstest vergleicht an einer Stückgrenze, wo die Hülle ausläuft, mit einem Stück darum (mit
+ENV_MARGIN = 0 rot).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

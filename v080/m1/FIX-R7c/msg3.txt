@@ -1,0 +1,8 @@
+v0.8.0 FIX-R7c: check_lod_band fängt auch einen gerasterten Schattendurchgang
+
+Grenze des größten Schritts im Band 15 % statt 35 % des harten Wechsels: das Band gibt am
+Barockhaus 0,6 / 7,1 %, ein Schattendurchgang mit dem Raster des Hauptdurchgangs (QA-R7c
+Mutation R2) 1,2 %. Alle 17 Mutationen von QA-R7c und vier neue werden jetzt gefangen.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

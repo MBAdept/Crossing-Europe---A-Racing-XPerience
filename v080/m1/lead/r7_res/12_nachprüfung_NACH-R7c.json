@@ -1,0 +1,67 @@
+{
+ "verdict": "FIX-R7c (3b3107b) is a sound base for RINT-M3. QR7c-01 is fixed: with tag:city removed, the Hamburg Speicher at Deck has its panelled doors back, like 43a1fcc (looked at; 432 px >15 % different from 43a1fcc, 25 139 px from R7c, measured). QR7c-02 is fixed within its scope: all ten QA mutations I re-ran on the final head are caught. Four new mutations of FIX's own code stay green, and the most relevant one, N5, disables the whole standstill fix without any test turning red. QR7c-06 is only partly fixed. At a standstill the countdown oak is smooth, like the base (grain 0.67 % vs base 0.73 %, R7c 3.77 %, measured). As soon as the camera drives off or crawls above 1.5 m/s, the full band returns and the oak shows R7c's dither again (4.15 % at 3.8 s, 3.12 % at 4.5 s); it also flips from lod0 back towards lod1 while the car approaches. All gates are green: Arcade 20/20 and 17/17 identical. The 4-way merge tree with FIX-RINT, FIX-R7a and FIX-R7b compiles and passes test_props and check_lod_band; its only conflict is docs/renderer-modern.md, which FIX-R7c does not touch.",
+ "per_finding": [
+  {
+   "id": "QR7c-01",
+   "status": "fixed",
+   "evidence": "measured + looked: config lod0_m keeps only fachwerk/fachwerk_b/haussmann/corner at 30 m (no tag:city). ab_shot hh Deck km 88.2, shots at 2 and 4 s: the head picture is bit-identical to FIX's own picture (0 px); >15 % differences: vs 43a1fcc 432/1330 px, vs R7c bd1803b 25139/12757 px, vs base 1733/2706 px. Crop deliver/NACH-R7c/qr7c01_hamburg_deck_speicher_arcade_43a1fcc_r7c_kopf.png: panelled doors and window reveals as in 43a1fcc; R7c showed flat slabs. Clearly better than Arcade. Side check, Nürnberg Deck: the Barockhaus is clean lod0 again (nu_deck_barockhaus_*.png)."
+  },
+  {
+   "id": "QR7c-02",
+   "status": "fixed",
+   "evidence": "measured (mutate.py on 3b3107b in the worktree, restored from HEAD, git status clean). Caught: U3, U4, U5, U7, U8, U10, R3, R4, R5, R6 (test_props), R2 (check_lod_band 1.2 % vs 15 % of 7.1 %), N2 (dt clock), N6 (shader ignores still: test_props plus check_lod_band _stand 6.50/35.78 %). The fernlicht render check reads +3.7/+3.9 % with the far light, +11.9/+12.2 % without. Not re-run: U1, U2, U6, U11, R1, R2b (QA caught them, tests unchanged). New gaps in FIX's own code are reported as NR7c-02."
+  },
+  {
+   "id": "QR7c-06",
+   "status": "partly",
+   "evidence": "measured + looked. Standstill is fixed: countdown Nürnberg–Fulda Deck at 1.5 s, oak smooth like the base (crop qr7c06_countdown_deck_eiche_*.png; grain.py 0.67 % vs base 0.73 %, R7c 3.77 %); check_lod_band _stand 0.00 %; check_session_modern 'pause' 0 px over 30 frames. Drive-off is not fixed: shots at 3.8 s (16 km/h) and 4.5 s show the dithered crown again (4.15 % / 3.12 %; qr7c06_anfahren_deck_eiche_1.5_3.3_3.8_4.5_6.0s.png). Any crawl above 1.5 m/s (traffic jam) gets the full 14 m band: about 3–7 s of dither per tree at 2–5 m/s (inferred)."
+  }
+ ],
+ "findings": [
+  {
+   "id": "NR7c-01",
+   "severity": "medium",
+   "area": "look / LOD cross-fade",
+   "where": "scripts/race3d/builders/props.gd _update_still()/still_step() (binary threshold LOD_STILL_SPEED 1.5 m/s); assets/shaders/modern/inc/lod_band.gdshaderinc ce_lod_discard()",
+   "problem": "ce_lod_still is either 'standing' or 'driving'. Above 1.5 m/s the full spatial band (±12 %, 4–25 m) comes back within 0.4 s. At drive-off and in a crawl, an instance inside a band shows R7c's ordered dither for seconds. Because the band was narrowed to its far end, the instance also goes lod0 → half lod1 → lod0 while the car approaches.",
+   "evidence": "measured + looked: deliver/NACH-R7c/qr7c06_anfahren_deck_eiche_1.5_3.3_3.8_4.5_6.0s.png. grain.py crown grain: 1.5 s 0.67 %, 3.3 s 0.69 %, 3.8 s 4.15 %, 4.5 s 3.12 % (base 0.73 %, R7c countdown 3.77 %).",
+   "repro": "SCREEN=1280x800 GFX_ARGS=--gfx-preset=deck tools/ab_shot.sh <out> --stage=nuernberg_fulda --from=nuernberg --start-km=0 --hour=12 --weather=normal --vehicle=limousine --seed=11 --autopilot --autopilot-refuel=never --traffic-warmup --shot-times=1.5,3.3,3.8,4.5,6.0; crop the right oak (m1/NACH-R7c/montage.sh 300x240+960+180, grain.py)",
+   "fix": "Bind the band width to speed instead of a binary flag. Use a global ce_lod_band_m = camera speed × 0.4 s, and in the shader w' = min(w, ce_lod_band_m) when narrowing towards the far end. Standing then stays a hard swap. At drive-off a mid-band instance stays lod0 (no dither, no flip). Crossing the far end fades in about 0.4 s at any speed, which is A-16's time cross-fade without per-instance state."
+  },
+  {
+   "id": "NR7c-02",
+   "severity": "low",
+   "area": "tests / guards",
+   "where": "tests/unit/race3d/test_props.gd (guards of the new FIX-R7c code)",
+   "problem": "Four one-line mutations of the new code stay green. N5: set_global(\"ce_lod_still\") removed, which switches the whole QR7c-06 fix off in the game. N1: quality_lowered() without _thresholds(h), so stale thresholds can leave holes after the watchdog lowers quality. N3: the caster threshold is missing. N4: the eye-branch far corner uses min.",
+   "evidence": "measured: m1/NACH-R7c/mutlogs/mutate.out shows '26 Tests, 0 fehlgeschlagen' for N1, N3, N4 and N5. test_standing_camera_narrows_the_bands only checks lod_still(); check_lod_band sets the global itself.",
+   "repro": "python3 m1/NACH-R7c/mutate.py N1_no_threshold_refresh N3_no_caster_threshold N4_far_corner_min N5_still_global_never_set",
+   "fix": "(a) Mirror the last value set_global() set (modern_materials.gd, an R7 file) and assert 1 when standing and 0 when driving after update(). (b) After quality_lowered() + update() with the camera between the old and new band start, the lod1 node is visible. (c) Test casters just inside and outside _shadow_m + SHADOW_KEEP_M. (d) _span() with an eye vector against a loop over all 8 corners."
+  },
+  {
+   "id": "NR7c-03",
+   "severity": "low",
+   "area": "code comment",
+   "where": "scripts/race3d/builders/props.gd line 75 (LOD_STILL_SPEED comment)",
+   "problem": "The comment says 'every band narrows to a hard swap at its middle'. The code and the shader narrow to the FAR end (the middle variant was discarded).",
+   "evidence": "measured: git show HEAD:scripts/race3d/builders/props.gd | grep -n 'hard swap at its middle' -> 75; lod_band.gdshaderinc and docs §9.1 say far end",
+   "repro": "read the line",
+   "fix": "Change it to 'narrows to a hard swap at its far end (the finer level through the whole band)'."
+  }
+ ],
+ "gates": [
+  "import (godot --headless --import): exit 0, no error line",
+  "tests/check_scripts.gd: '331 Skripte geprüft, 0 fehlerhaft'",
+  "unit test_props: '26 Tests, 0 fehlgeschlagen'; test_far_ground_water: '4 Tests, 0 fehlgeschlagen'",
+  "render check_lod_band OK: lod_ueberblenden 0.6 % vs hard 7.1 %, lod_baum 1.1 % vs 36.6 %, both _stand 0.00 %, fernlicht +3.7/+3.9 % (without far light +11.9/+12.2 %)",
+  "render check_start_km0 OK (camera 1.14 px, car +0/+1 px, ground 0.034)",
+  "render check_terrain_cover OK (T1–T4, S1, C1, K1: 0.000 % magenta; K1 far ground 0.00 %)",
+  "render check_light_base OK (tageslicht, schatten)",
+  "render check_weather.gd OK (teilchen, gischt, nass, tunnel, schneewall)",
+  "render check_props_render OK; check_session_modern OK (pause 0 px over 30 frames); check_instance_budget.gd OK (vehicles ≤128, scene ≤141 of 230)",
+  "mutations: 13 of 17 caught, 4 green (NR7c-02); worktree clean afterwards",
+  "merge-tree: pairwise with fix-rint/fix-r7a/fix-r7b exit 0. 4-way chain in 3 orders: only conflict is docs/renderer-modern.md, between FIX-RINT/R7a/R7b. 4-way tree: scripts 338/0, test_props 26/0, test_far_ground_water 4/0, test_chunk_streamer 9/0, test_sight_corridor 8/0, check_lod_band OK",
+  "tools/golden.sh check (once, at the end): 'GOLDEN arcade: 20 von 20 identisch (164 s)', 'GOLDEN arcade-ui: 17 von 17 identisch (196 s)', exit 0",
+  "not run: full tools/run_tests.sh (FIX ran it twice on the head); modern_sight --full (no placement change: no model uses attach); the other render checks"
+ ]
+}

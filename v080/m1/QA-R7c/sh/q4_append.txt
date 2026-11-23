@@ -1,0 +1,3 @@
+# --- the original shadow-pass bug of R7c (band middle decides) against check_lod_band
+python3 "$S/sh/mutate.py" R2b_shadow_band_middle >> "$S/logs/q4.out" 2>&1
+echo "Q4 ALL DONE $(date -u +%H:%M:%S)" >> "$S/logs/q4.out"

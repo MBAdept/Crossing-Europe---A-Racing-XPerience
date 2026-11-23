@@ -10,3 +10,18 @@
 21:34 run_tests exit 0 – 808 Tests, 0 fehlgeschlagen – 150 CHECK OK, 0 CHECK FEHLER
 21:41 golden check exit 0 – GOLDEN arcade: 20 von 20 identisch (180 s) GOLDEN arcade-ui: 17 von 17 identisch (210 s) 
 21:55 modern-check exit 1 – GOLDEN modern: 0 von 6 identisch (665 s) GOLDEN modern-gles: modern_s3_hoch OpenGL ES gegen OpenGL: OK max. Abweichung 2/255, PSNR 73.2 dB, 8552 Pixel verschieden (191 s) 
+22:49 render checks exit 1 – 27 Dateien OK, 2 Dateien rot
+22:52 modern_sight --full exit 0 (6 OK, 0 FEHLER); modern_path_check --full exit 0 (2 OK, 0 FEHLER)
+22:57 recheck fertig
+22:59 perf 22:56 stage r7c_kh_medium: 0 Fehlerzeilen, exit=0 wall=254 22:59 stage base_kh_medium: 0 Fehlerzeilen, exit=0 wall=159 
+22:59 queue fertig: lodcheck tests golden mcheck render sight perf
+23:10 perf2 23:02 stage r7c_kh_medium_r1: 0 Fehlerzeilen, exit=0 wall=156 23:05 stage base_kh_medium_r1: 0 Fehlerzeilen, exit=0 wall=156 23:07 stage r7c_kh_medium_r2: 0 Fehlerzeilen, exit=0 wall=152 23:10 stage base_kh_medium_r2: 0 Fehlerzeilen, exit=0 wall=152 
+23:10 final start 138c90f v0.8.0 R7c: Doku §9.2 – Fernlicht-Werte je Modell nachgetragen
+23:21 clip CLIP nuernberg exit 0 643 s 23:21 
+23:21 import exit 0 – 0 Zeilen mit error/fehler
+23:21 check_scripts exit 0 – 331 Skripte geprüft, 0 fehlerhaft
+23:36 run_tests exit 0 – 808 Tests, 0 fehlgeschlagen – 150 CHECK OK, 0 CHECK FEHLER
+00:29 render checks exit 0 – 29 Dateien OK, 0 Dateien rot
+00:39 modern-make exit 0 – godot=4.7.2.stable.official.ed1daf0bf opengl=OpenGL API 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4 - Compatibility - Using Device: Mesa - llvmpipe (LLVM 20.1.2, 256 bits) 
+00:39 final fertig
+00:54 modern-check final exit 0 – GOLDEN modern: 6 von 6 identisch (538 s) GOLDEN modern-gles: modern_s3_hoch OpenGL ES gegen OpenGL: OK max. Abweichung 2/255, PSNR 73.2 dB, 8552 Pixel verschieden (190 s) 

@@ -1,0 +1,7 @@
+Merge R7b (FIX-R7b c50d58f): Wahrzeichen, Skyline und ihr Licht
+
+landmarks.gd, landmark.gdshader, Skyline-Teil von backdrop.gd. docs/renderer-modern.md:
+die Abschnitte aller Pakete bleiben erhalten.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

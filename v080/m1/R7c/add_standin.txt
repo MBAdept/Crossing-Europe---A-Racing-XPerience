@@ -1,0 +1,11 @@
+
+
+
+## A prop set the shipped manifest still draws as a stand-in (its Arcade sprite): the first in sorted order (the
+## content packages give one set after the other a model – the check does not name one; test_props.gd does the same).
+func _standin_set() -> String:
+	ModelDB.available()
+	for sid: String in ModelDB.set_ids():
+		if sid.begins_with("props/") and str(ModelDB.resolve(sid).get("fallback", "")) == "sprite":
+			return sid
+	return ""

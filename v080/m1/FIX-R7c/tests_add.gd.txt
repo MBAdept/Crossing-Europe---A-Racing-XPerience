@@ -1,0 +1,310 @@
+
+
+# --- FIX-R7c: guards of the R7c rules (QA-R7c QR7c-02: 11 of 17 one-line mutations stayed green) -----------------
+
+## Shader code without its comments (// to the end of the line, /* … */) – a rule a comment only mentions does not count.
+## (Named apart from FIX-RINT's _code_only(), which the assembly brings into this file.)
+static func _shader_code(code: String) -> String:
+	var rx := RegEx.create_from_string("/\\*[\\s\\S]*?\\*/|//[^\\n]*")
+	return rx.sub(code, "", true)
+
+
+## QR7c-02 (a, U7): the far light of the configuration reaches the materials of a building that casts – the class value
+## (building 0.78) and a model's own value (Haussmann 0.72) – with the shadow reach of the level (fade from 85 %); a
+## building that does not cast at the shadow level keeps the full sun.
+func test_far_light_reaches_the_materials() -> void:
+	var t := _track()
+	_put(t, 196, {"kind": "prop", "set": "props/farmhouse", "side": 1, "x": _x(t, 1, 40.0), "scale": 1.0})
+	_put(t, 204, {"kind": "prop", "set": "props/city_paris_haussmann", "side": 1, "x": _x(t, 1, 12.0), "scale": 1.0})
+	var ctx := _ctx(t, 6)
+	var b := Props.new()
+	b._read_config(cfg())
+	b.apply_quality({"prop_lod0_m": 60.0, "prop_lod1_m": 200.0, "shadow_casters": 2, "shadow_distance_m": 120.0, "deco_density": 1.0})
+	var parent := Node3D.new()
+	b.commit(ctx, b.build(ctx, b.collect(ctx)), parent)
+	var fs: Dictionary = ConfigLoader.lookup(cfg(), "graphics.modern.props.far_sun", {})
+	assert_true(float(fs.get("building", 1.0)) < 0.99, "Konfiguration: Fernlicht der Gebäude (%s)" % str(fs.get("building")))
+	var want := {"props/farmhouse": float(fs.get("props/farmhouse", fs.get("building", 1.0))),
+		"props/city_paris_haussmann": float(fs.get("props/city_paris_haussmann", fs.get("building", 1.0)))}
+	assert_true(absf(float(want["props/city_paris_haussmann"]) - float(want["props/farmhouse"])) > 0.01, "Haussmann hat einen eigenen Wert")
+	for sid: String in want:
+		var mid := ""
+		for v: Variant in (b.library.sets[sid] as Dictionary).get("variants", []):
+			mid = str(v)
+		var n := 0
+		for rep: String in b.model_bands(mid):
+			for mat: ShaderMaterial in b.library.rep_materials(mid, rep):
+				assert_near(float(mat.get_shader_parameter("far_sun")), float(want[sid]), 1.0e-4, "%s %s: far_sun aus der Konfiguration" % [sid.get_file(), rep])
+				assert_eq(mat.get_shader_parameter("shadow_far"), Vector2(102.0, 120.0), "%s %s: Fernlicht ab 85 %% der Schattenreichweite" % [sid.get_file(), rep])
+				n += 1
+		assert_true(n >= 2, "%s: Materialien beider Stufen geprüft (%d)" % [sid.get_file(), n])
+	parent.free()
+	# "Schatten: Niedrig" (casters 1): buildings do not cast – full sun, no far light
+	var b2 := Props.new()
+	b2._read_config(cfg())
+	b2.apply_quality({"prop_lod0_m": 60.0, "prop_lod1_m": 200.0, "shadow_casters": 1, "shadow_distance_m": 80.0, "deco_density": 1.0})
+	var parent2 := Node3D.new()
+	b2.commit(ctx, b2.build(ctx, b2.collect(ctx)), parent2)
+	for mat: ShaderMaterial in b2.library.rep_materials(str((b2.library.sets["props/farmhouse"] as Dictionary)["variants"][0]), "lod1"):
+		assert_near(float(mat.get_shader_parameter("far_sun")), 1.0, 1.0e-6, "ohne Schattenwurf: volle Sonne")
+		assert_eq(mat.get_shader_parameter("shadow_far"), Vector2.ZERO, "ohne Schattenwurf: kein Fernlicht")
+	parent2.free()
+	_cleanup()
+
+
+## QR7c-02 (b, R3/R4/R5/R6/U8 and QR7c-06): the rules of R7c in the shader code itself, comments stripped – the far
+## light lowers the directional light to far_sun, the cut-out tests a coarser mip, a lit window replaces the facade
+## colour, the impostor's relief goes with the night, the sway phase comes from the instance data, a standing camera
+## narrows the band.
+func test_shader_rules_of_the_far_lod() -> void:
+	var mats := ModernMaterials.shared()
+	var band := _shader_code(FileAccess.get_file_as_string("res://assets/shaders/modern/inc/lod_band.gdshaderinc"))
+	var rx_far := RegEx.create_from_string("float\\s+ce_far_attenuation\\s*\\([^)]*\\)\\s*\\{\\s*if\\s*\\([^)]*\\)\\s*\\{\\s*return\\s+att;\\s*\\}\\s*return\\s+mix\\(\\s*att\\s*,\\s*min\\(\\s*att\\s*,\\s*far_sun\\s*\\)\\s*,\\s*smoothstep\\(\\s*shadow_far\\.x\\s*,\\s*shadow_far\\.y\\s*,\\s*depth\\s*\\)\\s*\\)\\s*;\\s*\\}")
+	assert_true(rx_far.search(band) != null, "Fernlicht: gerichtetes Licht jenseits der Schatten auf far_sun (ce_far_attenuation)")
+	assert_true(band.contains("global uniform float ce_lod_still;") and band.contains("1.0 - clamp(ce_lod_still, 0.0, 1.0)"),
+		"stehende Kamera: das Band zieht sich zusammen (ce_lod_still)")
+	var baked := _shader_code(mats.shader("baked").code)
+	assert_true(baked.contains("float att = ce_far_attenuation(ATTENUATION, LIGHT_IS_DIRECTIONAL, v_lod_depth);"), "baked: light() nimmt das Fernlicht")
+	assert_true(baked.contains("DIFFUSE_LIGHT += LIGHT_COLOR * att * ndl"), "baked: diffuses Licht mit dem Fernlicht")
+	assert_true(baked.contains("texture(albedo_tex, UV, cutout_bias).a < 0.5"), "baked_cutout: Alphatest aus der gröberen Mip (cutout_bias)")
+	assert_true(baked.contains("float cover_k = window_cover *") and baked.contains("alb * (1.0 - cover_k)"),
+		"baked: ein leuchtendes Fenster ersetzt die Fassadenfarbe (window_cover)")
+	assert_true(baked.contains("albedo_bias * smoothstep(albedo_bias_m.x, albedo_bias_m.y, dist)"), "baked: Farb-Mip-Bias mit der Entfernung")
+	var board := _shader_code(mats.shader("billboard").code)
+	assert_true(board.contains("t.rgb = mix(t.rgb, mean, relief_night * clamp(ce_night, 0.0, 1.0));"), "Fernbild: Relief nachts zurückgenommen")
+	var leaves := _shader_code(mats.shader("leaves").code)
+	assert_true(leaves.contains("INSTANCE_CUSTOM.a > 0.5 ? fract(INSTANCE_CUSTOM.a) * 37.0"), "Laub: Wiegen aus der Phase der Instanz")
+	assert_false(RegEx.create_from_string("float\\s+tree\\s*=\\s*wp\\.").search(leaves) != null, "Laub: keine Phase allein aus der Weltlage")
+	assert_true(leaves.contains("ce_far_attenuation("), "Laub: Fernlicht")
+	_cleanup()
+
+
+## QR7c-02 (c, U3): the phase differs from item to item (rotors and crowns do not turn and sway in step) and stays in
+## [0, 1) – custom a = 1 + phase < 2.
+func test_instance_phases_differ() -> void:
+	var seen := {}
+	for seg in [198, 199, 640, 5123]:
+		for item in 4:
+			var p := Props.instance_phase(seg, item)
+			assert_between(p, 0.0, 0.999, "Phase in [0, 1)")
+			seen[snappedf(p, 0.001)] = true
+	assert_true(seen.size() >= 14, "16 Gegenstände, (fast) alle mit eigener Phase (%d verschiedene)" % seen.size())
+	var t := _track()
+	_put(t, 198, {"kind": "prop", "set": "props/wind_turbine", "side": 1, "x": _x(t, 1, 40.0), "scale": 1.0})
+	_put(t, 205, {"kind": "prop", "set": "props/wind_turbine", "side": 1, "x": _x(t, 1, 60.0), "scale": 1.0})
+	var ctx := _ctx(t, 6)
+	var b := Props.new()
+	var part := b.build(ctx, b.collect(ctx))
+	var buf: PackedFloat32Array = ((part["groups"] as Dictionary).get("m|props/wind_turbine|0", {}) as Dictionary).get("buf", PackedFloat32Array())
+	assert_eq(buf.size(), 2 * Props.INSTANCE_FLOATS, "zwei Windräder in einer Gruppe")
+	if buf.size() == 2 * Props.INSTANCE_FLOATS:
+		assert_true(absf(buf[19] - buf[Props.INSTANCE_FLOATS + 19]) > 0.01, "zwei Windräder drehen nicht im Gleichschritt (%.3f / %.3f)" % [buf[19], buf[Props.INSTANCE_FLOATS + 19]])
+	_cleanup()
+
+
+## A spot of the synthetic track whose ground falls by at least `drop` metres within `r` of it (right roadside, chunk ci):
+## Vector3(z, x, the lowest ground of the circle) – (0, 0, 0) when there is none.
+func _slope_spot(ctx: ChunkContext, r: float, drop: float) -> Vector3:
+	for row in range(2, ctx.row_count() - 3):
+		var z := (float(ctx.seg_a) + float(row) + 0.5) * ctx.seg_len
+		for k in 40:
+			var x := ctx.shoulder_edge(row, 1) + 2.0 + float(k) * 1.5
+			if absf(x) - ctx.shoulder_edge(row, 1) > ctx.ribbon_width(z, 1) - 4.0:
+				break
+			var h0 := ctx.ground(z, x)
+			var low := h0
+			for q in 8:
+				var a := float(q) * TAU / 8.0
+				low = minf(low, ctx.ground(z + cos(a) * r, x + sin(a) * r))
+			if h0 - low >= drop:
+				return Vector3(z, x, low)
+	return Vector3.ZERO
+
+
+## QR7c-02 (d, U4/U5): on a slope a rock stands on the lowest ground point of its footprint (ground_sink: a concrete
+## height below the ground at its anchor) and heather leans with the ground (ground_align: tilted, at most 30°).
+func test_ground_sink_and_align_on_a_slope() -> void:
+	var t := _track()
+	var ctx := _ctx(t, 6)
+	var lib := PropLibrary.new()
+	lib.request(["props/rock_a", "props/heather"], self)
+	var guard := 0
+	while lib.pending() > 0 and guard < 20000:
+		OS.delay_msec(1)
+		guard += 1
+	var rock: Dictionary = lib.sets.get("props/rock_a", {})
+	assert_true(bool(rock.get("ground_sink", false)), "Fels trägt ground_sink")
+	assert_true(bool((lib.sets.get("props/heather", {}) as Dictionary).get("ground_align", false)), "Heide trägt ground_align")
+	var r := 0.5 * maxf(float(rock.get("width", 1.0)), float(rock.get("length", rock.get("width", 1.0))))
+	var spot := Vector3.ZERO
+	var ci := 6
+	for c in [6, 2, 10, 14, 20, 26, 30]:
+		ctx = _ctx(t, c)
+		spot = _slope_spot(ctx, r, 0.05)
+		if spot != Vector3.ZERO:
+			ci = c
+			break
+	assert_true(spot != Vector3.ZERO, "ein Hang neben der Straße gefunden (Boden fällt um ≥ 5 cm im Umkreis %.2f m)" % r)
+	if spot == Vector3.ZERO:
+		lib.clear(self)
+		_cleanup()
+		return
+	var h0 := ctx.ground(spot.x, spot.y)
+	assert_near(Props.sink_height(ctx, spot.x, spot.y, r, h0), spot.z, 1.0e-4, "sink_height = tiefster Punkt des Umkreises")
+	assert_true(spot.z < h0 - 0.04, "tiefer als der Boden am Anker (%.3f < %.3f)" % [spot.z, h0])
+	# the builder places them so (seg_index from the spot; the item at the spot's z)
+	var seg := int(floor(spot.x / t.seg_len))
+	_put(t, seg, {"kind": "prop", "set": "props/rock_a", "side": 1, "x": spot.y, "scale": 1.0, "dz": spot.x - float(seg) * t.seg_len})
+	_put(t, seg, {"kind": "prop", "set": "props/heather", "side": 1, "x": spot.y, "scale": 1.0, "dz": spot.x - float(seg) * t.seg_len})
+	ctx = _ctx(t, ci)
+	var b := Props.new()
+	var part := b.build(ctx, b.collect(ctx))
+	var rock_y := INF
+	var heather_up := Vector3.ZERO
+	for key: String in part["groups"]:
+		var g: Dictionary = (part["groups"] as Dictionary)[key]
+		for tr: Transform3D in _transforms(g["buf"], Props.INSTANCE_FLOATS):
+			if str(g["set"]) == "props/rock_a":
+				rock_y = tr.origin.y
+			elif str(g["set"]) == "props/heather":
+				heather_up = tr.basis.y.normalized()
+	assert_near(rock_y, ctx.local(spot.x, spot.y, spot.z).y, 1.0e-3, "Fels steht auf dem tiefsten Punkt seines Fußes")
+	var n := (ctx.local(spot.x, spot.y + Props.SLOPE_PROBE_M, ctx.ground(spot.x, spot.y + Props.SLOPE_PROBE_M)) - ctx.local(spot.x, spot.y, h0)).cross(
+		ctx.local(spot.x + Props.SLOPE_PROBE_M, spot.y, ctx.ground(spot.x + Props.SLOPE_PROBE_M, spot.y)) - ctx.local(spot.x, spot.y, h0)).normalized()
+	if n.y < 0.0:
+		n = -n
+	var tilt := rad_to_deg(heather_up.angle_to(Vector3.UP))
+	assert_true(tilt > 0.5 and tilt <= Props.ALIGN_MAX_DEG + 0.1, "Heide zum Hang geneigt (%.1f°)" % tilt)
+	assert_true(heather_up.angle_to(n) < Vector3.UP.angle_to(n), "… zur Geländenormalen hin")
+	lib.clear(self)
+	_cleanup()
+
+
+## QR7c-02 (e, U10, F7) and QR7c-08: an attached tree inside the sight corridor of a bend is left out like any tree (the
+## house, placed by an event, stays); an attachment that would stand beyond the chunk is not placed by it (its ground and
+## corridor would be those of the edge row); at most ATTACH_MAX attachments per model.
+func test_attachments_respect_the_corridor_and_the_chunk() -> void:
+	var src: Variant = JSON.parse_string(FileAccess.get_file_as_string(ModelDB.ROOT + ModelDB.MANIFEST))
+	if not src is Dictionary:
+		assert_true(false, "Manifest gelesen")
+		return
+	var m: Dictionary = src
+	m["root"] = ModelDB.ROOT
+	(m["models"]["props/farmhouse"] as Dictionary)["attach"] = [{"prop": "props/tree_oak", "offset": [4.0, 0.0, -6.0], "scale": 0.8}]
+	var path := "user://test_props_manifest_attach2.json"
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	f.store_string(JSON.stringify(m))
+	f.close()
+	ModelDB.release_all()
+	ModernMaterials.drop_shared()
+	assert_true(ModelDB.load_manifest(path), "Test-Manifest mit Anbau geladen")
+	var t := _track()
+	# a spot inside a bend corridor on the right (inside of the right bend), whatever the corridor's law
+	var spot := Vector2.ZERO
+	var ci := -1
+	for c in range(12, 22):
+		var ctx0 := _ctx(t, c)
+		for row in range(3, 20):
+			var z := (float(ctx0.seg_a) + float(row) + 0.5) * ctx0.seg_len
+			for k in 30:
+				var x := ctx0.shoulder_edge(row, 1) + 3.0 + float(k)
+				if ctx0.in_bend_corridor(z, x) and ctx0.in_bend_corridor(z, x + 2.0) and ctx0.in_bend_corridor(z - 3.0, x):
+					spot = Vector2(z, x)
+					ci = c
+					break
+			if ci >= 0:
+				break
+		if ci >= 0:
+			break
+	assert_true(ci >= 0, "ein Kurvenkorridor rechts gefunden")
+	if ci < 0:
+		_cleanup()
+		return
+	# the house 6 m before and 4 m left of the spot, "offset": placed by an event, it stays in the corridor
+	var hz := spot.x - 6.0
+	var seg := int(floor(hz / t.seg_len))
+	_put(t, seg, {"kind": "prop", "set": "props/farmhouse", "side": 1, "x": spot.y - 4.0, "scale": 1.0, "offset": spot.y - 4.0,
+		"dz": hz - float(seg) * t.seg_len})
+	# a second house on the straight, 2 m before the end of chunk 30: its tree (6 m on) would stand in chunk 31
+	var zc := float(31 * 32) * t.seg_len - 2.0
+	var seg2 := int(floor(zc / t.seg_len))
+	_put(t, seg2, {"kind": "prop", "set": "props/farmhouse", "side": 1, "x": _x(t, 1, 40.0), "scale": 1.0, "dz": zc - float(seg2) * t.seg_len})
+	var ctx := _ctx(t, ci)
+	var b := Props.new()
+	var part := b.build(ctx, b.collect(ctx))
+	assert_eq((part["list"] as Array).size(), 1, "das Haus steht (Ereignis, kein Schmuck)")
+	assert_eq((part["attach_list"] as Array).size(), 0, "die angebaute Eiche im Kurvenkorridor fehlt (%s)" % str(part["attach_list"]))
+	assert_true(int((part["dropped"] as Dictionary)["corridor"]) >= 1, "als Kurvenkorridor gezählt")
+	var ctx2 := _ctx(t, 30)
+	var part2 := b.build(ctx2, b.collect(ctx2))
+	assert_eq((part2["list"] as Array).size(), 1, "Haus am Ende des Stücks")
+	assert_eq((part2["attach_list"] as Array).size(), 0, "sein Anbau jenseits des Stücks wird hier nicht gestellt")
+	ModelDB.release_all()
+	ModernMaterials.drop_shared()
+	assert_true(ModelDB.load_manifest(), "ausgeliefertes Manifest wieder geladen")
+	_cleanup()
+
+
+## QR7c-06: the standing camera – ce_lod_still goes to 1 within LOD_STILL_S below LOD_STILL_SPEED and back to 0 when the
+## camera drives off; the builder follows the camera's motion along the road (no change while dt is 0: the stage is
+## prepared). The lod0_m override still works per tag (none in the shipped configuration since QR7c-01).
+func test_standing_camera_narrows_the_bands() -> void:
+	var s := 0.0
+	for i in 12:
+		s = Props.still_step(s, 0.0, 1.0 / 60.0)
+	assert_near(s, 12.0 / 60.0 / Props.LOD_STILL_S, 1.0e-4, "steigt mit der Zeit (0,2 s)")
+	for i in 60:
+		s = Props.still_step(s, 0.5, 1.0 / 60.0)
+	assert_near(s, 1.0, 1.0e-6, "steht: 1 nach LOD_STILL_S")
+	assert_near(Props.still_step(s, 20.0, 0.0), 1.0, 1.0e-6, "dt 0 (Vorbereitung): unverändert")
+	s = Props.still_step(s, 20.0, 0.1)
+	assert_near(s, 1.0 - 0.1 / Props.LOD_STILL_S, 1.0e-4, "fährt an: das Band öffnet sich über die Zeit")
+	var b := Props.new()
+	assert_near(b.lod_still(), 1.0, 1.0e-6, "Start einer Etappe: stehende Kamera")
+	b.update({"camera_z": 100.0}, 1.0 / 60.0)
+	for i in 30:
+		b.update({"camera_z": 100.0 + float(i + 1) * 0.5}, 1.0 / 60.0)    # 30 m/s
+	assert_near(b.lod_still(), 0.0, 1.0e-6, "fährt mit 30 m/s: Band offen")
+	for i in 30:
+		b.update({"camera_z": 115.0}, 1.0 / 60.0)
+	assert_near(b.lod_still(), 1.0, 1.0e-6, "steht 0,5 s: hart")
+	# the tag override of graphics.modern.props.lod0_m still works (a configuration may name a tag again)
+	b._lod0_override = {"tag:city": 42.0}
+	assert_near(b.lod0_override("props/city_dutch_canal"), 42.0, 1.0e-4, "Ersatz je Tag")
+	assert_near(b.lod0_override("props/farmhouse"), 0.0, 1.0e-4, "ohne Tag: kein Ersatz")
+
+
+## QR7c-03 / QR7c-05: the chunk walks its level nodes only when the span of its instances crosses a threshold (not at every
+## look), and a node is on from LOD_STEP_M before its band to LOD_STEP_M after it.
+func test_chunk_lod_walks_only_at_thresholds() -> void:
+	var t := _track()
+	_put(t, 198, {"kind": "prop", "set": "props/tree_oak", "side": 1, "x": _x(t, 1, 12.0), "scale": 1.0})
+	var ctx := _ctx(t, 6)
+	var b := Props.new()
+	b.apply_quality({"prop_lod0_m": 60.0, "prop_lod1_m": 200.0, "shadow_casters": 2, "shadow_distance_m": 120.0, "deco_density": 1.0})
+	var parent := Node3D.new()
+	b.commit(ctx, b.build(ctx, b.collect(ctx)), parent)
+	var holder := parent.get_child(0)
+	var lo: PackedFloat32Array = holder.get_meta(&"thr_lo")
+	var hi: PackedFloat32Array = holder.get_meta(&"thr_hi")
+	var bands := b.model_bands("props/tree_oak")
+	var b0: Vector4 = bands["lod0"]
+	var b1: Vector4 = bands["lod1"]
+	assert_true(lo.has(b1.x - Props.LOD_STEP_M) and hi.has(b0.w + Props.LOD_STEP_M), "Schwellen: Bandanfang − 2 m, Bandende + 2 m")
+	var zi := 198.0 * 3.0 + 1.0
+	# far from every threshold the key stays while the camera moves 4 m (two looks)
+	b.update({"camera_z": zi - 100.0}, 0.0)
+	var key: Variant = holder.get_meta(&"span_key")
+	b.update({"camera_z": zi - 97.0}, 0.0)
+	assert_eq(holder.get_meta(&"span_key"), key, "keine Schwelle gekreuzt: Schlüssel bleibt (kein Gang über die Kinder)")
+	# lod0 switches on 2 m before its band: the oak's nearest distance at b0.w + 1 m
+	var lat := absf(_x(t, 1, 12.0))
+	# no camera in the tree: path distances – the camera b0.w + 1 m before the oak
+	b.update({"camera_z": zi - (b0.w + 1.0)}, 0.0)
+	var on0 := false
+	for c: Node in holder.get_children():
+		if c.has_meta(&"band") and str(c.get_meta(&"rep")) == "lod0":
+			on0 = (c as Node3D).visible
+	assert_true(on0, "lod0 schon 1 m vor seinem Band an (Spielraum LOD_STEP_M, %.1f m seitlich)" % lat)
+	parent.free()
+	_cleanup()

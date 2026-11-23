@@ -1,0 +1,134 @@
+{
+ "package": "FIX-R7c",
+ "branch": "worktree-wf_ba4424b4-294-10 (gesichert als origin/wip/v080-fix-r7c)",
+ "commit": "3b3107be4df09c01aff907a026a709ac0195faea",
+ "worktree": "/home/user/crossing-europe---a-racing-xperience/.claude/worktrees/wf_ba4424b4-294-10",
+ "summary": "Alle acht Befunde von QA-R7c sind behoben. Jeder wurde vorher nachgestellt; QAs Bilder ließen sich bit-genau wiederholen. QR7c-01: tag:city ist gestrichen. Nur Fachwerk, Haussmann und das Eckhaus enden bei 30 m, die übrigen Stadthäuser behalten lod0 bis 60 m. Der Hamburger Speicher hat bei Deck wieder Kassettentüren (angesehen). QR7c-06: Das neue globale ce_lod_still zieht bei stehender Kamera jedes Band in 0,4 s zu seinem fernen Ende zusammen. Uhr ist view.time. Im Countdown gibt es kein Raster mehr, die Eiche steht wie in der Basis. Render-Prüfung: 0,00 % Abweichung (gemessen). QR7c-02: 8 neue Tests und 3 neue Fälle in check_lod_band, darunter das Fernlicht. Alle 17 QA-Mutationen und 6 neue werden gefangen (vorher 6). QR7c-03: Haken props im Mittel 0,15 statt 0,27 ms, Spitzen 0,5–1,0 statt 2,9–3,6 ms (gemessen, Deck, llvmpipe). QR7c-04: Farb-Bias erst ab 60 m, Fachwerk ab 30 m. Gemessen bleibt das Flimmern ≤ 2× Sprite, die Fensterrahmen in Nürnberg sind wieder scharf. Bei QR7c-05/-07/-08 gibt es einen Spielraum, keinen Konflikt mit FIX-RINT, FIX-R7a oder FIX-R7b, und Anbauten jenseits des Stücks werden nicht gestellt. Gates: 816/0 Tests zweimal, Render 29/29, Sicht und Wege --full grün, Arcade 20/20 und 17/17. Modern-Goldens sind nach Ansicht erneuert. check_weather fand einen eigenen Fehler: dt als Uhr, behoben in b22b90b.",
+ "files_changed": [
+  "scripts/race3d/builders/props.gd",
+  "scripts/race3d/modern_materials.gd",
+  "assets/shaders/modern/inc/lod_band.gdshaderinc",
+  "config/game_config.json",
+  "docs/renderer-modern-gelaende.md",
+  "tests/unit/race3d/test_props.gd",
+  "tests/race3d/render/check_lod_band.gd",
+  "tests/golden/modern_slice.md5",
+  "tests/golden/modern_slice.env"
+ ],
+ "acceptance": [
+  {
+   "check": "QR7c-01 (mittel) lod0 der Stadthäuser bei Mittel/Deck",
+   "result": "pass",
+   "evidence": "tag:city gestrichen, 30 m nur Fachwerk a/b, Haussmann, Eckhaus. Hamburg Deck: Speicher-Türen wieder mit Kassetten (angesehen, hamburg_deck_speicher_43a1fcc_r7c_fix.png); gegen 43a1fcc nur 432 px anders (gemessen). Test prüft die Konfiguration."
+  },
+  {
+   "check": "QR7c-06 (mittel) Raster bei stehender Kamera",
+   "result": "pass",
+   "evidence": "ce_lod_still (0,4-s-Rampe, Uhr view.time) zieht das Band zum fernen Ende zusammen. check_lod_band …_stand 0,00 % gegen harten Wechsel; Countdown-Eiche glatt und in lod0 wie die Basis (angesehen). Mutationen R7/R8 rot."
+  },
+  {
+   "check": "QR7c-02 (mittel) Wachen",
+   "result": "pass",
+   "evidence": "8 neue Tests in test_props, check_lod_band mit _stand und fernlicht (+3,7/+3,9 %, ohne Fernlicht +11,9/+12,2 %), Grenze 15 %. 17/17 QA-Mutationen und 6 neue gefangen (mutlogs, gemessen)."
+  },
+  {
+   "check": "QR7c-03 (niedrig) Haken props",
+   "result": "pass",
+   "evidence": "Kiel–Hamburg Deck, je zwei Läufe: Mittel 0,148/0,155 statt 0,282/0,264 ms, Max 0,50/1,00 statt 3,61/2,93 ms, Einhängen max 1,92/2,78 statt 3,18/2,04 ms. ERGEBNIS identisch (gemessen)."
+  },
+  {
+   "check": "QR7c-04 (niedrig) ferne Fassaden weich",
+   "result": "pass",
+   "evidence": "albedo_bias je Modell: default [1,25, 60, 150], Fachwerk [1,25, 30, 120]. sparkcam: Barock 0,3/0,4 % bei 100/150 m (Sprite 0,3/0,4); Nürnberger Rahmen wieder weiß (angesehen). Kontor flimmert mit jedem Bias 4–5× (Geometrie)."
+  },
+  {
+   "check": "QR7c-05 (niedrig) Knoten-Spielraum",
+   "result": "pass",
+   "evidence": "±LOD_STEP_M auf die Bandgrenzen; test_chunk_lod_walks_only_at_thresholds, Mutation U12 rot."
+  },
+  {
+   "check": "QR7c-07 (niedrig) Konflikt mit FIX-RINT",
+   "result": "pass",
+   "evidence": "git merge-tree mit fix-rint, fix-r7a und fix-r7b: Exit 0. In den Merge-Bäumen mit FIX-RINT und FIX-R7a: Skripte 331/0 bzw. 334/0, test_props 26/0 (gemessen)."
+  },
+  {
+   "check": "QR7c-08 (niedrig) Anbauten jenseits des Stücks",
+   "result": "pass",
+   "evidence": "Nicht gestellt, ATTACH_MAX 8; Test mit Test-Manifest, Mutation U14 rot."
+  },
+  {
+   "check": "Gate Import und check_scripts",
+   "result": "pass",
+   "evidence": "Exit 0; 331 Skripte, 0 fehlerhaft."
+  },
+  {
+   "check": "Gate tools/run_tests.sh",
+   "result": "pass",
+   "evidence": "816 Tests, 0 fehlgeschlagen; auf d20ea92 (1000 s) und auf dem Endstand 3b3107b (965 s)."
+  },
+  {
+   "check": "Gate tools/run_render_checks.sh all",
+   "result": "pass",
+   "evidence": "29/29 OK in drei Läufen (2-h-Grenze des Hintergrundauftrags). check_weather war erst rot durch dt als Uhr, nach b22b90b OK; ref im selben Lauf OK. Ebenfalls OK: check_start_km0, check_terrain_cover (K1), check_light_base, check_instance_budget*."
+  },
+  {
+   "check": "Gate modern_sight --full und modern_path_check --full",
+   "result": "pass",
+   "evidence": "F1 0 Fälle bis 270 m, F2 max 0,596, F3 0 später, F7 0; kleinster Abstand 267,6 m."
+  },
+  {
+   "check": "Gate golden.sh check (Arcade)",
+   "result": "pass",
+   "evidence": "Auf 3b3107b: 20 von 20 und 17 von 17 identisch."
+  },
+  {
+   "check": "Gate golden.sh modern-check / modern-make",
+   "result": "pass",
+   "evidence": "Vorher 0/6 (gewollt, R7c 6/6). Nur s4 0,19 % über 40 Stufen: gerastertes Garagentor jetzt glatt (angesehen). modern-make byte-gleich mit den angesehenen Bildern, Commit 3b3107b."
+  },
+  {
+   "check": "Etappe mit Autopilot und perf_stats",
+   "result": "pass",
+   "evidence": "run_stage Kiel–Hamburg Deck 2× und Würzburg–Nürnberg, 0 Fehler. render() 3,00/3,08 gegen 3,31/3,11 ms, Zeichenaufrufe 138 gegen 132, Primitive 165k gegen 137k (Deck-Budget 450k), collect max 2,9–3,9 ms in beiden Bäumen (gemessen)."
+  }
+ ],
+ "tests_total": 816,
+ "tests_failed": 0,
+ "deviations": [
+  "QR7c-06: Das Band zieht sich zum fernen Ende zusammen statt zur Mitte (QA-Vorschlag). Beim Stand steht so die feinere Stufe; die Mitte zeigte die Countdown-Eiche in lod1.",
+  "QR7c-04: Kein Vorschlag von QA übernommen (0,75 oder nur Fachwerk); stattdessen Bias 1,25 ab 60 m. Ohne Bias flimmern Barock und Grachtenhaus B über 2× Sprite (gemessen).",
+  "Neues globales ce_lod_still in ModernMaterials.GLOBALS (ein Platz im globalen Puffer); die Uhr ist view.time, weil check_weather die erste dt-Fassung fing.",
+  "check_lod_band: Grenze 35 → 15 % des harten Wechsels, damit der gerasterte Schattendurchgang (R2) gefangen wird.",
+  "Modern-Goldens vom Paket erneuert (Brief gegen A-18), nach Ansicht.",
+  "Render-Prüfungen in drei Läufen statt einem; check_weather_tabelle lief mit dem Stand vor b22b90b (OK).",
+  "Mutationen U1–U15 und R1–R6 liefen auf 60d4ec0/eb97a98; R7/R8, test_props und check_lod_band erneut auf dem Endstand."
+ ],
+ "contract_issues": [
+  "Leitentscheid 1 gegen 3: Stadthäuser außer Fachwerk/Paris behalten lod0 bis 60 m, obwohl lod0 von Grachtenhaus/Chalet bei 40–60 m 3–4× ihr Sprite flimmert (R7c gemessen). Look hat Vorrang wie QA empfiehlt; die Leitung soll es bestätigen.",
+  "A-16 Zeitblende: Mischweg – Wegband in Fahrt, 0,4-s-Zeitblende über das globale ce_lod_still beim Stand (A-19 bleibt). Bitte als Vertragslösung annehmen.",
+  "A-22 max_dist_m in model.json: weiter graphics.modern.props.lod0_m je Modell, weil model.json den Asset-Paketen gehört.",
+  "A-18: Modern-Goldens erneuert, weil der Brief es erlaubt; der Vertrag sagt „nur die Montage“.",
+  "A-18 collect() ≤ 2 ms Deck: Kiel–Hamburg max 2,9–3,9 ms schon in R7c und hier (props-Anteil 0,08 ms), nicht von diesem Paket.",
+  "QR7c-08: Das Nachbarstück sieht die Gegenstände des Stücks nicht (ChunkContext.segs, Kern), daher werden Anbauten jenseits der Stückgrenze ausgelassen statt übergeben."
+ ],
+ "notes_for_next": [
+  "RINT-M3: Merges mit FIX-RINT und FIX-R7a je einzeln geprüft (konfliktfrei, test_props 26/0), die Dreier-Zusammenführung nicht. Danach test_props und check_lod_band laufen lassen.",
+  "Asset-Paket Stadthäuser: Speicher-lod1 mit gebackenen Türkassetten. Das Kontor flimmert in lod1 bei 100–150 m 4–5× sein Sprite (Geometrie, Farb-Bias hilft nicht).",
+  "Asset-Paket, das attach zuerst nutzt: Versätze klein halten (nichts jenseits des 96-m-Stücks), höchstens 8 je Modell. H.LOD0_M je Stil exportieren, dann lod0_m leeren.",
+  "Besitzer von vpbr.gdshader: STATIC_INJECT (Band, Fernlicht, Rotorphase) in den Shader übernehmen.",
+  "QA-mid: einen Clip mit Halt und Anfahren (Stau, Polizei) bei Mittel ansehen. Die 0,4-s-Blende ist nur als Standbild und Render-Prüfung gesehen.",
+  "Leitung: collect() aller Bausteine auf Deck über 2 ms (A-18), nicht props.",
+  "Nachtfenster F-04, Lyon-Vorort und Wald (R7a) bleiben schwächer als Arcade; FIX-R7c ändert daran nichts."
+ ],
+ "look_verdict": "Angesehen gegen Arcade und R7c im gleichen Simulationsstand: Bei Tag ist Modern in Hamburg, Nürnberg, Paris und Amsterdam klar besser als Arcade. Backstein und Fachwerk haben Tiefe, Haussmann ist plastisch, Gehwege, Kaimauern und Bäume haben Volumen. FIX-R7c behebt die drei sichtbaren R7c-Schwächen: Speicher-Türen bei Deck wieder mit Kassetten wie vor R7c, Countdown-Bäume glatt in lod0 statt gerastert, ferne Fensterrahmen in Nürnberg wieder weiß und scharf. Sonst gleich zu R7c (0–2 600 px). Im Modern-Golden s4 ist das gerasterte Garagentor glatt. Schlechter als Arcade bleiben, wie QA sah und hier nicht neu angesehen: Nacht (F-04, weniger helle Fenster), Lyon-Vorort und Wald (fehlende Bäume und Häuser, R7a). Das Kontor flimmert in Bewegung bei 100–150 m stärker als sein Sprite (gemessen). Echte GPU und Steam Deck sind gefolgert.",
+ "media": [
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7c/hamburg_deck_speicher_43a1fcc_r7c_fix.png – Hamburger Speicher bei Steam Deck: 43a1fcc | R7c | FIX-R7c, Türkassetten wieder da",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7c/start_countdown_deck_basis_r7c_fix.png – Countdown Nürnberg–Fulda, 2×: Basis | R7c (gerastert) | FIX-R7c (glatt)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7c/nuernberg_hoch_fernhaus_arcade_basis_r7c_fix.png – fernes Barockhaus Nürnberg, 3×: Arcade | Basis | R7c | FIX-R7c, Rahmen wieder scharf",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7c/hh_deck_h12_tri_00.jpg – Hamburg Deck 12 Uhr: Arcade | R7c | FIX-R7c",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7c/nu_high_h12_tri_00.jpg – Nürnberg Hoch 12 Uhr: Arcade | R7c | FIX-R7c",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7c/start_nu_deck_h12_tri_00.jpg – Countdown Deck, ganzes Bild: Arcade | R7c | FIX-R7c",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7c/modern_golden_s4_r7c_fix_differenz.jpg – Modern-Golden s4: R7c | FIX-R7c | Differenz, Garagentor nicht mehr gerastert",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7c/bericht.md – vollständiger Bericht mit Messungen, Gates und Mutationstabelle"
+ ]
+}

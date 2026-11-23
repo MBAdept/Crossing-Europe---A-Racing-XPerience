@@ -1,0 +1,5 @@
+## FERTIG (08:40 UTC)
+- all done: golden 20/20+17/17, render mutations (R1, R2b caught; R2, R3, R4 not), k6 far light (all +-5 %), countdown dither found (QR7c-06)
+- deliver/QA-R7c/bericht.md complete (assembled by sh/assemble.py from bericht_teil_*.md + look_notes.md)
+- base/merge/mut copies, mesa caches, xdg dirs deleted. Worktree clean at bd1803b, nothing committed.
+- Only remaining: StructuredOutput (if a successor finds this: report is complete, return the result)

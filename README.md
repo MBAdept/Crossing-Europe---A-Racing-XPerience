@@ -12,36 +12,19 @@ Haltung des Nutzers: Qualität vor Tempo, keine Prüfungen/Nacharbeit streichen;
   dann cp -a v080 <SCRATCHPAD>/), damit die Pfade in Skripten und STAND-Dateien wieder stimmen.
 - Code: alles auf origin/wip/v080-* (Agenten pushen nach jedem Commit). Hauptcheckout bleibt v0.8.0 @ 92ece73.
 
-## Stand der Linie (Köpfe auf origin)
-- FERTIG + geprüft: rint-m2 9b02f05 (2. Montage), fix-rint 3248211 (nach QA-RINT-BILD/-SYSTEM; NACH-RINT: tragfähig,
-  aber N-01 Reflektoren-SCRIPT-ERROR zuerst beheben → RINT-M3), as5ar2 216ac5c (in R7c gemergt).
-- LÄUFT beim Abbruch: R7-Workflow (wf_ba4424b4-294, Skript m1/lead/wf_m5_r7.js, args m1/lead/args_m5.json):
-  R7a gebaut 509bb16 (origin/wip/v080-r7a), QA-R7a läuft; R7b gebaut 2c154bc (origin/wip/v080-r7b), QA-R7b fertig
-  (Ergebnis im Journal); R7c baut noch (origin/wip/v080-r7c 8153d20 – letzter Commit = fehlende .uid von check_lod_band, von der Leitung; ungesicherte Hilfsdateien zusätzlich auf
-  origin/wip/v080-r7c-sicherung 8b33b62 – nur tools/r7c_tmp und eine .uid, nicht mergen).
+## Stand der Linie (Köpfe auf origin) – aktualisiert 23.11. ~14:50 UTC
+- FERTIG + geprüft: rint-m2 9b02f05, fix-rint 3248211, fix-r7a 4a43944, fix-r7b c50d58f, fix-r7c 3b3107b.
+- LÄUFT: Workflow wf_m6.js (Lauf wf_a71eeb2e-3b7, args m1/lead/args_m6.json): RINT-M3 (Zusammenbau, Vertrag §11.4 aus
+  m1/lead/contract_11_4.md) → R7D „Freie Strecke“ → KRITIK-R7D ∥ QA-R7D → FIX-R7D → NACH-R7D.
+  Branches wip/v080-rint-m3, wip/v080-r7d, wip/v080-fix-r7d.
 
 ## Fortsetzen
-1. R7-Workflow mit identischem Skript + Args + resumeFromRunId neu starten:
-   Workflow({scriptPath: '<SP>/m1/lead/wf_m5_r7.js', resumeFromRunId: 'wf_ba4424b4-294', args: <Inhalt von args_m5.json>})
-   (fertige Agenten kommen aus dem Cache; abgebrochene laufen über STAND.md + wip-Branch weiter).
-   Geht Resume nicht (Journal weg): ohne resumeFromRunId starten – Agenten finden Vorgänger über STAND.md/origin.
-2. Danach (Leitungsentscheid 22.11., Details m2_integration_notes.md letzter Abschnitt):
-   a) RINT-M3: fix-rint 3248211 + R7a/R7b/R7c (FIX-Köpfe) mergen. Probe-Merge: Konflikte nur chunk_streamer.gd
-      (fix-rint × r7a), docs/renderer-modern.md (r7b), tests/unit/race3d/test_props.gd (r7c). Notizen: N-01
-      (is_instance_valid in lights._update_glints + Unit-Test), N-02 (Ausfahrt-Quad letzte 2 m), Einhängen innerhalb
-      roadside/terrain/road teilen (≤ 3 ms/Bild, sonst messen+listen), Regel 8 (XDG_DATA_HOME in allen Sonden),
-      Sprites bytegleich (R7c ändert cesprites/props_cities.py mit 3D-Haken), F-04 Hansehaus nachts nachmessen,
-      F-07 Hochhaus Frankfurt, Modern-Goldens einmal nach Ansehen, Vertrag §11.4 (R7-Aufteilung, 3 Oberflächen/attach,
-      Einhänge-Budget, R7d, Plan).
-   b) R7d „Freie Strecke“ (QA-RINT-BILD F-02 hoch: offene Autobahn ≈ Arcade) auf RINT-M3: Wolkenhimmel (aus R8
-      vorgezogen), Wolkenschatten, Fahrbahnverschleiß, Wiesen/Felder, Relief außerhalb A-17-Hülle, Baumschatten,
-      Luftperspektive nur innerhalb F4. Entwurf des Auftrags: m1/lead/m6_r7d_draft.js. Dann QA → FIX → NACH.
-   c) QA-mid (ganzes Rennen Kiel – Nürnberg in jeder Bedingung) → FIX/NACH → ZS2 (was_neu.md + Checkliste,
-      Linux/Windows-Build, an den Nutzer per Datei).
-3. Leitungsnotizen: m1/lead/m2_integration_notes.md (chronologisch, letzte Abschnitte zuerst lesen); Ergebnisse
-   der RINT-Prüfung: m1/lead/rint_res/r1..r5.json; Vertrag §11.3: m1/lead/contract_11_3.md (committet in 8999769).
-4. Skript-Bausteine: <x>_meta.js + c1_head.js + <x>_body.js, Trockenlauf mit dryrun7.mjs. Vorlage für RINT-M3:
-   m4_body.js (RINT-M2 → QA zwei Linsen → FIX → NACH).
+1. Workflow({scriptPath: '<SP>/m1/lead/wf_m6.js', resumeFromRunId: 'wf_a71eeb2e-3b7', args: <Inhalt von args_m6.json>})
+   (fertige Agenten aus dem Cache; abgebrochene über STAND.md + wip-Branch). Ohne Journal: ohne resumeFromRunId starten.
+2. Danach: QA-mid (ganzes Rennen Kiel – Nürnberg in jeder Bedingung, zwei Linsen) → FIX/NACH → ZS2 (Goldens nach Ansehen,
+   was_neu.md + Checkliste, Linux/Windows-Build, an den Nutzer per Datei).
+3. Leitungsnotizen: m1/lead/m2_integration_notes.md (letzte Abschnitte zuerst); Ergebnisse: m1/lead/rint_res/, m1/lead/r7_res/.
+4. Skript-Bausteine: <x>_meta.js + c1_head.js + <x>_body.js, Trockenlauf dryrun7.mjs (Ausgaben in eigenen Ordner kopieren).
 
 ## Maschinenregeln
 - Schwere Jobs nice 10 (QA_M2_FERTIG gesetzt), Speicherwächter < 3 GB frei → warten, höchstens 2 Agenten je Workflow

@@ -20,7 +20,7 @@ dem Start), Ordner `m1/R7c/shots/city/` (20 Läufe, alle Exit 0, 0 Fehlerzeilen)
 | Amsterdam (Bremen – Amsterdam km 357,7) | gleich bis besser: Grachtenhäuser fein; Hausboote | gleich bis besser: Hausboote und Giebel beleuchtet | gleich |
 | Bern (Lyon – Bern km 302,7) | besser: Lauben, Blumen, Gehweg | besser: ferne Lauben mit Licht | besser: Lauben beleuchtet, ruhige Fenster |
 | Lyon-Vorort (Montpellier – Lyon km 286) | **schlechter**: Arcade zeigt rechts nah Häuser mit Gartenbäumen und Mauern, Modern dort freies Feld – schon in der Basis so (`basis_lyon_vorort_hoch_12.jpg`); vermutlich der Kurvenkorridor (F7, R7a) | – | – |
-| Wald (Dortmund – Frankfurt km 48–50) | gleich: Fichten und Laubbäume ähnlich; rechts in der Kurve weniger Bäume als Arcade (Korridor, R7a) | – | siehe `wald_*` |
+| Wald (Dortmund – Frankfurt km 48–50) | **schlechter** in der Menge: einzelne Fichten und Laubbäume so gut wie Arcade, aber rechts der Straße stehen deutlich weniger Bäume (Arcade: eine Reihe Fichten bis 60 m) – schon in der Basis (`basis_wald_mittel_12.jpg`), Korridor/Bestückung, nicht die Stufen | – | Mittel 22 Uhr: gleich dunkel, Fernbilder ohne helles Relief |
 
 Basis gegen R7c (gleiche Stelle, `basis_*.jpg`): in der Nähe gleich (der neue `light()` ändert dort nichts); ferne
 Fassaden über der Schattenreichweite etwas dunkler und satter (das Ziel), Stadthäuser zwischen 35 und 60 m jetzt in

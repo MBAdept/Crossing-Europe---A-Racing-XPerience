@@ -1,0 +1,7 @@
+Merge R7a (FIX-R7a 4a43944): Sichtkorridor aus der echten Geometrie (A-17)
+
+Hülle der Sichtlinien im Stück-Schnappschuss, in_sight_envelope()/bend_intrusion(),
+Grenzstützen und Stadtzäune gegen die genaue Hülle, Netzprüfung des Fußabdrucks.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,131 @@
+{
+ "package": "FIX-R7b",
+ "branch": "wip/v080-fix-r7b (local branch wip/v080-fix-r7b in the worktree below; pushed to origin)",
+ "commit": "c50d58f",
+ "worktree": "/home/user/crossing-europe---a-racing-xperience/.claude/worktrees/wf_ba4424b4-294-6",
+ "summary": "All eight QA-R7b findings were reproduced. Seven are fixed and re-checked. B-06 is partly rejected and got a cheap mitigation. Every gate is green on c50d58f.\n\nB-02 was a bug, not tuning. In the Compatibility renderer, PROJECTION_MATRIX[1][1] is negative in the vertex stage, so every landmark glow got the safety cap instead of its own size. The fix uses abs() plus Arcade's _lm_glow profile and sizes. Measured at the Florianturm, 22:00: 15 red px against Arcade's 10 (before 232); on the Deck preset 17 against 16.\n\n- **B-01:** picture and light layer are now mixed in display values. Elbphilharmonie facade 116.1 against Arcade 112.8 (before 144.5).\n- **B-03:** a floodlit model now gets the floodlight as its own light. Bremer Dom 0.97 × Arcade.\n- **B-04:** landmarks are mirrored exactly where Arcade mirrors its picture. All 143 landmarks of the network stand at Arcade's anchor (worst 0.15 m, before 37.8 m).\n- **B-05:** procedural shapes have their main axis on the anchor and face their approach. Leipzig's dome is visible again.\n- **B-06:** the skyline fades in 0.05 steps. The spikes QA saw are load noise.\n- **B-07:** the shape cache is keyed on height_m alone.\n- **B-08:** docs §18 corrected.\n\nNew render checks nacht_hell, flugfeuer (against Arcade's red pixels) and anstrahlung each caught its mutation: linear mix (B01), signed scale (B02), floodlight removed (M16, M17). Arcade golden is 20/20 and 17/17. Modern golden is 5/6: only modern_s4_mittel differs, at the Michel (looked at). Render checks 29/29, run_tests full green, sight and path --full green. Kiel–Hamburg and Bremen–Dortmund run without script errors, with the same ERGEBNIS as the base.",
+ "files_changed": [
+  "assets/shaders/modern/landmark.gdshader",
+  "scripts/race3d/builders/landmarks.gd",
+  "scripts/race3d/layers/backdrop.gd",
+  "tests/unit/race3d/test_landmarks.gd",
+  "tests/race3d/render/check_landmarks_render.gd",
+  "docs/renderer-modern.md"
+ ],
+ "acceptance": [
+  {
+   "check": "B-01 picture landmarks at night not brighter than Arcade",
+   "result": "pass",
+   "evidence": "Measured: Elbphilharmonie facade 144.5 -> 116.1 (Arcade 112.8). Render check nacht_hell 0.99x Arcade; the linear-mix mutation gives 1.22x and is caught. bilder/B01_elbphilharmonie_22uhr_zoom.png"
+  },
+  {
+   "check": "B-02 aviation light at Arcade's size",
+   "result": "pass",
+   "evidence": "Root cause: negative projection y scale; glow off still gave 233 px. Dortmund 22:00 now 15 red px against Arcade 10 (before 232), deck 17 against 16. flugfeuer 28 against 28; the mutation gives 95,297 and is caught"
+  },
+  {
+   "check": "B-03 floodlight on plain props, guarded by a check",
+   "result": "pass",
+   "evidence": "anstrahlung check: Bremer Dom model 1.32x brighter than without floodlight, 0.97x Arcade; Fourviere picture 1.71x, 1.05x Arcade. Mutations M16 and M17 both caught"
+  },
+  {
+   "check": "B-04 mirrored church at Arcade's anchor",
+   "result": "pass",
+   "evidence": "Unit test over 128 stage directions: 143 landmarks at Arcade's _prep_prop anchor (worst 0.151 m), 23 mirrored as in Arcade. Bremer Dom tower about 5 px from Arcade's (before 63). Mirroring a landmark goes against D24's wording (contract issue)"
+  },
+  {
+   "check": "B-05 domed shapes at Arcade's place",
+   "result": "pass",
+   "evidence": "Main axis on the anchor; models and shapes face the approach (max 40 deg, never nearer the road). Leipzig dome visible again at Arcade's x (about 20 px). The Belgrade residual of about 100 px also moves the bridge pylon with look_gain 0, so it is kernel geometry (A-3), not the shape"
+  },
+  {
+   "check": "B-06 skyline redraw spikes",
+   "result": "partial",
+   "evidence": "Spike rejected as load noise: in QA's head runs the untouched camera hook rose just as much. Probe: a redraw with silhouettes costs +0.1..0.3 ms. Mitigation: fade in 0.05 steps (20 instead of 67 redraws)"
+  },
+  {
+   "check": "B-07 shape cache key",
+   "result": "pass",
+   "evidence": "proc_key uses height_m only; comment fixed; landmark tests green"
+  },
+  {
+   "check": "B-08 docs §18",
+   "result": "pass",
+   "evidence": "§18.1-18.4 and §18.6 corrected: 46/143 drawn as models, the 24.7 px / 44.7 px figures marked as before-values, plus the new rules"
+  },
+  {
+   "check": "Gate import + check_scripts",
+   "result": "pass",
+   "evidence": "Import clean; 334 scripts, 0 with errors"
+  },
+  {
+   "check": "Gate tools/run_tests.sh full",
+   "result": "pass",
+   "evidence": "Passed (955 s): 813 unit tests, 0 failed; all checks OK. It started on b0130bd; c50d58f re-run with the landmarks filter, green"
+  },
+  {
+   "check": "Gate tools/golden.sh check",
+   "result": "pass",
+   "evidence": "GOLDEN arcade: 20 von 20 identisch; GOLDEN arcade-ui: 17 von 17 identisch"
+  },
+  {
+   "check": "Gate tools/golden.sh modern-check",
+   "result": "partial",
+   "evidence": "5 von 6 identisch; modern_s4_mittel differs at 624 px, only the Michel (looked at, wanted); not regenerated per A-18. GLES against GL OK, 2/255"
+  },
+  {
+   "check": "Gate tools/run_render_checks.sh all",
+   "result": "pass",
+   "evidence": "29 von 29 Render-Prüfdateien in Ordnung, incl. check_start_km0, check_terrain_cover with K1, check_light_base"
+  },
+  {
+   "check": "Gate modern_sight --full and modern_path_check --full",
+   "result": "pass",
+   "evidence": "F1 0 cases to 270 m, F2 <= 0.596, F3 0/5923, F7 0; path smallest gap 267.6 m, loops after 2064 m"
+  },
+  {
+   "check": "Gate whole Modern stage, perf against base",
+   "result": "pass",
+   "evidence": "Kiel-Hamburg and Bremen-Dortmund, deck preset: 0 script errors, ERGEBNIS equal. render avg 3.72-3.77 against 3.76-3.83 ms; draw calls and primitives equal; collect 0.001 ms. Measured on llvmpipe; real hardware inferred"
+  }
+ ],
+ "tests_total": 813,
+ "tests_failed": 0,
+ "deviations": [
+  "B-04: a plain prop standing as a landmark is mirrored where Arcade mirrors it (props/church on the left side, 23 cases). D24 literally says landmarks are never mirrored.",
+  "B-05: models and shapes face their approach (bearing from the road point 600 m before, at most 40 deg) instead of the road heading at the anchor. near_shift keeps every corner from coming nearer the road.",
+  "B-06: QA's spike did not reproduce as a skyline cost. Only the cheap 0.05 alpha step is implemented.",
+  "The glow safety cap is now 25 % of the depth (was 3 %). The 3 % cap only existed to hide the sign bug.",
+  "Flat-roof skyscraper lights now sit on the front roof edge. With Arcade's size, the parapet hid them in the roof's middle (Madrid showed no light).",
+  "The flugfeuer red-pixel test now uses QA's measure (r >= 110, 1.8 ratios). The red threshold also counts Arcade's own dot, whose core is pinkish.",
+  "The full run_tests started on b0130bd. The light-position commit c50d58f was then verified by the landmark filter tests, the full render check run and the golden checks.",
+  "Golden modern_s4_mittel was not regenerated (A-18)."
+ ],
+ "contract_issues": [
+  "D24 'Landmarks are never mirrored and not turned' conflicts with Arcade: Arcade mirrors props/church standing as a landmark, and with the road heading a turned shape shows its side wall in bends. Proposed §11.4 wording: mirror where Arcade mirrors the picture (no landmarks/* model ever), front to the approach, never nearer the road.",
+  "R7 acceptance 'within 5 % at 600 m on a straight approach' can be tested at only 3 approaches. It is now backed by a network-wide anchor unit test (143 landmarks, <= 0.15 m). In tight bends (Belgrade, Ada bridge) the whole picture sits about 100 px off Arcade even with look_gain 0 (A-3 kernel geometry).",
+  "A-18: modern_s4_mittel changes on purpose (Michel facing its approach). The assembly must regenerate tests/golden/modern_slice.*."
+ ],
+ "notes_for_next": [
+  "RINT-M3: regenerate the Modern golden list after the merge (only the Michel in modern_s4_mittel, looked at). Write the D24 rule for landmarks into §11.4.",
+  "Owner of reflector.gdshader / lights.gd: line 21 uses PROJECTION_MATRIX[1][1] * VIEWPORT_SIZE.y in the vertex stage, which is negative / 0 in Compatibility. Use abs() and a viewport_h uniform as landmark.gdshader does (inferred from code, not measured).",
+  "R7c / props.gd owner: the dead far-landmark path is still there (as R7b reported).",
+  "QA-mid: look at night pictures on deck for Dortmund, Madrid and Hamburg. The Calais lighthouse lamp was never visible in a picture (hidden in all modes); find a free view.",
+  "AS6: put the main axis of models for the six procedural entries on the origin (as PROC_AXIS_Z does); +Z faces the approach; landmarks/* are never mirrored.",
+  "Kernel / curve parity: at the Belgrade Ada bridge, scene objects (pylon, church) sit about 100 px off Arcade with look_gain 0.",
+  "Perf: Kiel-Hamburg landmarks hook max 0.94 / 6.16 ms on head against 0.34 / 0.40 on base (single frames under load). Node creation measured 0.12 against 0.06 ms; worth one look on real hardware."
+ ],
+ "look_verdict": "Measured on llvmpipe at the High preset against Arcade and R7b in the same simulation state.\n\nNow equal to Arcade (before worse):\n- the Elbphilharmonie at night: Arcade's facade contrast, no longer washed out;\n- the aviation lights of the Florianturm and Madrid: Arcade's small dot instead of a red blot;\n- the Bremer Dom: Arcade's place (5 px instead of 63) and floodlit like Arcade, a little warmer and brighter.\n\nBetter than before and close to Arcade: the Leipzig near view (dome visible again where Arcade shows it) and Hannover (frontal, the warm dome glow at Arcade's size, slightly stronger).\n\nBetter than Arcade: by day the 3D shapes (Hannover, Leipzig, Dortmund) are plastic, where Arcade has flat drawings.\n\nNot better than before:\n- Belgrade near view: the church shows its front but still stands at the right frame edge, about 100 px from Arcade. The bridge pylon is shifted the same way, so the cause is the bend geometry. Since the main axis moved to the anchor, the front is 23 m nearer and the church looks slightly bigger.\n\nNot verified:\n- the Calais lighthouse lamp is hidden in every picture taken.\n\nMissing: real landmark models (AS6). Modern is clearly better than Arcade only where 3D shapes stand. Picture landmarks are equal to Arcade, not better.",
+ "media": [
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7b/bericht.md – Bericht FIX-R7b mit Befunden, Bildern, Gates und Leistung",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7b/bilder/B01_elbphilharmonie_22uhr_zoom.png – Elbphilharmonie 22 Uhr: Arcade | R7b vorher (zu hell) | FIX-R7b (wie Arcade)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7b/bilder/B02_florianturm_22uhr_zoom.png – Florianturm 22 Uhr: Flugwarnlicht vorher großer roter Fleck, jetzt Arcades Punkt",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7b/bilder/B02_dortmund_deck_22uhr.png – Dortmund 22 Uhr im Steam-Deck-Preset: Arcade | vorher | FIX-R7b",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7b/bilder/B02_madrid_22uhr_zoom.png – Madrid 22 Uhr: Dachlicht der Hochhäuser an der Kante wie Arcade",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7b/bilder/B03_B04_bremer_dom_22uhr_zoom.png – Bremer Dom 22 Uhr: jetzt an Arcades Stelle (gespiegelt) und angestrahlt",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7b/bilder/B05_leipzig_nah_12uhr.png – Leipzig nah: Kuppel des Völkerschlachtdenkmals wieder sichtbar an Arcades Stelle",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7b/bilder/B05_belgrad_nah_12uhr_look0.png – Belgrad nah mit look_gain 0: Versatz betrifft auch den Brückenpylon (Kurvengeometrie)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7b/bilder/hannover_nah_22uhr_zoom.png – Hannover nah 22 Uhr: warmer Kuppelschein in Arcades Größe",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7b/bilder/golden_modern_s4_michel_zoom.png – Golden modern_s4_mittel: einziger Unterschied ist der zur Anfahrt gedrehte Michel"
+ ]
+}

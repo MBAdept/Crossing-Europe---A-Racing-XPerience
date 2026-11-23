@@ -1,0 +1,12 @@
+v0.8.0 FIX-R7b: WIP – Spiegelung wie Arcade, Hauptachse am Anker, Front zur Anfahrt, Anstrahlen als Licht
+
+B-04: gespiegelt genau wo Arcade das Bild spiegelt (prop_flipped), Anker mit der Ausdehnung
+der gezeigten Seite; Netzprüfung aller 143 Wahrzeichen gegen Arcades _prep_prop.
+B-05: prozedurale Formen mit der Hauptachse am Anker, Modelle und Formen zur Anfahrt gedreht
+(600 m davor, höchstens 40°), nie näher an der Straße als längs der Straße.
+B-03: CE_ATLAS strahlt nachts als eigenes Licht an (Albedo × Flutlicht × Anteil).
+Render-Prüfungen nacht_hell, flugfeuer gegen Arcade, anstrahlung (noch nicht gelaufen).
+Doku §18 berichtigt (B-08).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

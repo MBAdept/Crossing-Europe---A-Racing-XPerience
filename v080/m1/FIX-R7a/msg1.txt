@@ -1,0 +1,14 @@
+v0.8.0 FIX-R7a: genaue Hülle der Sichtlinien im Stückschnappschuss, Stadtzaun gegen sie (QR7a-05)
+
+- TerrainProfile: envelope_width() und rows()["envelope"] – die Hülle der Sichtlinien ohne die
+  Mindestbreite (Streifen + 0,55 m), die das Gelände am Kurvenende freihält.
+- ChunkContext: Schnappschuss "envelope", in_sight_envelope(z, x, reach, half_len) und
+  bend_intrusion() (wie tief ein Fußabdruck in die Hülle reicht – Grundlage für das Hinausschieben
+  statt Weglassen von Requisiten, QR7a-01). in_bend_corridor() bleibt unverändert.
+- city.gd: Zaun-, Hecken- und Mauerstücke gegen die genaue Hülle (Rand 0,3 m für Abdeckung und
+  Pfeiler) statt gegen den aufgerundeten Korridor.
+- F7 (modern_sight): prüft auch die genaue Hülle gegen die unabhängige Referenz.
+- Einheitstests: Hülle, Tiefe, Ende der Hülle eines kurzen Bogens.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

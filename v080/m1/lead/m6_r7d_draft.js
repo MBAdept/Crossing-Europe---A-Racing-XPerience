@@ -47,7 +47,8 @@ inc/ground.gdshaderinc already contain wear, patches, fields and furrows that th
    the envelope stay exactly as they are; F7 and the occlusion probe must stay as R7a left them.
 6. TREES AND SHADE: per-instance variation of the tree models (hue, size, lean – within the placement's tint, A-19 via
    the MultiMesh colour, no instance uniforms), visible shadows of trees and bushes on the grass at „Mittel“ and „Hoch“,
-   wind sway where the leaves shader allows it; nothing new inside the envelope.
+   wind sway where the leaves shader allows it; nothing new inside the envelope – a larger or leaning tree counts
+   with its real AABB in the footprint of A-24 (check_props_footprint stays 0).
 7. AERIAL PERSPECTIVE – ONLY WITHIN F4: static scenery is never fogged more than in Arcade at the same road point (F4,
    depth fog 0.45 … 1.0 × visibility). Haze may live in the sky's horizon band and may shift the HUE of far scenery toward
    the horizon colour, but never lower its contrast below what Arcade's fog gives at that distance; vehicles, signs and

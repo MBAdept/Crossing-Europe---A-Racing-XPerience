@@ -1,0 +1,31 @@
+## QR7c-04: the far mip bias of the colour per model – the half-timbered houses keep it from 30 m against their painted
+## beams, every other model gets it only from 60 m (full at 150 m): the white window frames of far facades turned grey
+## with R7c's 1.25 from 30 m (1.09 levels at 100 m, now 0.52), while without any bias the Barockhaus flickers 2.5 x its
+## sprite at 150 m (sparkcam, measured).
+func test_albedo_bias_per_model() -> void:
+	var b := Props.new()
+	b._read_config(cfg())
+	for mid: String in ["props/city_german_old_fachwerk", "props/city_german_old_fachwerk_b"]:
+		assert_eq(b.albedo_bias_of(mid), Vector3(1.25, 30.0, 120.0), "%s: 1,25 von 30 bis 120 m" % mid.get_file())
+	for mid: String in ["props/city_german_old_barock", "props/city_hanse_kontor", "props/farmhouse"]:
+		assert_eq(b.albedo_bias_of(mid), Vector3(1.25, 60.0, 150.0), "%s: 1,25 erst von 60 bis 150 m" % mid.get_file())
+	b._albedo_bias = {"default": 0.5}
+	assert_eq(b.albedo_bias_of("props/farmhouse"), Vector3(0.5, 30.0, 120.0), "eine Zahl: 30 bis 120 m")
+	b._read_config(cfg())
+	var t := _track()
+	_put(t, 198, {"kind": "prop", "set": "props/city_german_old_fachwerk", "side": 1, "x": _x(t, 1, 12.0), "scale": 1.0})
+	_put(t, 204, {"kind": "prop", "set": "props/city_german_old_barock", "side": 1, "x": _x(t, 1, 12.0), "scale": 1.0})
+	var ctx := _ctx(t, 6)
+	var parent := Node3D.new()
+	b.commit(ctx, b.build(ctx, b.collect(ctx)), parent)
+	for row: Array in [["props/city_german_old_fachwerk", Vector2(30.0, 120.0)], ["props/city_german_old_barock", Vector2(60.0, 150.0)]]:
+		var mid := str((b.library.sets[str(row[0])] as Dictionary)["variants"][0])
+		var n := 0
+		for mat: ShaderMaterial in b.library.rep_materials(mid, "lod1"):
+			if mat.shader != null and mat.shader.code.contains("albedo_bias"):
+				assert_near(float(mat.get_shader_parameter("albedo_bias")), 1.25, 1.0e-4, "%s lod1: albedo_bias auf dem Material" % mid.get_file())
+				assert_eq(mat.get_shader_parameter("albedo_bias_m"), row[1], "%s lod1: albedo_bias_m auf dem Material" % mid.get_file())
+				n += 1
+		assert_true(n >= 1, "%s: baked-Material geprüft" % mid.get_file())
+	parent.free()
+	_cleanup()

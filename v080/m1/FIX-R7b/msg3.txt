@@ -1,0 +1,12 @@
+v0.8.0 FIX-R7b: Render-Prüfungen nacht_hell, flugfeuer gegen Arcade, anstrahlung; Skyline in 0,05-Stufen
+
+check_landmarks_render: Arcades Wahrzeichen-Pixel aus demselben angehaltenen Bild ohne seine
+Wahrzeichen (leerer _prep_prop-Zwischenspeicher, nichts an Arcade geändert).
+nacht_hell: Elbphilharmonie 22 Uhr 0,99 x Arcade (Mutation lineare Mischung: 1,22 x, erkannt).
+flugfeuer: 28 rote Pixel wie Arcade (ohne abs(): 95297, erkannt).
+anstrahlung: Bremer Dom 1,32 x durch das Anstrahlen, 0,97 x Arcade; Fourvière Lyon 1,71 x, 1,05 x
+(Mutationen M16/M17 – Anstrahlen entfernt – erkannt).
+backdrop.gd (B-06): Ausblenden der Skyline in Schritten von 0,05 (Signatur = gezeichnete Deckung).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

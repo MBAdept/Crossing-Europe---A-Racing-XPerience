@@ -1,0 +1,24 @@
+# NACH-R7c STAND
+- Worktree: /home/user/crossing-europe---a-racing-xperience/.claude/worktrees/wf_ba4424b4-294-12 (branch worktree-wf_ba4424b4-294-12), ff to 3b3107b, .godot copied, import done (exit 0)
+- done: ff merge, import, read FIX-R7c bericht, contract A-16..A-22, R7c brief (m1/lead/m5_body.js l.119: golden renewal allowed by brief)
+- done: diff review (all 9 files). No frozen file. Manifest has no "attach" -> no placement change -> modern_sight not needed.
+- done: merge probe (scratch clone mclone, chain_merge.sh): FIX-R7c merges clean pairwise and in 3 orders of the 4-way; only conflict docs/renderer-modern.md between FIX-RINT/R7a/R7b (not FIX-R7c). merge4.sha = last 4-way commit in mclone.
+- doing: pics.sh (bg) -> shots/ hh_deck_h12, start_nu_deck_h12, nu_deck_h12 (ab_shot, head)
+- next: mutate.py (in worktree, restores from HEAD; ids U3..R6 + N1..N6 + R2), then gates: test_props/test_far_ground_water baseline, render checks check_lod_band, check_start_km0, check_terrain_cover, check_light_base, check_weather; golden.sh check once at end; drive-off shots (start_nu 4.0..6.0 s)
+- notes so far: props.gd comment at LOD_STILL_SPEED says "hard swap at its middle" but code narrows to FAR end (stale comment). Guard gaps suspected: N1 (_thresholds in quality_lowered), N5 (global never set), N4 (eye-branch far corner).
+- pitfalls: disk ~4.9 GB free; do NOT mutate worktree while pics.sh renders from it
+- 14:01 done: hh_deck_h12 shots: head == FIX own pictures (0 px), vs 43a1fcc 432/1330 px >15%, vs R7c 25139/12757 px. Crop deliver/NACH-R7c/qr7c01_*.png LOOKED: doors with panels like 43a1fcc -> QR7c-01 fixed. Arcade identical to QA's arcade (0 px).
+- tools: cmp.sh <scene> <nn>, montage.sh (crop/full), driveoff.sh queued (waits for PICS DONE)
+- 14:12 done: start_nu_deck (QR7c-06 LOOKED: oak smooth like base, R7c dithered; head==FIX own 0 px), nu_deck (Barockhaus clean lod0 at Deck, R7c dithered), driveoff_nu_deck shots 1.5/3.3/3.8/4.5/6.0 s (to look at)
+- 14:12 running: q_mut.sh (bg) = check_scripts + unit test_props/test_far_ground_water baseline + mutate.py (MUTATES THE WORKTREE, restores from HEAD). Log logs/q.out, mutlogs/mutate.out. If restarted: check `git status` in worktree first; `git checkout -- <file>` restores.
+- next after q_mut: render checks (check_lod_band, check_start_km0, check_terrain_cover, check_light_base, check_weather), golden.sh check, bericht.md
+- 14:19 done q_mut: check_scripts 331/0, test_props 26/0, test_far_ground_water 4/0; mutations: U3 U4 U5 U7 U8 U10 R3 R4 R5 R6 N2 N6 R2 caught; N1 N3 N4 N5 GREEN (guard gaps). worktree clean after.
+- 14:19 drive-off LOOKED+measured (grain.py): grain base 0.73 %, R7c countdown 3.77 %, head countdown 0.67 %, head 3.8 s 4.15 %, 4.5 s 3.12 % -> new finding: dither returns for ~1 s after GO (and in any crawl >1.5 m/s), fine->mixed->fine flip. Suggest band width min(w, v*0.4 s) via a global.
+- 14:20 running: q_render.sh (bg) -> gates/render_*.log, logs/render.out
+- next: 4-way merged tree (mclone merge4.sha) git archive -> scratch, import, check_scripts + test_props; then golden.sh check; bericht.md
+- 14:37 done render gates: lod_band, start_km0, terrain_cover, light_base, weather.gd, props_render, session_modern, instance_budget.gd all OK.
+- 14:37 bericht.md drafted in deliver/NACH-R7c (placeholders SIEHE_SESSION/SIEHE_BUDGET/SIEHE_M4/SIEHE_M4_NOTE/SIEHE_GOLDEN to fill)
+- 14:37 running: q_m4.sh (bg): 4-way merge tree m4 export+import+check_scripts+tests -> gates/m4_*.log; then golden.sh check (last); then delete m4 + mclone
+- 14:42 done: m4 (4-way) scripts 338/0, test_props 26/0, far_ground_water 4/0, chunk_streamer 9/0, sight_corridor 8/0, check_lod_band OK; m4 + mclone deleted. bericht placeholders filled except SIEHE_GOLDEN.
+- 14:42 running: golden.sh check (bg) -> gates/golden_check.log. Then fill SIEHE_GOLDEN and return result.
+- 14:50 DONE: golden.sh check 20/20, 17/17 (exit 0). bericht.md complete. Worktree clean at 3b3107b. Only the StructuredOutput result remains.

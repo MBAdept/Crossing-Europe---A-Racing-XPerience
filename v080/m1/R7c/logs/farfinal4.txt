@@ -1,0 +1,24 @@
+far/final4_0.30_high exit 0 16 
+LODCOL city_swiss_chalet 60m lod1 L74.7
+LODCOL city_swiss_chalet 100m lod1 L76.5
+LODCOL city_swiss_chalet 140m lod1 L75.3
+LODCOL city_swiss_chalet 200m lod1 L77.4
+LODCOL city_swiss_chalet 250m lod1 L75.7
+far/final4_0.25_high exit 0 16 
+LODCOL city_swiss_chalet 60m lod1 L74.7
+LODCOL city_swiss_chalet 100m lod1 L76.5
+LODCOL city_swiss_chalet 140m lod1 L75.3
+LODCOL city_swiss_chalet 200m lod1 L75.0
+LODCOL city_swiss_chalet 250m lod1 L73.4
+far/final4_0.30_medium exit 0 12 
+LODCOL city_swiss_chalet 60m lod1 L75.3
+LODCOL city_swiss_chalet 100m lod1 L74.9
+LODCOL city_swiss_chalet 140m lod1 L77.4
+LODCOL city_swiss_chalet 200m lod1 L75.8
+LODCOL city_swiss_chalet 250m lod1 L76.0
+far/final4_0.25_medium exit 0 12 
+LODCOL city_swiss_chalet 60m lod1 L75.3
+LODCOL city_swiss_chalet 100m lod1 L74.9
+LODCOL city_swiss_chalet 140m lod1 L75.1
+LODCOL city_swiss_chalet 200m lod1 L73.5
+LODCOL city_swiss_chalet 250m lod1 L73.7

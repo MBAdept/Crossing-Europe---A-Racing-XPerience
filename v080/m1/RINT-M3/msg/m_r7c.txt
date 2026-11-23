@@ -1,0 +1,7 @@
+Merge R7c (FIX-R7c 3b3107b): Fern-LOD von Bauten und Pflanzen
+
+Pfadband mit Überblendung, ce_lod_still, Fernlicht, Flimmern, Fenster in der Dämmerung,
+Anhänge, AS5a Teil 2 und Neuexport aller 23 Stadthäuser.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

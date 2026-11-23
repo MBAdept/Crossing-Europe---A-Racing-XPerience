@@ -1,0 +1,119 @@
+{
+ "verdict": "R7c is solid where it matters most. Nothing is broken: Arcade goldens 20/20 + 17/17, run_tests 808/0, render checks 29/29, modern_sight F1–F3/F7 and the path check with --full all green, and no frozen file was touched (all measured). A real-build scan of all 128 directions plus DEV shows that R7c draws exactly the same 195,741 props as 43a1fcc (the state before R7c's own commits). The bands of all 77 models cover every distance without a gap at all three Details levels. Lead decision 1 holds: check_lod_band gives 0.6 % against 7.1 % hard, and R7c's clips show no LOD pop when checked tile by tile. I re-measured decision 2 independently and every case stays within ±5 %. At 'Hoch' R7c looks the same as the base (0.05–0.5 % of pixels), and by day Modern is clearly better than Arcade in every city. Three visible weak points remain. On the Steam Deck the blanket 'tag:city' lod0 of 35 m makes the Hamburg Speicher flatter at 35–60 m (doors become flat slabs), which is worse than the base. During the countdown a tree inside a band stands visibly dithered. Far facades are a little softer. The guards are thin: only 6 of 17 one-line mutations were caught, so the far light, cutout bias, relief, phase, the placement tags and the attach corridor rule have no guard. The props hook costs 2.5–3× more and peaked at 3.8–4.4 ms on the Deck preset in both Kiel–Hamburg runs. Night windows, the Lyon suburb and the forest are worse than Arcade, but they were already so in the base or come from the models and R7a, not from R7c. R7c can go into RINT-M3; QR7c-01 is a config fix, and QR7c-06 needs either a fix or the lead's acceptance before test build 2.",
+ "findings": [
+  {
+   "id": "QR7c-01",
+   "severity": "medium",
+   "area": "look / LOD distances",
+   "where": "config/game_config.json graphics.modern.props.lod0_m {\"tag:city\": 35, Fachwerk/Paris: 30}; props.gd lod0_override()",
+   "problem": "The lead decision asked for about 35 m for half-timbered houses only. R7c shortens lod0 of all 28 models tagged 'city'. At Deck/Mittel the Hamburg Speicher is drawn as lod1 from 35 m on: its green loading doors become flat slabs and its windows look flatter. That is the Arcade-sprite level and worse than the base and 43a1fcc, which showed lod0 there.",
+   "evidence": "measured+looked: deliver/QA-R7c/raw/hh_deck_h12_tri_00.jpg (2.5 % px vs base/43a1fcc, at Hoch only 0.2 %); crop deliver/QA-R7c/hamburg_deck_speicher_43a1fcc_r7c.png; k6_scene lod0|lod1|sprite at 32/40/50 m deliver/QA-R7c/lod0_lod1_sprite_mittel_32-50m.png (Speicher lod1 = sprite level; Kontor/Fachwerk/Haussmann lod1 ~ lod0)",
+   "repro": "SCREEN=1280x800 m1/QA-R7c/sh/tri.sh <out> deck --stage=kiel_hamburg --from=kiel --start-km=88.2 --hour=12 --weather=normal --vehicle=limousine --seed=11 --autopilot --autopilot-refuel=never --traffic-warmup --no-countdown --start-speed=50 --shot-times=2,4; compare the right building",
+   "fix": "Remove tag:city (or set it to at least 50 m); keep 30 m only for city_german_old_fachwerk(_b), city_paris_haussmann and city_paris_corner, whose lod0 measurably shimmers more than 2× the sprite. Alternatively, the asset package bakes the door panels and window reveals into the lod1 atlas."
+  },
+  {
+   "id": "QR7c-02",
+   "severity": "medium",
+   "area": "tests / guards",
+   "where": "tests/unit/race3d/test_props.gd, tests/race3d/render/check_lod_band.gd",
+   "problem": "11 of 17 one-line mutations stay green. The far light is unguarded (shader law off R3, far_sun not taken from config U7), and so are cutout_bias (R5), window cover (R4), the night relief (R6), constant phase (U3), the leaves phase from the world position (U8, the rebase jump comes back), ground_sink/ground_align (U4/U5), attached trees not dropped in the bend corridor (U10, F7-relevant once a model uses attach) and a dithered shadow pass (R2).",
+   "evidence": "measured: m1/QA-R7c/mutlogs/mutate.out plus q3/q4 logs; caught: U1, U2, U6, U11 (test_props) and R1, R2b (check_lod_band 6.1 % and 9.3 % against 7.1 % hard)",
+   "repro": "python3 m1/QA-R7c/sh/mutate.py <id> (needs the mutation copy: sh/mkcopy.sh bd1803b m1/QA-R7c/mut)",
+   "fix": "(a) After commit of a casting building, assert that far_sun/shadow_far on its material equal the config value. (b) Comment-stripped shader-text tests for leaves INSTANCE_CUSTOM phase, cutout_bias in the alpha test, relief_night×ce_night and cover_k in ALBEDO. (c) Two items get different phases. (d) sink_height/align_basis return concrete values on a slope. (e) An attach test with a bend: the attached oak is dropped. (f) A render check: house luminance at 60/140/250 m stays within ±5 %."
+  },
+  {
+   "id": "QR7c-06",
+   "severity": "medium",
+   "area": "look / LOD cross-fade",
+   "where": "assets/shaders/modern/inc/lod_band.gdshaderinc ce_lod_discard() – the band is spatial, not timed (deviation from A-16)",
+   "problem": "When the camera stands still with an instance inside a band (countdown at every stage start, traffic jam, police stop), the instance stays in the ordered dither of two levels, so a tree crown looks grainy. The base draws it smooth.",
+   "evidence": "measured+looked: deliver/QA-R7c/raw/start_nu_deck_h12_tri_00.jpg, 2× crop deliver/QA-R7c/start_countdown_deck_raster_basis_r7c.png (oak at the lower right is dithered in R7c, smooth in the base); 0.3 % px",
+   "repro": "SCREEN=1280x800 m1/QA-R7c/sh/tri.sh <out> deck --stage=nuernberg_fulda --from=nuernberg --start-km=0 --hour=12 --weather=normal --vehicle=limousine --seed=11 --autopilot --autopilot-refuel=never --traffic-warmup --shot-times=1.5",
+   "fix": "Add a global ce_lod_still (from the camera speed, e.g. 1 below 2 m/s) that collapses the band to a hard decision at its middle while the camera stands. Otherwise the lead must accept the static dither (contract question)."
+  },
+  {
+   "id": "QR7c-03",
+   "severity": "low",
+   "area": "performance (main thread)",
+   "where": "scripts/race3d/builders/props.gd update() 359-371, _apply_lod() 1207-1227, _span() 1231-",
+   "problem": "Every 2 m every chunk computes its AABB and 8 corner distances. Because span_key is snapped to 1 m it changes at every step, so the loop runs over all children of all chunks even when no band is crossed.",
+   "evidence": "measured (run_stage, timescale 20, shared VM): props hook avg 0.25-0.32 ms vs 0.10 (43a1fcc/base); max 3.82 / 4.44 ms in two Kiel–Hamburg Deck runs (43a1fcc 0.47/0.59, base 1.20); commit max 2.3-2.8 ms vs 1.7-1.9 (Deck budget 3.0); m1/QA-R7c/perf/*.log, sh/perfsum.py",
+   "repro": "m1/QA-R7c/sh/perf.sh (run_stage.gd --graphics=modern --gfx-preset=deck --stage=kiel_hamburg --from=kiel --hour=12 --seed=11 --timescale=20)",
+   "fix": "Per chunk, store the next distance at which any child enters or leaves its band and only walk the children then; recompute the world AABB only on rebase; process at most N chunks per frame (round robin)."
+  },
+  {
+   "id": "QR7c-04",
+   "severity": "low",
+   "area": "look / shimmer trade-off",
+   "where": "props.gd PROP_LOOK albedo_bias 1.25 (from 30 m, full at 120 m); baked.gdshader line 95",
+   "problem": "Far facades are softer in a still picture: the white window frames of the far Nürnberg house (~100 m) turn grey and it looks washed out, compared with both the base and Arcade.",
+   "evidence": "looked: deliver/QA-R7c/raw/nu_high_h12_tri_00.jpg, 3× crop deliver/QA-R7c/nuernberg_hoch_fernhaus_arcade_basis_r7c.png; diff nu_high_h12_diff_00.jpg (only this house and window frames change)",
+   "repro": "tri.sh nu_high_h12 high --stage=wuerzburg_nuernberg --from=wuerzburg --start-km=102.0 --hour=12 ... --shot-times=2,4",
+   "fix": "Lower albedo_bias to about 0.75 or start it at 60 m, or apply it only to the half-timbered/Paris models whose thin lines shimmer."
+  },
+  {
+   "id": "QR7c-05",
+   "severity": "low",
+   "area": "LOD node switching",
+   "where": "props.gd line 364 (LOD_STEP_M 2 m) and 1225 (n3.visible = span.y >= b.x and span.x <= b.w, no margin)",
+   "problem": "A finer level's node can switch on up to 2 m of driving late while the coarser level already fades out. That leaves up to 2/(2w) of the pixels as dither holes: 24 % for a city house at Mittel, w = 4.2 m.",
+   "evidence": "inferred from code (not seen in pictures; the box of instance origins is usually nearer than the house and absorbs it)",
+   "repro": "code reading; approach a single-sided chunk whose nearest instance is in line with the camera",
+   "fix": "One line: n3.visible = span.y >= b.x - LOD_STEP_M and span.x <= b.w + LOD_STEP_M"
+  },
+  {
+   "id": "QR7c-07",
+   "severity": "low",
+   "area": "assembly",
+   "where": "tests/unit/race3d/test_props.gd",
+   "problem": "git merge-tree with origin/wip/v080-fix-rint (3248211) gives a conflict in test_props.gd. R7a, R7b, FIX-R7b and FIX-R7a (4a43944) merge without conflict; modern_materials.gd auto-merges.",
+   "evidence": "measured: m1/QA-R7c/sh/mergeprobe.sh output, m1/QA-R7c/mt2.out",
+   "repro": "git merge-tree --write-tree --name-only bd1803b origin/wip/v080-fix-rint",
+   "fix": "Lead keeps both versions (FIX-RINT's _code_only multiply check and R7c's phase in custom a), then runs tools/run_tests.sh test_props and tools/run_render_checks.sh modern check_lod_band."
+  },
+  {
+   "id": "QR7c-08",
+   "severity": "low",
+   "area": "attachments (latent)",
+   "where": "props.gd attach_item() 907-919 / _place()",
+   "problem": "An attached prop whose z lies beyond the chunk's last row gets ground() and drop_reason() of the edge row (wrong height on a slope, corridor checked on the wrong row). More than 8 attachments per model collide in item * 8 + k. No shipped model uses attach.",
+   "evidence": "inferred from code; network scan: 0 attached props",
+   "repro": "test manifest with an attach offset.z larger than the chunk length on a slope",
+   "fix": "Leave attachments outside [seg_a, seg_b) to the neighbouring chunk (or skip them) and assert k < 8."
+  }
+ ],
+ "checked_ok": [
+  "Arcade identity: tools/golden.sh check on bd1803b, 20/20 + 17/17 identical (measured)",
+  "Ownership: git diff 9b02f05..bd1803b touches no frozen Arcade file; R7c's own 17 files lie within its brief (plus modern_slice goldens, allowed by the brief); the AS5aR2 merge brings models, tools and the regenerated manifest; environment_rig.gd untouched",
+  "Tests: run_tests.sh full 808/0 (983 s); check_scripts OK; render checks all 29/29 incl. check_start_km0, check_terrain_cover, check_light_base, check_lod_band, check_instance_budget* (≤ 216/230)",
+  "Fairness: modern_sight --full F1/F1_lanes/F2/F3/F7/model OK; modern_path_check --full OK",
+  "Network scan of all 128 directions + DEV with the real ChunkStreamer: R7c's prop list identical to 43a1fcc (195,741 props); 602,113 instances with custom a in [1,2); 241,150 banded nodes, no inverted band",
+  "LOD bands of all 77 prop/landmark models at Details 0/1/2: dither shares sum to 1 at every distance 0-4000 m (bands_all.gd)",
+  "ground_sink deepest 0.33 m (≤ 10 % of rock height); face_road ±20° test green",
+  "Far light re-measured independently (k6_scene lodcol, lod1): Haussmann, Gründerzeit and Kontor within ±5 % from 60 to 250 m at Hoch and Mittel; without far_sun +9-11 %",
+  "LOD cross-fade: check_lod_band 0.6 % vs 7.1 % hard (Eiche 1.1 % vs 36.6 %); R7c's Nürnberg and Paris clips tile-analysed: no LOD pop, spike distribution like Arcade's",
+  "Shadow pass: exactly one level casts; models with their own shadow mesh cast without a band; the original band-middle bug is caught by check_lod_band (R2b)",
+  "Shared per-mesh materials: no foreign band on city.gd street lights or bridge.gd sets (props skips bridge items)",
+  "Impostor relief: transparent texels carry the mean colour (18 tree images), mipmaps on",
+  "Instance budget A-19: no new instance uniform",
+  "Perf: frame time and render_ms equal within noise, −10-13 % primitives, draw calls well within budget (Deck 132/650, Hoch 202/1500), ERGEBNIS identical in all runs (Rule 3)",
+  "Pictures at Hoch: R7c equals the base in Hamburg, Nürnberg, forest and night/dusk (0.05-0.5 % px); by day Modern is clearly better than Arcade in Hamburg, Nürnberg, Paris, Amsterdam and Bern",
+  "Studio lod0|lod1|sprite at 32-50 m: Kontor, Fachwerk, Haussmann, Block A lod1 almost equal to lod0 at 1×",
+  "Merge probes: no conflict with r7a, r7b, fix-r7b, fix-r7a"
+ ],
+ "media": [
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7c/bericht.md",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7c/hamburg_deck_speicher_43a1fcc_r7c.png",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7c/start_countdown_deck_raster_basis_r7c.png",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7c/lod0_lod1_sprite_mittel_32-50m.png",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7c/nuernberg_hoch_fernhaus_arcade_basis_r7c.png",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7c/paris_hoch_haussmann_arcade_43a1fcc_r7c.png",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7c/hamburg_1930_fenster_arcade_basis_r7c.png",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7c/raw/hh_deck_h12_tri_00.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7c/raw/pa_high_h12_tri_00.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7c/raw/pa_high_h22_tri_01.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7c/raw/ly_out_high_h12_tri_01.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7c/raw/wald_high_h12_tri_01.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7c/raw/start_nu_deck_h12_tri_00.jpg"
+ ]
+}

@@ -423,3 +423,24 @@ Grundlage: FIX-M2 bericht.md B-01 (Sehnenstudie, Vorschau T4), A-3/A-10 ("Entsch
 - Probe-Merge fix-rint → r7a → r7b → r7c(WIP): Konflikte chunk_streamer.gd, docs/renderer-modern.md, test_props.gd.
 - R7d-Auftragsentwurf: m1/lead/m6_r7d_draft.js. WIEDERAUFNAHME.md aktualisiert, Archiv gepusht.
 - Danach: fehlende check_lod_band.gd.uid auf wip/v080-r7c committet (8153d20); tools/r7c_tmp/ in info/exclude (Sonden, gesichert auf r7c-sicherung).
+
+## 23.11. ~14:50 UTC – R7 FERTIG (wf_ba4424b4-294, 12 Agenten, 30 h), RINT-M3 + R7d GESTARTET
+- Köpfe: fix-r7a 4a43944 (NACH-R7a: tragfähig, Bedingung Patch props.gd + Umbenennung check_props_footprint),
+  fix-r7b c50d58f (NACH-R7b: tragfähig; N-1 niedrig Wahrzeichen-Knoten bis 11,9 m vom Anker ungeprüft),
+  fix-r7c 3b3107b (NACH-R7c: tragfähig; NR7c-01 mittel binäres ce_lod_still → Raster beim Anfahren, NR7c-02 Mutationen).
+- R7a: Hülle aus echter Geometrie, 23 026 Requisiten zurück (Start-Eiche, T2-Gruppe, Häuserzeilen), Grenzdach Belgrad–Sofia
+  wieder auf 4 Pfeilern, Stadtzäune 75,9 % von Arcade. Fußpunkt-Problem: 5 728 Requisiten ragen mit Krone/Kante hinein →
+  FIX-R7a-Patch schiebt bis 12 m hinaus (0 Verstöße, 8 statt 1 218 Verluste).
+- R7b: 143 Wahrzeichen auf Arcades Anker (≤ 0,15 m), Glühen-Fehler (PROJECTION_MATRIX negativ im Compat-Renderer) behoben,
+  nachts angestrahlt, Flugfeuer; D24 → spiegeln wie Arcade, Front zur Anfahrt.
+- R7c: Stadthäuser lod0 bis 60 m (Fachwerk/Haussmann/Eckhaus 30 m), Überblendband, Stillstand ohne Raster, Fernlicht,
+  Dämmerungsfenster; Goldens vom Paket erneuert (gegen A-18 – Montage erneuert ohnehin).
+- LEITUNG §11.4 (m1/lead/contract_11_4.md): A-23 Aufteilung, A-24 ganzes Objekt in der Hülle (Modell-AABB, Hinausschieben
+  ≤ 12 m, check_props_footprint als Tor, F2-Bedarf in Ortschaften bleibt schnellste Fahrt), A-25 Wahrzeichen (≤ 12 m vom
+  Anker, Netztest prüft gezeichneten Knoten), A-26 LOD-Band nach Kamerageschwindigkeit (ce_lod_band_m), A-27 Freie Strecke,
+  A-28 Streamer-Budgets (Teil-Commits, Freigabe beim Verwerfen, Median aus 3 Läufen), A-29 Plan + Rückstau Modellarbeit.
+- Probe-Merge fix-rint → fix-r7a → fix-r7b → fix-r7c: nur docs/renderer-modern.md im Konflikt.
+- Workflow wfqsgw5vw, Lauf wf_a71eeb2e-3b7, Skript wf_m6.js (= m6_meta + c1_head + m6_r7d_draft + m6_body), args_m6.json.
+  RINT-M3 (wip/v080-rint-m3) → R7D (wip/v080-r7d) → KRITIK-R7D ∥ QA-R7D → FIX-R7D (wip/v080-fix-r7d) → NACH-R7D.
+  Resume: Workflow({scriptPath: wf_m6.js, resumeFromRunId: 'wf_a71eeb2e-3b7', args: <args_m6.json>}).
+- 12 R7-Worktrees entfernt (alles auf origin, r7c enthält die .uid 8153d20); 12 GB frei.

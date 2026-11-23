@@ -1,0 +1,9 @@
+v0.8.0 FIX-R7c: Modern-Goldens erneuert (Bilder angesehen)
+
+modern-check vorher 0 von 6, R7c selbst im selben Lauf 6 von 6: gewollt. Angesehen gegen R7c:
+in fünf Bildern nur Unterschiede unter 40 Stufen (Farb-Mip-Bias erst ab 60 m), in modern_s4_mittel
+0,19 % über 40 Stufen – das bei R7c gerasterte Garagentor des nahen Hauses (Band bei 35 m) ist
+jetzt glatt (lod0 bis 60 m, QR7c-01). Die neuen Bilder sind byte-gleich mit den angesehenen.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

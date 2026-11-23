@@ -1,0 +1,14 @@
+v0.8.0 FIX-R7a: Netzprüfung des Fußabdrucks gebauter Requisiten, Hülle zwischen zwei Reihen vorsichtig (QR7a-01)
+
+- tests/race3d/props_footprint.gd: baut den ausgelieferten Streamer mit dem echten Requisiten- und
+  Stadt-Builder über ganze Etappenrichtungen (schnell: sechs, --full: alle 128) und misst jede
+  gezeichnete Requisite über 0,5 m, die der Builder weglassen darf, mit ihrem Fußabdruck (Kronenradius
+  bzw. Anker bis Vorderkante, halbe Breite längs der Straße) gegen die genaue Hülle (A-17). Noch keine
+  Gate-Datei (Name ohne check_): auf diesem Stand allein schlägt sie fehl, weil der Requisiten-Builder
+  (R7c) nur den Fuß prüft – nach dem Einbau der übergebenen Änderung benennt der Zusammenbau sie in
+  check_props_footprint.gd um. Gemessen auf zwei Richtungen: ohne die Änderung 64, mit ihr 0.
+- ChunkContext.bend_intrusion(): zwischen zwei Reihen zählt die größere Hülle der beiden (am
+  Kurvenanfang und -ende ändert sie sich um bis zu 2 m je Reihe).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

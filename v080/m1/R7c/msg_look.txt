@@ -1,0 +1,13 @@
+v0.8.0 R7c: Mip-Bias und Fensterlicht nur auf den Requisiten – Tafeln der Tore unverändert
+
+Die Render-Prüfung check_structures (zieltor) fand das Schachbrett des Zielbanners verwaschen
+(weiß 3 % statt 6 %): der Farb-Bias des baked-Shaders galt auch für die Tafeln der Tore,
+Tankstellen und Grenzen. Die Vorgaben von cutout_bias, albedo_bias, window_ramp und
+window_cover lassen jetzt das Bild wie vorher; props.gd setzt sie (PROP_LOOK) nur auf die
+Materialien seiner Modelle.
+
+check_props_render: das Chalet ist seit AS5a2 ein Modell – die Spiegelprobe nimmt das erste
+Set, das das Manifest noch als Sprite zeichnet.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,191 @@
+{
+ "package": "R7b",
+ "branch": "wip/v080-r7b (local worktree-wf_ba4424b4-294-2)",
+ "commit": "2c154bc",
+ "worktree": "/home/user/crossing-europe---a-racing-xperience/.claude/worktrees/wf_ba4424b4-294-2",
+ "summary": "R7b is built. There is a new builder `scripts/race3d/builders/landmarks.gd` with its own shader `assets/shaders/modern/landmark.gdshader`. Every landmark Arcade shows now stands at Arcade's anchor on the path, out to 1,900 m. It uses Arcade's law (`RoadRenderer.landmark_fade`, unit test deviation < 1e-5) and the night floodlight. Beyond 0.70 L it fades with a translucent variant instead of the dither (B-09); at full coverage that variant is pixel-identical to the opaque one (measured 0 of 921,600 px).\n\nRepresentation follows one order, which is the AS6 interface: a manifest model first, then Arcade's picture, then Arcade's procedural kind built as a real 3D shape (domed church, TV tower, lighthouse with beams, skyscraper group; N2), then the fallback set. No instance uniforms (A-19).\n\n`layers/backdrop.gd` now draws the destination skyline as Arcade does: sprite silhouettes, plus Arcade's own 2D drawings through a RoadRenderer that is never added to the tree. A silhouette fades out while its 3D landmark is in range. `props.gd` needed no change: the skip for landmarks was already there (lines 88, 122, 329, 539, 741).\n\nAll gates were run on 2c154bc: import, scripts 334/0, one full run_tests (passed), golden 20/20 and 17/17, render checks 29/29, sight and path --full, and whole Modern stages without script errors next to base. Modern golden is 5/6: `modern_s4_mittel` changes on purpose by at most 2/255 at the Michel. It was not regenerated, because A-18 leaves that to the integration.\n\nPictures: the procedural shapes look better than Arcade by day. Weaker than Arcade: the aviation light is about 3× Arcade's dot, and from 260 m in bends the domed shapes sit up to about 85 px off Arcade's drawing.",
+ "files_changed": [
+  "scripts/race3d/builders/landmarks.gd (new)",
+  "scripts/race3d/builders/landmarks.gd.uid (new)",
+  "assets/shaders/modern/landmark.gdshader (new)",
+  "assets/shaders/modern/landmark.gdshader.uid (new)",
+  "scripts/race3d/layers/backdrop.gd (lead exception: skyline + landmark silhouettes)",
+  "tests/unit/race3d/test_landmarks.gd (new, 8 tests)",
+  "tests/unit/race3d/test_landmarks.gd.uid (new)",
+  "tests/race3d/check_landmarks.gd (new, 6 checks)",
+  "tests/race3d/check_landmarks.gd.uid (new)",
+  "tests/race3d/render/check_landmarks_render.gd (new, 4 render checks)",
+  "tests/race3d/render/check_landmarks_render.gd.uid (new)",
+  "tests/race3d/check_minimal_structures.gd (4 lines: 'wahrzeichen' defers to check_landmarks once the builder exists)",
+  "docs/renderer-modern.md (new §18 Wahrzeichen und Skyline)"
+ ],
+ "acceptance": [
+  {
+   "check": "Contract R7: landmarks on the path up to 1,900 m with Arcade's haze law and night floodlight",
+   "result": "pass",
+   "evidence": "measured: test_landmarks fade()==RoadRenderer.landmark_fade at 20 distances x 3 visibilities (<1e-5); check_landmarks 'reichweite' (props.gd draws none, all in builder) and 'nacht' (1900 m, 2 lit)"
+  },
+  {
+   "check": "Contract R7: A/B sheets of ten city arrivals",
+   "result": "pass",
+   "evidence": "deliver/R7b/boegen/<city>.jpg for Hamburg, Hannover, Leipzig, Dortmund, Nürnberg, Paris, Brüssel, Belgrad, Calais, Madrid at 12:00/19:30/22:00; near views boegen/nah_prozedural.jpg"
+  },
+  {
+   "check": "Contract R7: landmark where Arcade shows it, within 5 % of frame width at 600 m on a straight approach",
+   "result": "pass",
+   "evidence": "measured check_landmarks 'position': Burgos picture 0.0 px, church model near Slavonski Brod 24.7 px (limit 64 px); render check wahrzeichen_stelle Hamburg (in a bend) 18 px. Outside this criterion, near views at about 260 m in bends: Leipzig about -65 px, Belgrade about +85 px (probe)"
+  },
+  {
+   "check": "Contract R7: backdrop skyline and landmark silhouettes as in Arcade",
+   "result": "pass",
+   "evidence": "check_landmarks 'skyline' (Paris km 376: Sacre-Coeur -30 deg alpha 1, Eiffel 0.21 while in range, none before City Limits); bilder/skyline_kassel*, skyline_paris*"
+  },
+  {
+   "check": "Contract R7: LOD swaps not visible in clips at Mittel",
+   "result": "partial",
+   "evidence": "R7b's only swap (opaque to translucent at 0.70 L) is pixel-identical at full coverage (0/921,600 px measured); clips Hamburg/Paris show no jump. Clips were at Hoch; the building and plant far LOD is R7c's"
+  },
+  {
+   "check": "Lead decision 1: place, reach, law, floodlight, soft fade without dither",
+   "result": "pass",
+   "evidence": "check_landmarks 'weich'; render wahrzeichen_weich neighbour change 0.23 (dither about 1); wahrzeichen_nacht 659 bright px"
+  },
+  {
+   "check": "Lead decision 2 / A-10: skyline as Arcade, below the horizon row far ground reads as land",
+   "result": "pass",
+   "evidence": "pictures S1-S5 (boegen/horizont_S1_S5.jpg) and ten arrivals: no bright strip, no wall pattern"
+  },
+  {
+   "check": "Lead decision 3: one AS6 interface (model, else picture, else procedural stand-in), documented",
+   "result": "pass",
+   "evidence": "resolve_item order; documented in docs/renderer-modern.md §18.2 (not §15/§16, which belong to R4/R5)"
+  },
+  {
+   "check": "Lead decision 4 / A-19: landmarks never use instance uniforms",
+   "result": "pass",
+   "evidence": "test_no_instance_uniforms (shader + builder code lines); per-landmark materials; check_instance_budget* scene max 141/172/216 (limit 230)"
+  },
+  {
+   "check": "Open point N1: tint test",
+   "result": "pass",
+   "evidence": "test_tint_reaches_every_landmark_material: tint x fallback_tint in picture and baked/baked_cutout/vpbr materials, both opaque and translucent variants"
+  },
+  {
+   "check": "Open point N2: shape per procedural kind",
+   "result": "pass",
+   "evidence": "4 x 3D shapes; test_procedural_shapes (height, slim, winding, glow points); Belgrade, Hannover, Leipzig, Dortmund, Madrid, Calais"
+  },
+  {
+   "check": "Open point B-09: soft fade",
+   "result": "pass",
+   "evidence": "translucent variant from 0.70 L, no dither"
+  },
+  {
+   "check": "Open point: Elbphilharmonie at night",
+   "result": "pass",
+   "evidence": "ab/hamburg_22_ab_00.jpg: sprite light layer at Arcade's place, a little brighter than Arcade"
+  },
+  {
+   "check": "A-18: collect() per builder <= 2 ms",
+   "result": "pass",
+   "evidence": "measured at Mittel (Deck inferred): landmarks collect 0.001 ms, update avg 0.054-0.056 ms, max 1.2 ms"
+  },
+  {
+   "check": "Fixes of the first test build still hold",
+   "result": "pass",
+   "evidence": "check_start_km0, check_terrain_cover (K1), check_light_base OK; test_far_ground_water 3/3, test_props 13/13"
+  },
+  {
+   "check": "Gate: import clean",
+   "result": "pass",
+   "evidence": "godot --headless --import: exit 0, 0 errors"
+  },
+  {
+   "check": "Gate: tests/check_scripts.gd",
+   "result": "pass",
+   "evidence": "334 Skripte geprüft, 0 fehlerhaft"
+  },
+  {
+   "check": "Gate: tools/run_tests.sh (one full run)",
+   "result": "pass",
+   "evidence": "==> Tests bestanden (995 s); 811 unit ok, all race3d checks OK incl. check_landmarks 6/6"
+  },
+  {
+   "check": "Gate: tools/golden.sh check",
+   "result": "pass",
+   "evidence": "GOLDEN arcade: 20 von 20 identisch; GOLDEN arcade-ui: 17 von 17 identisch"
+  },
+  {
+   "check": "Gate: tools/golden.sh modern-check",
+   "result": "partial",
+   "evidence": "5 von 6 identisch; modern_s4_mittel differs at 369 px by max 2/255, all on the Michel (now from landmarks.gd). Looked at; head and base kept with KEEP (base matches its hash). Not regenerated per A-18; OpenGL ES vs OpenGL OK (2/255, 73.2 dB)"
+  },
+  {
+   "check": "Gate: tools/run_render_checks.sh all",
+   "result": "pass",
+   "evidence": "29 OK, 0 failed (5,147 s); check_landmarks_render 4/4 incl. flugfeuer (242 red px, 0.40 % of the frame)"
+  },
+  {
+   "check": "Gate: modern_sight.gd --full and modern_path_check.gd --full",
+   "result": "pass",
+   "evidence": "sight f1/f1_lanes/f2/f3/f7/model OK; path clearance 267.6 m (>=250), loops after 2064 m (>=2000)"
+  },
+  {
+   "check": "Gate: whole Modern autopilot stage under Xvfb without script errors, perf next to base",
+   "result": "pass",
+   "evidence": "measured on llvmpipe: Kiel-Hamburg and Dresden-Leipzig at medium, head and base ok, 0 script errors. render() avg 4.38/5.70 ms vs base 4.76/5.29; max 61.6/97.7 vs 77.1/60.0; chunk commit max 2.3/2.7 vs 5.6/3.4; collect avg 1.67/2.03 vs 1.89/1.89; draw calls 156/188 vs 156/184; primitives equal. Real hardware inferred"
+  }
+ ],
+ "tests_total": 1090,
+ "tests_failed": 0,
+ "deviations": [
+  "tests/race3d/check_minimal_structures.gd (not my file): 4 lines so that 'wahrzeichen' defers to tests/race3d/check_landmarks.gd once builders/landmarks.gd exists. props.gd's far stand-ins no longer exist, so without this run_tests would be red.",
+  "builders/props.gd: no line changed. The duck-typed skip `_skip_landmarks` was already there (line 88 declaration, 122 set, 329 _update_far_landmarks returns, 539 passed to collect, 741 item_set skips landmark items). Its far-landmark code is now a dead path.",
+  "The AS6 interface is documented in §18.2 of docs/renderer-modern.md, not §15/§16 as the brief says: those sections belong to R4/R5.",
+  "Position acceptance measured on the only three straight 640-m landmark approaches in the network (Burgos; the church near Slavonski Brod from both directions). All ten city arrivals curve (|curve| 0.11-0.29).",
+  "Landmarks are never mirrored (D24). Arcade mirrors an ordinary prop (props/church) placed as a landmark, which gives up to 24.7 px at 600 m (within 5 %).",
+  "The 20-s clips were made at 'Hoch', not 'Mittel'. The LOD part of that acceptance belongs to R7c; R7b's only swap is measured pixel-identical.",
+  "Golden modern_s4_mittel was not regenerated (A-18), so modern-check stays at 5/6 until the integration regenerates it."
+ ],
+ "contract_issues": [
+  "The brief says 'modern-make only if a Modern golden changed on purpose', but A-18 says packages do not regenerate tests/golden/modern_slice.*. I followed §11 (A-18); the intended change is max 2/255 at 369 px.",
+  "Lead decision 3 cites '§15/§16 of docs/renderer-modern.md', but those are R4/R5 sections. Used a new §18.2.",
+  "The acceptance 'within 5 % at 600 m on a straight approach' does not fit city arrivals: none of the ten is straight. Near views in bends show 3D-vs-flat offsets up to about 85 px at 260 m.",
+  "VIEWPORT_SIZE in the vertex stage reads 0 in Compatibility (inferred from the full-red sky at Dortmund 22:00). Glow sizes now come from a viewport_h uniform; other shaders that need pixel sizes may hit the same issue.",
+  "AS6 models with glass or leaves surfaces keep their class material and do not take the landmark fade. AS6 should use baked/baked_cutout/vpbr for landmarks."
+ ],
+ "notes_for_next": [
+  "R7c / props.gd owner: remove the dead far-landmark path (_update_far_landmarks, _far, landmark_material, _landmark_override, landmark_fallbacks) and update docs/renderer-modern-gelaende.md line 185 (still describes fallback sets for procedural landmarks).",
+  "Integration/QA: regenerate tests/golden/modern_slice.* after the merge (modern_s4_mittel: Michel, max 2/255).",
+  "AS6: a manifest model for landmarks/<name> is enough (§18.2). Origin = sprite anchor, -Z away from the driver, classes baked/baked_cutout/vpbr, night light via emission atlas or lamp channels 10-14. The six procedural entries accept models too.",
+  "Lead decision wanted: procedural shapes stand with their front face at the anchor. Moving them forward by half their depth (dome at the anchor) would likely bring near views in bends closer to Arcade (inferred; measured Leipzig -65 px, Belgrade +85 px at about 260 m).",
+  "Lead decision wanted: the TV-tower aviation light at night is about 3x Arcade's dot (landmarks.gd _tv_tower: strength 0.6, size 5 m).",
+  "City buildings: at Brussels km 206.4 Arcade's row of houses in front of the Atomium is missing in Modern (also on base 9b02f05, so not R7b). Paris facades show dark 'X' railings.",
+  "QA-mid: at 600 m the landmark is hidden by houses in most city arrivals in both modes. Use the near-view points in m1/R7b/sh/batch3.sh (about 250 m before) for landmark checks.",
+  "QA-mid: the skyline was checked by picture only at Kassel and Paris; check all cities with skyline entries (backdrop.skyline in the snapshot).",
+  "R7c: the Mittel clips for the LOD acceptance should include a landmark approach (e.g. Hamburg from km 89)."
+ ],
+ "look_verdict": "Measured on llvmpipe, pictures at Hoch.\n\nBetter than Arcade: the procedural landmarks are real 3D shapes. By day they read better than Arcade's flat drawings and much better than the old wide fallback card: the Belgrade church with green domes, the slim Dortmund TV tower with its basket, the Madrid glass towers with floor bands, and the Hannover town hall dome.\n\nEqual to Arcade: pictures (Elbphilharmonie, Kaiserburg, Eiffel tower, Atomium, Koekelberg) sit at Arcade's place and look the same. At night they are floodlit or lit like Arcade, and the Hamburg and Paris clips show no jump or dither. The skyline sits on the panorama like Arcade's, with no doubling. Below the horizon the far ground reads as land at S1-S5 and the arrivals.\n\nWorse than Arcade: the red aviation light of the TV tower is about 3x Arcade's dot, and the tower shaft is brighter at night. The Elbphilharmonie is a little brighter at night. In bends at about 260 m the domed shapes sit up to about 85 px (6-7 %) off Arcade's flat drawing: Leipzig is lower and further left, Belgrade wider and further right, because the shape turns with the road and the dome stands 25 m behind its front. The lighthouse beams were hardly visible in the one frame taken.\n\nMissing: real landmark models (AS6). The 600-m arrival views mostly do not show the landmark at all, because houses hide it in both modes, so near views were added.",
+ "media": [
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7b/bericht.md – Bericht R7b mit Abnahme, Gates, Leistung und Bildurteil",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7b/boegen/hamburg.jpg – Einfahrt Hamburg (Elbphilharmonie, Michel) 12:00, 19:30, 22:00, Arcade links, Modern rechts",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7b/boegen/hannover.jpg – Einfahrt Hannover, drei Tageszeiten",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7b/boegen/leipzig.jpg – Einfahrt Leipzig, drei Tageszeiten",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7b/boegen/dortmund.jpg – Einfahrt Dortmund mit 3D-Fernsehturm, drei Tageszeiten",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7b/boegen/nuernberg.jpg – Einfahrt Nürnberg, drei Tageszeiten",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7b/boegen/paris.jpg – Einfahrt Paris, drei Tageszeiten",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7b/boegen/bruessel.jpg – Einfahrt Brüssel (Atomium, Koekelberg), drei Tageszeiten",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7b/boegen/belgrad.jpg – Einfahrt Belgrad mit 3D-Kuppelkirche, drei Tageszeiten",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7b/boegen/calais.jpg – Einfahrt Calais, drei Tageszeiten",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7b/boegen/madrid.jpg – Einfahrt Madrid mit 3D-Hochhausgruppe, drei Tageszeiten",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7b/boegen/nah_prozedural.jpg – Nahbilder etwa 250 m vor den Wahrzeichen, 12:00 und 22:00",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7b/boegen/horizont_S1_S5.jpg – Horizont und Skyline an S1 bis S5 (Kiel–Hamburg)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7b/clips/anfahrt_hamburg.mp4 – 20-s-Anfahrt Hamburg ab km 89, Arcade neben Modern",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7b/clips/anfahrt_paris.mp4 – 20-s-Anfahrt Paris ab km 391,5 bis zum Ziel, Arcade neben Modern",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7b/bilder/nah_kurve_leipzig_belgrad_sonde.jpg – Sonde Leipzig und Belgrad in der Kurve: Arcade, Modern, Modern nur mit den Wahrzeichen",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7b/bilder/skyline_kassel_nur_hintergrund.jpg – Skyline Kassel (Herkules bei −24°), nur der Hintergrund",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7b/bilder/skyline_paris_nur_hintergrund.jpg – Skyline Paris (Sacré-Cœur bei −30°), nur der Hintergrund",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7b/bilder/belgrad_tag_zoom_arcade_modern.png – Ausschnitt Belgrad bei Tag, Arcade über Modern",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7b/bilder/kuppelkirche_durchscheinend_volle_deckung.png – deckende und durchscheinende Variante bei voller Deckung (pixelgleich)"
+ ]
+}

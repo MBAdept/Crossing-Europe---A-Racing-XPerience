@@ -1,0 +1,40 @@
+{
+ "verdict": "Yes. c50d58f is a sound base for RINT-M3. Both findings are fixed, and I reproduced them myself in the same simulation state against Arcade and against a copy of 2c154bc. The diff stays in R7b's six files plus the lead exception backdrop.gd. It touches no frozen file and no other package's file, and it overlaps FIX-RINT and FIX-R7a only in docs/renderer-modern.md. All gates are green, and Arcade is 20/20 and 17/17. The new render checks nacht_hell and flugfeuer each fail when the old defect is put back. One new low finding: turning models and shapes toward their approach pushes them up to 11.9 m off Arcade's anchor (measured), and no test checks this. The night landmarks are now equal to Arcade, not better; only the 3D shapes look better than Arcade.",
+ "per_finding": [
+  {
+   "id": "B-01",
+   "status": "fixed",
+   "evidence": "Measured on hamburg_22 (High preset, 1280x720), in QA's box (300..380, 232..268), mean luminance: Arcade 112.7 (p90 178.4), R7b 2c154bc 144.5 (p90 197.2, the same as QA's value), c50d58f 116.1 (p90 178.3), so 1.03x Arcade. On the Deck preset (1280x800), with the box placed where the facade is in each picture: 112.7 / 143.1 / 114.6. Render check nacht_hell: 0.99x Arcade. With the linear mix put back it fails at 1.22x (gates/mutation_B01_B02.log). I looked at the zoom: deliver/NACH-R7b/B01_elbphilharmonie_22uhr_zoom.png. The facade has Arcade's contrast again; in R7b it was washed out. By day nothing changes, because the light-layer weight is 0 in daylight."
+  },
+  {
+   "id": "B-02",
+   "status": "fixed",
+   "evidence": "Measured red-pixel clusters (redclusters.py), Florianturm at 22:00, High preset: Arcade 10 px (4x4), R7b 232 px (17x19), c50d58f 15 px (4x5). Deck preset 1280x800: 10 / 237 / 16. Madrid flat-roof light: 6 (2x3) / 182 (16x15) / 6 (3x3). Render check flugfeuer: 28 red pixels against Arcade's 28. With the old signed scale put back it fails with 95,297 px, 15.96 % of the frame. Glow sizes and the blink pattern match RoadRenderer._lm_glow, _lm_tv_tower, _lm_skyscrapers and _lm_lighthouse (read in the code). Zooms: B02_florianturm_22uhr_zoom.png, B02_florianturm_deck_22uhr_zoom.png, B02_madrid_22uhr_zoom.png."
+  }
+ ],
+ "findings": [
+  {
+   "id": "N-1",
+   "severity": "low",
+   "area": "landmarks/placement",
+   "where": "scripts/race3d/builders/landmarks.gd _place() (near_shift, ~l.466-477); tests/unit/race3d/test_landmarks.gd test_anchor_and_mirror_like_arcade_network_wide; docs/renderer-modern.md §18.1",
+   "problem": "_place() turns a model or shape toward its approach and then moves the node outward by near_shift. That move puts the drawn landmark up to 11.9 m away from Arcade's anchor. The network test only checks the anchor that resolve_item() returns. So the claim in the report and docs that every landmark stands at Arcade's anchor (worst 0.15 m) is not true of the node that is drawn, and nothing guards the shift.",
+   "evidence": "Measured with a probe over all 128 stage directions, using the real face_heading, heading_basis and near_shift on RoadPath3D, with footprints from mesh_parts and proc_mesh (m1/NACH-R7b/gates/probe.log, probe/test_zz_nach_r7b_probe.gd). 66 models and shapes; turn up to 33.4 deg; shift up to 11.89 m (bremen_amsterdam from Bremen, props/church); 24 above 2 m, 13 above 5 m. No corner comes nearer the road edge than in R7b (minimum 22.2 m now, 21.9 m before). Screen offset inferred: about 14 px at 600 m and about 34 px at 250 m, using FIX-R7b's own scale of 44.7 px for 37.8 m at 600 m.",
+   "repro": "Put the probe file into tests/unit/race3d/ and run tools/run_tests.sh test_zz_nach_r7b_probe (46 s). Read the PROBE lines and the PROBE-SUMME line.",
+   "fix": "Either turn the model about its near-road corner or edge point, so no outward shift is needed, or have the network test check the final node origin against Arcade's anchor (for example at most 5 m, or a pixel limit at 600 m). State the shift and its maximum in §18.1."
+  }
+ ],
+ "gates": [
+  "Import (godot --headless --import): clean, no errors",
+  "tests/check_scripts.gd: 334 Skripte geprüft, 0 fehlerhaft",
+  "tools/run_tests.sh test_landmarks: 10 Tests, 0 fehlgeschlagen ('Anker wie Arcade bei 143 Wahrzeichen (größter Unterschied 0.151 m), 23 gespiegelt')",
+  "tools/run_tests.sh check_landmarks: CHECKS OK (reichweite, nacht, position 0.0 px picture and model at 600 m, prozedural, weich, skyline)",
+  "tools/run_tests.sh far_ground_water: 4 Tests, 0 fehlgeschlagen; tools/run_tests.sh test_props: 13 Tests, 0 fehlgeschlagen",
+  "tools/run_render_checks.sh modern landmarks_render: RENDER-CHECKS OK 7/7 (nacht_hell 0.99x Arcade; flugfeuer 28 vs Arcade 28; anstrahlung Dom 1.32x/0.97x, Fourvière 1.71x/1.05x; wahrzeichen_stelle offset (18,4) px)",
+  "tools/run_render_checks.sh modern start_km0 / terrain_cover (incl. K1 0.000 % magenta) / light_base / seam_render: all OK",
+  "tests/sim/modern_sight.gd -- --full: F1 0 cases to 270 m, F1 lanes 0 to 260 m, F2 <= 0.593/0.596/0.555, F3 0 of 5923, F7 0 of 2011532, model 0 deviating. It has no landmark coverage; the placement probe covers landmarks.",
+  "tools/golden.sh check (run once): GOLDEN arcade: 20 von 20 identisch; GOLDEN arcade-ui: 17 von 17 identisch",
+  "Mutation (old B01 linear mix + B02 signed scale put back): nacht_hell FEHLER 1.22x, flugfeuer FEHLER 95297 px; shader restored from HEAD, git status clean",
+  "Not run on purpose: full run_tests.sh (FIX-R7b green, only the changed areas filtered here) and golden modern-check (A-18, done by the assembly)"
+ ]
+}

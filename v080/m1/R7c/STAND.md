@@ -34,3 +34,15 @@
 ## Pitfalls
 - Bash tool refuses heredocs/compound git: write files with Write, run scripts via run.sh
 - MAIN_CAM_INV_VIEW_MATRIX only in vertex()
+- 22:36 08630e4: PROP_LOOK (cutout_bias/albedo_bias/window_ramp/window_cover set by props.gd only; shader defaults neutral)
+  fixes render FEHLER zieltor (check_structures); check_props_render standin fix committed; pushed
+- queue2 render step running (FEHLER structures + props_render on old head) → then sight, perf (BASE run checks out base files!)
+- TODO after perf: full tools/run_render_checks.sh all on final head, import, check_scripts, modern-make + modern-check,
+  remove tools/r7c_tmp + tools/kritik, bericht.md, StructuredOutput
+- 23:05 perf2.sh (alternating r7c/base x2, first perf run was disturbed by my own recheck) → final.sh detached:
+  clip nuernberg (final_), import, check_scripts, run_tests full (#2), render all, modern-make KEEP=gates/modern_final
+  THEN: look at gates/modern_final vs gates/modern_keep base (py/golddiff.py), commit tests/golden/modern_slice.*, modern-check
+- tools/r7c_tmp moved to m1/R7c/r7c_tmp_kopie; recheck structures+props_render OK on 08630e4
+- 23:40 final: clip OK (deliver updated), import OK, check_scripts OK, run_tests #2 808/0; render all running → modern-make; report parts + py/assemble.py + fill.json (to write) → deliver/R7c/bericht.md
+- 00:42 bd1803b (goldens + chalet 0.3) pushed; final gates on 138c90f all green (render 29/29, tests 808/0); modern-check final running (mcheck_final.sh) → fill.json MCHECK, assemble bericht, StructuredOutput
+- 00:57 DONE: bericht.md in deliver/R7c, modern-check final 6/6; StructuredOutput next

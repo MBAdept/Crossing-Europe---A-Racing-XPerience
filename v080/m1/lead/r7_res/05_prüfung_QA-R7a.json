@@ -1,0 +1,98 @@
+{
+ "verdict": "R7a is a solid, well-tested kernel change and nothing in it is broken. I measured all the gates myself. Full run_tests passed (811 tests, 0 failures). All 28 render checks passed, including terrain_cover T1–T4/S1/C1/K1 at 0.000 %. The Arcade goldens are identical (20/20 and 17/17). modern_sight --full and modern_path_check --full are green, and all ten package rules make their tests fail when broken (10 of 10 mutations caught). Real chunk builds across all 128 stage directions confirm what R7a reported: 22,435 props come back, none are newly dropped, city fences rise from 64.3 % to 75.3 % of Arcade's, and the Belgrade–Sofia roof stands on pillars again. My renders are byte-identical to R7a's. At T2, S0, München, Hannover, Belgrad, T3/T4 and R1, Modern is clearly better than the base, also on the Steam Deck preset and at night; nothing looks worse. Against Arcade it is equal or better at T2, S0, the cities and R1. The insides of mountain bends (T1, T3, T4, the clip) and town bends (C1 park tree, Belgrad wall) stay emptier than Arcade, which is correct under A-17. The main problem shows up at the merge. The props builder (R7c) still tests only the foot point, so after merging 5,630 props reach into the envelope with their crown or facade (base 974), breaking the strict reading of A-17. At C1, 270 m, R7a hides the test car in one more lane than the base. R7a's proposed one-line call fixes this: 67 cases left, the car visible again in 2 of 3 lanes at C1. But it also takes away the München house row and the T4 rock group again, plus 1,218 props the base drew. The lead has to choose between that line, pushing props outward instead of dropping them, and a speed-limit-based need in City Limits. The merge with FIX-RINT conflicts in chunk_streamer.gd and needs a semantic fix. Performance on the Deck preset (mountain stage, time scale 4) costs +0.17 ms in render() and 0.18 ms per frame for the pre-computation on average; loading collect peaks at 21.5 ms.",
+ "findings": [
+  {
+   "id": "QR7a-01",
+   "severity": "high",
+   "area": "fairness A-17 (strict reading) / props builder interplay",
+   "where": "scripts/race3d/builders/props.gd drop_reason() (R7c's file; line 761 on 509bb16, line 1013 on R7c 965b8a9) together with ChunkContext.in_bend_corridor()",
+   "problem": "Only the foot is tested. With R7a's narrower real envelope, returned props sit at its edge with the crown or facade inside: 5,630 droppable props taller than 0.5 m (3,604 trees down to 12.1 m deep, 1,563 city houses down to 19 m) against 974 in the base. No test guards this, because F7 checks terrain and corridor width only. R7a's fix line cures it but removes some of the visible gains.",
+   "evidence": "Measured. probe/realbuild.gd builds the real ChunkStreamer with the props and city builders over all 128 directions: R7a near-part intrusions 5,630, base 974. With the reach line (scratch copy) 67 remain, but 1,218 base-drawn props drop (871 city houses). Occlusion probe at C1, 270 m, lanes -1/0/+1: R7a 6/0/0 px, with reach 6/16/18, base 6/9/0 (logs/occl_C1.txt). Lane -1 is hidden in all three trees by a street-lamp pole. Pictures deliver/QA-R7a/vergleich/*_reichweite.jpg: with reach, München loses its house row again and T4 its rock group (ausschnitte/T4_r7a_vs_fix_diff.png). Depth distribution: trees median 1.9 m, p90 4.0 m; city houses median 4.5 m.",
+   "repro": "cd R7a tree; XDG_DATA_HOME=<abs> godot --headless --path . -s m1/QA-R7a/probe/realbuild.gd -- --stage=all (about 5 min). Then apply sh/patch_reach.py in a copy and run again.",
+   "fix": "At the RINT-M3 merge, either (a) in drop_reason(): var fw := float(e[\"width\"]) * float(it.get(\"scale\", 1.0)) * 0.5; var reach := (absf(x) - absf(float(it.get(\"x\", x)))) if it.has(\"align\") else fw; ctx.in_bend_corridor(z, x, reach, fw); or, better, (b) shift such props outward by the intrusion depth + 0.3 m while ribbon_width allows (keeps 97 % of trees and 54 % of city houses), and drop only otherwise. In both cases add a network check of built props' footprints (template: probe/realbuild.gd)."
+  },
+  {
+   "id": "QR7a-02",
+   "severity": "medium",
+   "area": "merge / main-thread budget",
+   "where": "scripts/race3d/chunk_streamer.gd: end of update(), stats(), reset_stats() against origin/wip/v080-fix-rint 3248211",
+   "problem": "Textual conflict in 3 hunks. FIX-RINT commits chunks in budgeted steps, and `done` counts only finished chunks. Keeping R7a's `if done == 0: _warm_corridor()` would therefore also warm the corridor in frames that already spent the 2 ms commit budget.",
+   "evidence": "Measured: git merge-tree --write-tree HEAD origin/wip/v080-fix-rint gives CONFLICT (content) in chunk_streamer.gd; the conflicted file is saved as m1/QA-R7a/merge_streamer_fixrint.gd. The double load is inferred from the code (_commit_step, _frame_commit_us). R7b and R7c merge cleanly.",
+   "repro": "git merge-tree --write-tree 509bb16 origin/wip/v080-fix-rint",
+   "fix": "Keep both sides. Warm only `if done == 0 and _frame_commit_us == 0:` after _part_us(\"commit\", tu). Merge both key sets in stats() and both blocks in reset_stats()."
+  },
+  {
+   "id": "QR7a-03",
+   "severity": "low",
+   "area": "performance (main thread)",
+   "where": "scripts/race3d/sight_corridor.gd warm()/ensure(); chunk_streamer stats",
+   "problem": "warm() checks its deadline only after a whole camera, including a 32-camera _geometry() block and _ensure_need(), so it sometimes overshoots the 0.25 ms budget. Computing a whole chunk synchronously (when collect arrives before the warm front) costs up to about 10 ms. The corridor_sync_* counters are not reset by reset_stats(), so perf_stats() mixes loading and driving.",
+   "evidence": "Measured. probe/warmcost.gd (load 7–8): warm calls mean 0.30 ms, p99 0.5–0.6, max 0.9–5.2 ms; ensure of 32 rows mean 1.3–2.1, p99 3.4–6.5, max 9.5 ms. In-game Deck preset, Saragossa–Pau km 165–206, x4: corridor_warm avg 0.18 / max 1.45 ms, corridor_sync max 16.96 ms (falls into loading because render_ms_max of the drive is 12.15 ms), load.collect max 21.5 ms against 7.5 ms in the base.",
+   "repro": "godot --headless --path . -s m1/QA-R7a/probe/warmcost.gd; sh/stage.sh sp_deck_mine mine deck saragossa_pau saragossa 11 normal 4 165 420",
+   "fix": "Check the deadline inside _geometry()/_ensure_need() (blocks of 8 cameras), or compute the fans on a WorkerThreadPool task over geometry snapshots. Reset sync_us_* in reset_stats(). Measure on a real Deck."
+  },
+  {
+   "id": "QR7a-04",
+   "severity": "low",
+   "area": "file ownership",
+   "where": "tests/unit/race3d/test_props.gd (R7c's file)",
+   "problem": "R7a moved the fixture of test_bend_corridor_and_density from chunk 16 to chunk 13; the test content is unchanged. This is outside its ownership but was reported as a deviation.",
+   "evidence": "Measured: git diff 9b02f05..509bb16. merge-tree with R7c and FIX-RINT merges cleanly.",
+   "repro": "git diff 9b02f05..509bb16 -- tests/unit/race3d/test_props.gd",
+   "fix": "Keep the hunk at the merge; R7c confirms the fixture."
+  },
+  {
+   "id": "QR7a-05",
+   "severity": "low",
+   "area": "look (city fences)",
+   "where": "scripts/race3d/builders/city.gd _fence() via ChunkContext.in_bend_corridor() (rounded corridor, BEND_FLOOR_M)",
+   "problem": "941 fence/hedge/wall pieces are dropped although they stand outside the exact envelope; only the rounding drops them.",
+   "evidence": "Measured, probe/fence_exact.gd over 128 directions: 19,713 dropped, 18,772 inside the exact envelope, 941 not. Using the exact envelope would raise fences to 76.4 % of Arcade's instead of 75.3 %.",
+   "repro": "godot --headless --path . -s m1/QA-R7a/probe/fence_exact.gd",
+   "fix": "Test fences against the exact envelope like BorderB.pillar_in_sight(); this needs the exact envelope as a second ChunkContext snapshot array (kernel, R7)."
+  },
+  {
+   "id": "QR7a-06",
+   "severity": "low",
+   "area": "docs",
+   "where": "docs/renderer-modern-gelaende.md §8 'Kurveninnenseiten' (R7c/R2's file)",
+   "problem": "Still says rocks and houses stay away until the lead decides, which contradicts A-17 and R7a.",
+   "evidence": "Measured: grep in the R7a tree.",
+   "repro": "sed -n 350,360p docs/renderer-modern-gelaende.md",
+   "fix": "The owner (R7c) or DOC aligns the paragraph with renderer-modern.md 5.3."
+  }
+ ],
+ "checked_ok": [
+  "modern_sight --full: F1 0 cases in 99.4 M samples, F1-lanes OK, F2 0.593/0.596/0.555, F3 0/5923, F7 0/2,011,532 sides with terrain above the road and 0 of 388,907 envelope sides uncovered (measured)",
+  "modern_path_check --full: clearance 267.6 m, loops 2,064 m (measured)",
+  "tools/run_tests.sh complete, run once: 811 tests, 0 failed, every step CHECKS OK, 992 s (measured)",
+  "tools/run_render_checks.sh all: 28 of 28 OK, incl. check_terrain_cover T1-T4/S1/C1/K1 0.000 %, check_start_km0, check_light_base (measured)",
+  "tools/golden.sh check: arcade 20/20 and arcade-ui 17/17 identical (measured)",
+  "No frozen Arcade file touched; changes only in the package's files and the lead exceptions (border.gd, city.gd), plus test_props.gd (reported)",
+  "All 10 package rules guarded: 10 one-line mutations each turn a unit test and/or modern_sight F7 red (measured)",
+  "Real builds over 128 directions: 22,435 props back, 0 newly dropped, fences 75.3 % vs 64.3 %, 0 props with their foot inside the envelope (measured)",
+  "Border roofs: 4 of 48 hanging in the base, 3 of 48 with R7a (Belgrade-Sofia km 340 on pillars). The 3 roofs that gained a right end pillar cover no board (pictures R6/R7)",
+  "Rendering is deterministic: T2 and S0 Modern PNGs byte-identical to R7a's",
+  "Look vs base: better at T2, S0, München, Hannover, Belgrad, T3, T4, R1 at high; same at Steam Deck preset (T2, München) and at night (S0, München); nothing worse",
+  "Corridor is read and computed on the main thread only; worker threads read snapshots (code review)",
+  "Perf on Deck preset, Saragossa-Pau x4: render() +0.17 ms, pre-computation 0.18 ms per frame on average (measured, single run)",
+  "docs/renderer-modern.md 5.3 accurately describes method, numbers and the open footprint point"
+ ],
+ "media": [
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7a/bericht.md",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7a/vergleich/Muenchen_hoch_arcade_basis_r7a_reichweite.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7a/vergleich/T2_hoch_arcade_r7a_reichweite.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7a/vergleich/Belgrad_hoch_arcade_basis_r7a_reichweite.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7a/vergleich/Hannover_hoch_arcade_basis_r7a_reichweite.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7a/vergleich/S0_nacht_arcade_basis_r7a.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7a/vergleich/Muenchen_nacht_arcade_basis_r7a.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7a/vergleich/Muenchen_deck_arcade_basis_r7a.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7a/vergleich/R6_dach_arcade_basis_r7a.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7a/vergleich/R7_dach_arcade_basis_r7a.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7a/r7a/T2_deck_ab_00.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7a/basis/T2_deck_ab_00.jpg",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7a/ausschnitte/c1_270_cmp.png",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7a/ausschnitte/T4_r7a_vs_fix_diff.png",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7a/ausschnitte/t3_cmp.png"
+ ]
+}

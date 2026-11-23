@@ -1,0 +1,13 @@
+{
+ "HEAD": "`138c90f`",
+ "IMPORT": "Exit 0, 0 Zeilen mit error/Fehler",
+ "SCRIPTS": "Exit 0 – `331 Skripte geprüft, 0 fehlerhaft`",
+ "TESTS": "Exit 0 – `808 Tests, 0 fehlgeschlagen` – 150 CHECK OK, 0 CHECK FEHLER (911 s); auf `bd1803b` (nur der Chalet-Wert und die Golden-Liste neu) noch einmal `tools/run_tests.sh test_props`: 18 Tests, 0 fehlgeschlagen",
+ "MMAKE": "Exit 0 – `6 Hashes in tests/golden/modern_slice.md5`, Bilder behalten und angesehen (unten); committet in `bd1803b`",
+ "MHEAD": "`bd1803b`",
+ "MCHECK": "Exit 0 – `GOLDEN modern: 6 von 6 identisch`, `GOLDEN modern-gles: modern_s3_hoch OpenGL ES gegen OpenGL: OK max. Abweichung 2/255, PSNR 73.2 dB`",
+ "RENDER": "Exit 0 – 29 Dateien OK, 0 rot (`RENDER-CHECK-DATEI … OK` für alle; keine SHADER/SCRIPT ERROR)",
+ "BUDGET": "OK – ganze Szene höchstens 141 / 171 / 216 Instanzen mit Instanz-Uniforms (Kiel – Hamburg / Stadt / Wald, Grenze 230), wie in der Basis",
+ "MLOOK": "gegen die Liste der Basis (RINT-M2, dieselben MD5) sind 0,6–3,8 % der Pixel geändert, die mittlere Helligkeit ist gleich (108,1 → 108,0; 32,2 → 32,3 nachts). Geändert: die Rotoren der Windräder (Phase je Instanz statt aus der Weltlage), Bäume (Wiegen je Instanz, Stufe je Baum), in S4/S5 die Hamburger Häuser (Stufe je Instanz, Fernlicht, Farb-Bias ab 30 m; dazu die Modelle von AS5aR2, die die Basis-Liste noch nicht kannte). Starttor, Zielbanner, Schilder und Tafeln gleich. Gewollt – erneuert mit `modern-make`. Zwischen `965b8a9` und dem Endstand ändert sich nur S4 in 0,03 % der Pixel (Tafeln wieder ohne Farb-Bias).",
+ "GATES_KURZ": "Import sauber, Skripte 331/0, Tests 808/0 (zweimal), Arcade-Goldens 20 von 20 und 17 von 17, Render-Prüfungen 29 von 29 grün (nach zwei behobenen Funden), Sicht 6/6 und Wege 2/2 mit `--full`, Modern-Goldens erneuert nach Ansicht, danach `modern-check` auf dem Endstand 6 von 6 identisch."
+}

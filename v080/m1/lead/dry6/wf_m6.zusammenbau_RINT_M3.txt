@@ -1,0 +1,162 @@
+
+CONTEXT
+- Game: "Crossing Europe – A Racing Xperience" (Godot 4.7.2, GDScript, GL Compatibility renderer), repo /home/user/crossing-europe---a-racing-xperience.
+  German user; docs and player-facing texts in German (tr()), code comments in English. v0.7.0 is released (= main).
+  v0.8.0 adds a graphics option: today's pseudo-3D game becomes the mode "Arcade" (frozen, pixel-identical); the new
+  mode "Modern" is a second, real-3D renderer in the same build with finer models, dynamic light and a "Modern" sound
+  profile. The user's wish, literally: "das gesamte Spiel einer deutlichen grafischen Überarbeitung unterziehen.
+  Detailreiche Grafik soweit möglich, feinere Modelle, bessere Lichteffekte, Sound- und Musiküberarbeitung" and "echtes
+  3D bitte". Wave 0 (session seam, model pipeline, audio core, geometry kernel with fairness tests) is merged in branch
+  v0.8.0. This push (M1) runs as parallel packages: renderer skeleton R1a (done), road/environment R1, terrain/props
+  R2, vehicles/signs R3, vehicle models AS1 (done; an art review and a rework AS1R follow), environment models AS1b,
+  engine sound AU-B (done), options/chooser/showroom/Leistungstest UI1. Then the lead merges everything, QA checks it,
+  and the user gets the first test build (Kiel–Hamburg in Modern, for Steam Deck and Windows).
+- THE BUILD CONTRACT IS BINDING: docs/dev/v080_contract.md (1,800 lines). Read §2 (rules), the decisions of §3 that
+  concern you, your interfaces in §4, §5, your package in §6, §8 and COMPLETELY §11 (amendments after wave 0 – it wins
+  over the older text; A-7 is the renderer facade, A-8 the plan and file ownership of this push). Also read the docs
+  of your area: docs/renderer-modern.md, docs/modelle.md, ARCHITECTURE.md §15. Where the contract is wrong
+  or blocks you: implement the closest sound solution and report it under contract_issues with evidence – never work
+  around it silently. Evidence and prototypes of the design studies (starting points, read before reuse): /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/
+  (renderer3d/out/spike_src, engine-probe/evidence/prototypes, synthesis/out; index in §10 of the contract).
+- YOUR PACKAGE ID: RINT-M3. START: look for a predecessor of this run – the handover file
+  /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/RINT-M3/STAND.md and the remote branch wip/v080-rint-m3. If one exists, do NOT start over: read
+  STAND.md, go to the worktree named there (all commands and commits there, on its branch – leave your own fresh
+  worktree untouched, and report that branch and worktree in your result), review its uncommitted changes, commit them
+  as WIP, and continue where it stopped. Only if there is none, in your fresh worktree: git merge --ff-only 32482114c98b39c17bc7928f6206d355d4d61366
+  (the worktree starts from main; if the fast-forward is impossible, stop and report), then
+  cp -a /home/user/crossing-europe---a-racing-xperience/.godot . && godot --headless --path . --import
+- SAFETY COPY: after EVERY commit run  git push origin HEAD:refs/heads/wip/v080-rint-m3  (plain push, never
+  force; never push to v0.8.0 or main, never merge into them, never create tags or pull requests).
+- RESTART PROTOCOL: the container can restart, or an account usage limit can stop you, at any moment; a successor with
+  this same brief is then started (both have already happened in this push). (1) Your START instruction above says how
+  to find and continue a predecessor; its background processes are gone and half-written output files may be
+  incomplete. (2) Keep /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/RINT-M3/STAND.md up to date after every step you finish: worktree path and branch,
+  done / doing now / next / pitfalls, where your scratch results are. (3) Commit and push work in progress at
+  least every 30 minutes ("WIP" commits are fine) – unpushed work can be lost for good.
+- Runs: for EVERY game run set XDG_DATA_HOME to an ABSOLUTE folder under your scratch dir; pass --graphics=arcade|modern
+  explicitly. Rendering needs  xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3
+  --audio-driver Dummy …  (software OpenGL, llvmpipe – no real GPU, no loudspeakers here: everything about a Steam
+  Deck, a real GPU or how something sounds to a person is "inferred", never "measured"). The default graphics preset
+  on this machine is "low" (adapter tier software: no shadow casters) – for pictures pass --gfx-preset=medium or high.
+  Up to six agents share the 4 cores and 16 GB: heavy jobs (Godot renders, Blender, audio renders, test suites) one at
+  a time with nice -n 10 and at most 2 worker processes; run the complete tools/run_tests.sh (9–15 min) at most twice
+  (use its filter argument while iterating) and tools/golden.sh check (Arcade identity, must print 20 von 20
+  identisch) once at the end. Tools: godot, python3 (numpy, PIL), ffmpeg, ImageMagick, Blender 5.2 as Python module
+  /home/user/tools/bpyenv/bin/python, tools/run_tests.sh, tools/run_render_checks.sh, tools/golden.sh, tools/ab_shot.sh
+  (in branches that contain R1a), tools/models_contact_sheet.sh, tools/blender/validate_models.py,
+  tools/audio/qc/audio_qc.py.
+- Shell: the Bash tool may refuse compound commands with heredocs or several chained git commands ("too complex"):
+  write helper scripts into your scratch folder and run them one by one; write commit messages to a file and use
+  git commit -F <file>. "-s" scripts must not name autoload-dependent classes statically; compile-check with
+  tests/check_scripts.gd.
+- Rule 1: the frozen Arcade files are never edited. Stay inside your file ownership (§5 with A-8); packages of this push talk to each other only through the facade of A-7 with duck typing.
+- LOOK AT YOUR OWN PICTURES: you can open PNG/JPG files with the Read tool. Judge every picture you deliver honestly
+  against the Arcade frame of the same simulation state. "Modern" has to look clearly better than Arcade, not merely
+  different; say plainly where it does not yet.
+- Scratch for working files: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/RINT-M3/ ; pictures, previews and reports for review: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M3/ (write
+  your full report there as bericht.md). Never commit intermediates or previews. Disk space is limited: delete large
+  scratch items (exports, copies of the tree, caches you no longer need) when you are done.
+- Commits: sensible steps on your branch; every commit message (German subject line) ends with
+  "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" and
+  "Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq". No model names anywhere else.
+- Priorities when time gets tight: (1) nothing broken – gates green, Arcade identical, fairness tests green; (2) the interfaces others depend on; (3) the look.
+  Deliver the core solid and list what is left under notes_for_next rather than leaving everything half-done.
+- RESULT: keep it compact – summary at most 250 words; deviations, contract_issues and notes_for_next at most 10
+  entries each, one or two sentences per entry; the details belong into bericht.md. Mark numbers measured/inferred.
+
+YOUR ROLE: RINT-M3 – THIRD ASSEMBLY OF PUSH M2. Your base is 32482114c98b39c17bc7928f6206d355d4d61366 (origin/wip/v080-fix-rint): the second assembly
+RINT-M2 (/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M2/bericht.md) after its independent QA (/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-RINT-BILD/bericht.md, /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-RINT-SYSTEM/bericht.md), its fix round
+(/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-RINT/bericht.md) and re-check (/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/NACH-RINT/bericht.md). The three R7 packages were built on RINT-M2 (9b02f05), each reviewed
+independently, fixed and re-checked. Merge with --no-ff in this order (German messages, trailer as above):
+  R7a = origin/wip/v080-fix-r7a (4a43944338a47f188a0ff795f95691e507e515da)  the sight corridor of A-17 from the real geometry (sight_corridor.gd, the
+        exact envelope in the chunk snapshot, in_sight_envelope()/bend_intrusion(), border pillars and city fences against
+        it) – R7a /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7a/bericht.md, review /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7a/bericht.md, fixes /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7a/bericht.md, re-check /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/NACH-R7a/bericht.md
+  R7b = origin/wip/v080-fix-r7b (c50d58f722291796c685b8ab3d6fd038bb5e67e4)  landmarks, skyline and their light (landmarks.gd, landmark.gdshader, the
+        skyline part of backdrop.gd) – R7b /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7b/bericht.md, review /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7b/bericht.md, fixes /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7b/bericht.md, re-check
+        /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/NACH-R7b/bericht.md
+  R7c = origin/wip/v080-fix-r7c (3b3107be4df09c01aff907a026a709ac0195faea)  far LOD of buildings and plants (path band with cross-fade, ce_lod_still,
+        far light, shimmer, dusk windows, attachments, AS5a batch 2 and the re-export of all 23 city houses) – R7c
+        /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7c/bericht.md, review /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/QA-R7c/bericht.md, fixes /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7c/bericht.md, re-check /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/NACH-R7c/bericht.md
+LEAD NOTES FOR RINT-M3 (decisions of the lead; measured facts from the reports and a trial merge):
+1. Trial merge by the lead (git merge-tree, chained in the order above onto 32482114c98b39c17bc7928f6206d355d4d61366): the code merges cleanly; the only
+   conflict is docs/renderer-modern.md at R7b (one consistent text, keep every package's section). FIX-R7c checked its
+   merge with FIX-RINT and FIX-R7a pairwise only: after the three merges run test_props, check_lod_band, the landmark
+   checks and test_chunk_streamer before anything else.
+2. Contract: right after the three merges, append the lead's text /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/lead/contract_11_4.md VERBATIM to
+   docs/dev/v080_contract.md as §11.4 (after the end of §11.3; one commit "Vertrag §11.4 (Leitung): R7-Aufteilung,
+   Sichtkorridor ganzes Objekt, Wahrzeichen, LOD-Band, Freie Strecke, Streamer-Budgets, Plan"). Read it – A-23 … A-29
+   bind this assembly.
+3. A-24, the whole object in the envelope (QA-R7a QR7a-01 high, only partly fixed; NACH-R7a NR7a-01/-02): FIX-R7a
+   delivered the props.gd change as a patch (/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7a/patch_props.py and props_hinausschieben.diff, written
+   for R7c bd1803b – FIX-R7c changed props.gd since, adapt it by hand where it does not apply). Apply it so that the
+   reach comes from the MODEL AABB (largest variant, turned as placed; aligned houses: max(extent, AABB side) across the
+   road, the AABB along it) and the same model is used in the push-out and in the network check; include attach_list;
+   check city_french_sud's extent_m (its geometry reaches 2.08 m beyond extent_m.left). git mv
+   tests/race3d/props_footprint.gd (+ .uid) to check_props_footprint.gd so run_tests gates it; --full must give 0, and a
+   foot-only mutation must turn it red. Pictures (Arcade | 32482114c98b39c17bc7928f6206d355d4d61366 | head) at C1, München, Bern, T4, Belgrad.
+4. NACH-RINT N-01 (medium, A-28): a chunk dropped while COMMITTING leaves reflectors registered in lights.gd; after
+   _free_trash() every _update_glints() raises SCRIPT ERROR and the glints freeze. Release what a committing chunk
+   registered when it is dropped, and let _update_glints() (and every other layer list) skip entries whose node is no
+   longer valid. Unit test: reflector on a node that never enters the tree, free it, update the glints → no error,
+   count 0. NACH-RINT's probe: /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/NACH-RINT/sh/probe_reflectors.gd. Also N-02 (low): in the last ~2 m before the
+   tunnel exit the glare quad shows hard edges – cover the frustum or use Arcade's full-screen law there.
+5. NACH-R7c NR7c-01 (medium, A-26): ce_lod_still is binary; above 1.5 m/s the full band returns and a car driving off or
+   crawling shows the ordered dither for seconds (and lod0 → half lod1 → lod0 while approaching). Bind the band width to
+   the camera speed with one global ce_lod_band_m = speed × 0.4 s and w' = min(w, ce_lod_band_m) toward the far end.
+   Look at a stop-and-go clip at „Mittel“ (queue, police) before/after. NR7c-02: the four mutations N1, N3, N4, N5 must
+   turn a test red (NACH-R7c's report says how). NR7c-03: the comment at props.gd ~l.75 (far end, not middle).
+6. NACH-R7b N-1 (low, A-25): the drawn landmark node can sit up to 11.9 m off Arcade's anchor and nothing checks it.
+   Make the network test check the drawn node (≤ 12 m, the contract's bound) or turn about the near corner; state the
+   shift and its maximum in docs §18.1.
+7. Streamer and main thread (A-28; QA-RINT-SYSTEM B-01, NACH-RINT B-01/F-08, NACH-R7a NR7a-03, FIX-R7c's note on
+   collect()): commit per frame reached 6.51 ms on Kiel–Hamburg day at deck (roadside alone 6.32, terrain 4.73, road
+   4.16) because a builder is never split; collect() of all builders reached 2.9–3.9 ms on Kiel–Hamburg at deck. Split
+   the commit of roadside, terrain and road into parts as A-28 says; book the corridor warming as its own part
+   (tu = _part_us("warm", tu) after _warm_corridor()); find which builder's collect() exceeds 2 ms and move the work to
+   prepare()/the worker. Judge every maximum as the median of three runs beside 32482114c98b39c17bc7928f6206d355d4d61366 in the same session.
+8. reflector.gdshader (FIX-R7b's note, inferred from code): line ~21 uses PROJECTION_MATRIX[1][1] * VIEWPORT_SIZE.y in
+   the vertex stage, which is negative in the Compatibility renderer – the same bug R7b found in the landmark glow.
+   Measure the reflector glint size against Arcade at night; if it is the cap, fix it as landmark.gdshader does (abs()
+   and a viewport_h uniform) and add a render-check case that fails with the signed value.
+9. Night windows of city houses (QA-RINT-BILD F-04, FIX-R7c's note): the Hanseatic house in Hamburg at 22:00 shows
+   0.46 × Arcade's warm-lit window area (the sprite base had 0.76 ×); Lyon's suburb and the forest stages are weaker too.
+   Measure on the merged head (R7c's dusk windows are in now). If the baked night law can light 35–45 % of the residential
+   windows per house with a fixed seed from what the bake already carries (emit maps), do it and show A/B at Hamburg and
+   Lyon at 22:00 (target: warm share per house 0.85–1.15 × Arcade); if it needs the bake, list it for AS5b (A-29).
+10. Docs: renderer-modern-gelaende.md §8 'Kurveninnenseiten' → FIX-R7a's text (/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/FIX-R7a/bericht.md §9 item 4); the
+   terrain_profile.gd header names in_sight_envelope() (NR7a-04).
+11. Rule 8 and the sprites: every helper and probe runs with an absolute XDG_DATA_HOME (QA-RINT-SYSTEM B-07 caught R7
+   probes in the real user folder; the lead cleaned it). R7c/AS5aR2 changed tools/blender/cesprites/props_cities.py with
+   3D hooks that the sprite path never sets (inner_k, bars_k, side, close3d): show it from the code and, if it costs less
+   than 20 minutes, re-render one affected sprite sheet in a scratch copy and cmp it with the committed PNG.
+12. Goldens: FIX-R7c regenerated modern_slice.* itself; per A-18/A-29 regenerate ONCE at the end with
+   tools/golden.sh modern-make after LOOKING at all six pictures, and say so in the commit and the report.
+13. The paint flicker of test build 1 stays paused (A-21): change nothing for it.
+
+YOU NOW OWN EVERY FILE OF THIS PUSH. Make it one consistent game:
+- After each merge: import clean, tests/check_scripts.gd, the unit and render tests of the merged area (filters).
+- A/B with tools/ab_shot.sh at S0–S5, T1–T4, C1, N1 (night, snow), N2 (rain), U1, DEV, plus: München, Belgrad, Hannover and Lyon in their
+town bends; a border roof (Belgrad–Sofia km 340) by day; Hamburg arrival with the Michel and the Elbphilharmonie at
+12:00 and 22:00; the Florianturm Dortmund at 22:00; a tunnel by day and at 22:00 (the exit included); the fuel station
+Kiel–Hamburg km 15 (day, 21:00); Hamburg centre and the Kiel outskirts with the city houses (12:00, 19:30, 22:00);
+Nürnberg old town – --gfx-preset=high and medium, deck at S1, N2, T2 and the tunnel; two 30-s A/B
+  clips side by side with the HUD (Kiel – Hamburg from the start through the fuel stop at km 15; Saragossa–Pau through
+  the mountain bends) and the stop-and-go clip of note 5. LOOK at every picture against Arcade AND against the packages'
+  own delivered pictures; nothing may be worse than a package showed it alone (interactions: corridor push-out × LOD
+  band × attachments × landmarks × skyline × night windows × lamps). Write an honest list: what is now clearly better than
+  Arcade, what is equal, what is still worse.
+GATES on your final head (commands and output in bericht.md): import clean; tests/check_scripts.gd; tools/run_tests.sh
+green, check_props_footprint included (load-only timing failures: rerun alone and against 32482114c98b39c17bc7928f6206d355d4d61366 in the same run,
+A-11); tools/golden.sh check 20 von 20 and 17 von 17 (once); tools/golden.sh modern-make after looking, then modern-check
+6 von 6 and the GLES comparison; tools/run_render_checks.sh all (RENDER_CHECK_TIMEOUT per file as the headers say; a run
+stopped by a tool limit continues file by file); tests/sim/modern_sight.gd -- --full and modern_path_check.gd -- --full;
+the A-17 occlusion probe at T1–T4, C1, S0, S4; the validator, export determinism and check_sprite_geometry.py;
+audio_qc.py; ERGEBNIS identity Arcade vs Modern (tests/race/run_stage.gd) on kiel_hamburg, dev_testetappe (night,
+rain) and saragossa_pau (snow); complete Modern autopilot runs with perf_stats of Kiel–Hamburg (medium and deck, three
+runs each for the maxima) and of a stage with a city finish and a tunnel, next to 32482114c98b39c17bc7928f6206d355d4d61366 in the same session (render()
+ms average and max, chunk commit per part, collect() per builder, draw calls, primitives, memory; llvmpipe measured,
+real hardware inferred); the instance census of A-19 (≤ 230); texture memory (A-6); tools/build_linux.sh and
+tools/build_windows.sh with the pck report inside the size budget; tools/smoke_modern.sh on the Linux export (plain and
+DRIVER=opengl3_es) and the Windows export under Wine (wine64, wineserver -w between runs, TMPDIR unset). Push every
+commit to origin wip/v080-rint-m3. Deliver the A/B sheets, the clips and bericht.md in /tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/RINT-M3/. Return the
+result format with package "RINT-M3": one acceptance entry per merge, per lead note and per gate.

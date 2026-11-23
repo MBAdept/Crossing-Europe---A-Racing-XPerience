@@ -1,0 +1,16 @@
+v0.8.0 FIX-R7a: Vorrechnen des Sichtkorridors vor der Festschreibe-Schleife, Frist in Schritten (QR7a-02, QR7a-03)
+
+- ChunkStreamer: _warm_corridor() läuft vor der Festschreibe-Schleife, wenn _commit_pending() sagt,
+  dass sie in diesem Bild nichts festschreibt (auch nicht ein halb festgeschriebenes Stück) – statt
+  "done == 0" danach. So rechnet der Streamer den Korridor nie in einem Bild, das festschreibt, auch
+  wenn das Festschreiben in Schritten über mehrere Bilder läuft (FIX-RINT). Die Hilfsfunktionen
+  stehen an einer Stelle, die FIX-RINT nicht berührt; stats()["corridor"] (verschachtelt) statt
+  fünf Schlüsseln am Ende, reset_stats() setzt die Zähler am Anfang zurück – auch die
+  Nachrechen-Zähler des Korridors, damit perf_stats() die Fahrt zeigt und nicht das Laden.
+- SightCorridor.warm(): Frist in Schritten – ein Block Geometrie und ein Block F2-Bedarf je ein
+  eigener Schritt, nur als erster eines Aufrufs; ein Fächer nur, solange sein laufendes Mittel noch
+  passt. Gemessen (Sonde warmparts.gd, 0,25-ms-Frist): Mittel 0,31 -> 0,21 ms, p99 0,50-0,67 ->
+  0,29-0,39 ms. reset_sync_stats().
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

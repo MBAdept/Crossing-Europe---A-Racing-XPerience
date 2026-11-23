@@ -1,0 +1,189 @@
+{
+ "package": "R7a",
+ "branch": "worktree-wf_ba4424b4-294-1",
+ "commit": "509bb168597b4fa02756b8cdbbe148331055e384",
+ "worktree": "/home/user/crossing-europe---a-racing-xperience/.claude/worktrees/wf_ba4424b4-294-1",
+ "summary": "The bend sight corridor is now built from the real road geometry (A-17). It is the envelope of all sight lines of length L along the actual path, with the camera on every row in every lane; L = min(300 m, F2 need/0.6 + 9 m). The code is scripts/race3d/sight_corridor.gd, computed once per stage and precomputed by the streamer. Terrain, props, city fences and border pillars all read this one envelope. F7 checks it against an independent reference: 0 of 388,907 cross-section sides left uncovered across the whole network (measured).\n\nWhat comes back (measured, 128 directions): 23,026 props (16,947 trees, 1,878 city houses) and none newly dropped. City fences: 75.3 % of Arcade's (was 64.3 %). The Belgrad–Sofia border roof stands on four pillars again. In the pictures the compositions now match Arcade: the T2 tree group, the start oak, the house rows in München, Belgrad and Hannover.\n\nF2 holds: modern_sight --full 0.593/0.596/0.555, and the occlusion probe stays visible up to L at T1–T4, S0 and S4. At C1, 270 m was already hidden in the base.\n\nTwo problems found during the work:\n(1) The props builder (R7c) tests only an object's foot point. 5,832 props reach into the envelope with their near edge or crown (base: 1,124). The reach-aware test is built in ChunkContext.in_bend_corridor(); R7c still has to call it.\n(2) The perf run showed main-thread spikes of up to 24 ms. 7d8bbb6 now precomputes the corridor past landmark_path_m. At timescale 4: equal to base, no recomputation after loading.\n\nGates: Arcade goldens 20/20 and 17/17; Modern 2/6 (changes intended and viewed, no modern-make); 28 render checks green; sight and path --full green; unit tests 811 with 2–3 audio failures that also fail on the base under the same load.",
+ "files_changed": [
+  "scripts/race3d/sight_corridor.gd",
+  "scripts/race3d/sight_corridor.gd.uid",
+  "scripts/race3d/terrain_profile.gd",
+  "scripts/race3d/chunk_context.gd",
+  "scripts/race3d/chunk_streamer.gd",
+  "scripts/race3d/builders/border.gd",
+  "scripts/race3d/builders/city.gd",
+  "tests/race3d/fairness.gd",
+  "tests/sim/modern_sight.gd",
+  "tests/unit/race3d/test_sight_corridor.gd",
+  "tests/unit/race3d/test_sight_corridor.gd.uid",
+  "tests/unit/race3d/test_terrain_profile.gd",
+  "tests/unit/race3d/test_chunk_streamer.gd",
+  "tests/unit/race3d/test_structures.gd",
+  "tests/unit/race3d/test_props.gd",
+  "docs/renderer-modern.md"
+ ],
+ "acceptance": [
+  {
+   "check": "A-17 decision 1: corridor = envelope of all sight lines of length L along the real path, camera in every lane, L = min(300, F2 need/0.6 + camera offset), once per stage, worker-safe snapshot",
+   "result": "pass",
+   "evidence": "sight_corridor.gd: camera on every row, outer lane centres (fuel lane included). L at T3/T4 is 119/118 m, T1 263 m, others 300 m (measured, startdep.log). Exact against a brute-force reference in 6 cases, 0 cm shortfall (measured). The snapshot arrays come through ChunkContext."
+  },
+  {
+   "check": "A-17 decision 1: cost measured (prepare time, memory)",
+   "result": "pass",
+   "evidence": "81 us per row (8.4 s for 103,583 rows, measured). Prepare at load: 60-190 ms (inferred); prepare_ms 15-20 s for both base and R7a (measured, dominated by shaders). Memory under 100 kB per stage (inferred from array sizes). See bericht section 5."
+  },
+  {
+   "check": "A-17 decision 2: strict reading, nothing >0.5 m inside the envelope; ground cover fills it; terrain uses the same envelope",
+   "result": "partial",
+   "evidence": "Terrain: F7 finds 0 of 2,011,532 sides with terrain above the road and 0 of 388,907 envelope sides uncovered (--full, measured). Props: the props builder (R7c) tests only the foot point, so 5,832 props reach into the envelope with their near edge or crown (base 1,124; intrude_full.log, measured). The reach-aware test is built (43cfd97); R7c still has to call it."
+  },
+  {
+   "check": "A-17 decision 3: border.gd – Arcade's pillar stands again where it is outside the envelope (A-18)",
+   "result": "pass",
+   "evidence": "pillar_in_sight() tests against the exact envelope. Hanging roofs: base 4 of 48, now 3 (measured). Belgrad-Sofia km 340 is back on four pillars (picture R1, high and medium)."
+  },
+  {
+   "check": "A-17 decision 3: city.gd fences/hedges/walls follow the envelope, count vs Arcade",
+   "result": "pass",
+   "evidence": "A fence piece is dropped if its middle or either end lies in the envelope. Network-wide: Arcade 79,662 pieces; base drew 64.3 %, now 75.3 % (measured)."
+  },
+  {
+   "check": "A-17 decision 3: city houses in town bends (N3) measured and pictured",
+   "result": "pass",
+   "evidence": "1,878 city houses come back (measured). Pictures: München row, Belgrad row, Hannover corner house back; Bern and Nürnberg unchanged (counts 5->5, 7->7); C1 analysed with probe/c1_props.gd."
+  },
+  {
+   "check": "A-17 decision 3: F2 must hold",
+   "result": "pass",
+   "evidence": "modern_sight --full: f2 0.593 / 0.596 / 0.555 (<= 0.60), f1 and f3 OK (measured)."
+  },
+  {
+   "check": "A-17 decision 4: modern_sight F7 checks the envelope (nothing >0.5 m, no terrain above road inside)",
+   "result": "pass",
+   "evidence": "New independent reference (fairness.sight_envelope, double precision, every lane centre). CHECK modern_sight_f7 OK: envelope 0 of 388,907 not covered, 0 not counted as bend corridor (--full, measured)."
+  },
+  {
+   "check": "A-17 decision 4: unit test per case (long arc, short arc, straight before bend, S-bend, mountain hairpin)",
+   "result": "pass",
+   "evidence": "test_sight_corridor.gd, 8 tests, all green: the five cases plus every lane, F2 need and order independence. race3d filter: 182/0 on the final head."
+  },
+  {
+   "check": "A-17 decision 4: occlusion probe T1-T4, C1, S0, S4 (3 lanes, 25-270 m) never below F2",
+   "result": "partial",
+   "evidence": "Visible up to L at T1, T2, T3, T4, S0 and S4 (min 14-255 px, measured). T3/T4 identical to base up to 150 m. C1 at 270 m is hidden in base too (6/9/0 px; with R7a 6/0/0) behind a house on the inside of the bend whose near edge lies in the envelope. That is the foot-point problem in R7c's builder."
+  },
+  {
+   "check": "A-17 decision 4: props-back counts per position and network-wide",
+   "result": "pass",
+   "evidence": "Network: corridor drops 37,368 -> 14,342; 23,026 back; 0 newly dropped. Per position (old -> new dropped within 150 m): T2 8->0, T1 5->1, T4 9->3, Hannover 7->1, Belgrad 10->6, ..."
+  },
+  {
+   "check": "A-17 decision 4: no new terrain holes or seams (check_terrain_cover T1-T4, S1, C1, K1)",
+   "result": "pass",
+   "evidence": "check_terrain_cover: 0.000 % magenta at all seven positions, on e81886a and again on 509bb16. check_seam_render OK (measured). The ring spacing is unchanged."
+  },
+  {
+   "check": "Pictures T1-T4, C1, S0, S4, Lyon, Bern, München, Nürnberg, Belgrad, Hannover, 5 border roofs, high and medium, viewed against Arcade and base",
+   "result": "partial",
+   "evidence": "All taken at high and viewed. Triptychs Arcade | base | R7a for T1-T4, C1, S4, S0, R1, Lyon, München, Belgrad, Hannover. Medium only for T1-T4, C1, S4, S0, München, Belgrad, Hannover and R1; Lyon, Bern, Nürnberg and R2-R5 are high only."
+  },
+  {
+   "check": "20-s clip through the Saragossa-Pau mountain bends",
+   "result": "pass",
+   "evidence": "deliver/R7a/clips/saragossa_pau_bergkurven_km197.mp4 (20 s, high), stills at 3/8/13/18 s viewed."
+  },
+  {
+   "check": "Gate: import clean",
+   "result": "pass",
+   "evidence": "godot --headless --import on 509bb16: exit 0, 0 error or warning lines."
+  },
+  {
+   "check": "Gate: tests/check_scripts.gd",
+   "result": "pass",
+   "evidence": "332 Skripte geprüft, 0 fehlerhaft (b3f1b67 and 7d8bbb6)."
+  },
+  {
+   "check": "Gate: tools/run_tests.sh green (at most twice, load-only per A-11)",
+   "result": "partial",
+   "evidence": "Run 1 on e81886a: 811 tests, 3 failed (engine3, modern and music audio in a running game). Run 2 on b3f1b67: 2 failed (engine3, music). The base fails the same tests under the same load (rerun_audio.log), so they are load-only. Every other step reported CHECKS OK. After 7d8bbb6, only the race3d filter (182/0) and the streamer checks were run; a third full run was not allowed."
+  },
+  {
+   "check": "Gate: tools/golden.sh check (20 of 20, 17 of 17)",
+   "result": "pass",
+   "evidence": "GOLDEN arcade: 20 von 20 identisch; GOLDEN arcade-ui: 17 von 17 identisch."
+  },
+  {
+   "check": "Gate: tools/golden.sh modern-check",
+   "result": "partial",
+   "evidence": "2 of 6 identical. start_mittel, s3_hoch, s4_mittel and s1_nacht changed: re-rendered with KEEP and viewed; only returned props differ (base renders 6/6 identical). GLES comparison OK (PSNR 73.2 dB). No modern-make (A-18). On the final head, 2 frames are byte-identical to e81886a."
+  },
+  {
+   "check": "Gate: tools/run_render_checks.sh all",
+   "result": "pass",
+   "evidence": "All 26 Modern files OK plus Arcade glow_occlusion and sprite_flip OK, run file by file on e81886a. terrain_cover, seam_render, session_modern and start_km0 OK again on 509bb16."
+  },
+  {
+   "check": "Gate: modern_sight.gd --full and modern_path_check.gd --full",
+   "result": "pass",
+   "evidence": "f1, f1_lanes, f2, f3, f7 and model all OK (280 s). path_clearance OK at 267.6 m, path_loops OK (66 s)."
+  },
+  {
+   "check": "Gate: complete Modern autopilot run with perf_stats next to the base",
+   "result": "partial",
+   "evidence": "Kiel-Hamburg at timescale 40, results identical (MD5). render avg 4.3-4.5 vs 3.6 ms; collect avg 2.9-3.2 vs 1.6 ms; props-hook max 13-24 vs 0.4 ms; draw calls 156 and primitives 181,985 equal. At timescale 4: collect 2.02/1.96 vs 1.98 ms, render 2.06/1.82 vs 1.92 ms, no recomputation after load with 7d8bbb6. All measured, single runs, noisy maxima."
+  }
+ ],
+ "tests_total": 811,
+ "tests_failed": 2,
+ "deviations": [
+  "Edited tests/unit/race3d/test_props.gd (R7c's file): the fixture of test_bend_corridor_and_density moved from chunk 16 to chunk 13 (bend entry). Test content unchanged; otherwise it is red.",
+  "Rounding at bend ends: the encoded corridor is at least the plain strip + 0.55 m, so that Station and in_bend_corridor() count it. Only border.gd uses the exact envelope.",
+  "Camera on every row instead of a coarser step: coarser steps miss envelope kinks by 1-3 m (measured). This costs about 81 us per row.",
+  "Code change after the second (last allowed) full run_tests (7d8bbb6, warm front). Covered by the race3d unit filter 182/0, check_scripts, 6 headless streamer checks, 4 render checks and 2 byte-identical Modern goldens on the final head.",
+  "No modern-make: modern_slice.* belongs to the assembly (A-18). The 4 changed frames were viewed and documented.",
+  "Medium pictures only for T1-T4, C1, S4, S0, München, Belgrad, Hannover and R1. Lyon, Bern, Nürnberg and R2-R5 are high only (time; each run 3-8 min under load).",
+  "Render checks were run per file (26 Modern files + arcade) instead of one 'all' call. Coverage is the same. run_tests #2 ran in parallel with the render checks (2 workers).",
+  "Footprint not fixed in props.gd (R7c ownership). Only the ChunkContext API (reach, half_len) and measurements were delivered."
+ ],
+ "contract_issues": [
+  "A-17 'a short bend gets the sagitta of its real arc' contradicts the envelope. Short arc 60 m, R=150 m, L=300 m: envelope 22.5 m, the arc's own sagitta -1.4 m, old band 74 m. I built the envelope.",
+  "A-17 'a straight before a bend is free' holds only beyond sight lines running into the bend. Because of the braking envelope, the bend entry is often wider than the bend middle (R=200 m: 37-43 m at entry vs 10 m in the middle).",
+  "City bends: the F2 need ignores speed limits (fastest drivable speed), so L stays 300 m in cities, and Bern and Nürnberg get nothing back. Should a speed-limit-based need apply inside the City Limits? Lead decision.",
+  "A-18 '5 of 48 roofs': on this base 4 of the 48 race-stage roofs hang (measured), plus the dev_testetappe roof (picture R5), which makes 5 but not 'of 48'. Now 3 plus the test stage.",
+  "A-18 (packages don't regenerate modern_slice.*) vs the brief ('modern-make where changed on purpose'): followed A-18.",
+  "'Camera in every lane' was built with lane centres, like modern_sight F1-lanes. A car on the shoulder is not covered.",
+  "A-17 (2) 'nothing >0.5 m in the envelope' needs footprints, but the corridor interface was a point test, and the builder that calls it belongs to another package (R7c). Measured 5,832 props reach in (base 1,124, up to 19 m deep). Suggestion: make reach/half_len mandatory for builders that place objects wider than 1 m near bends."
+ ],
+ "notes_for_next": [
+  "R7c (props.gd): in drop_reason() and the cover test, call ctx.in_bend_corridor(z, x, reach, half_len). reach = |anchor x| - |near edge x| (align: edge: extent x scale; otherwise crown radius = width x scale / 2); half_len = width x scale / 2. Measured effect: 269 left (all non-droppable), 15,954 back instead of 22,432, 1,223 base-drawn props dropped. This fixes C1 at 270 m.",
+  "R7c: merge the test_props.gd hunk (fixture now chunk 13, rows 418+i*3) with your own changes.",
+  "station.gd bend_corridor_at() could read the exact envelope (tp.sight.width_near(k, side)) like border.gd instead of the rounded encoding.",
+  "Integration/QA: regenerate tests/golden/modern_slice.md5 after merging. 4 of 6 frames change on purpose (start oak, night bush, two far trees, a city tree).",
+  "perf_stats now shows streamer.corridor_sync_ms_max/_sum/_calls (main-thread recomputation of the corridor) and corridor_warm_ms_*. At timescale 40 recomputation is unavoidable (12 rows per frame); use timescale 4 to judge real-play budgets.",
+  "Lead decision needed: speed-limit-based F2 need in City Limits (would give back many more city houses).",
+  "Scratch tools for reuse: probe/props_back.gd, probe/intrude.gd, probe/c1_props.gd, probe/border_roofs.gd, sh/occl.sh + sh/occl_eval.py, sh/perf_cmp.py, sh/sync_stats.py (in m1/R7a)."
+ ],
+ "look_verdict": "Better than the base wherever bends had emptied the scenery. T2: the whole left tree group is back and now matches Arcade with shaded models, better than Arcade. S0: the start oak is back. München: the pink house row on the left is back; the base showed an empty square. Belgrad: the right house row and the poplar are back; the base showed a bare meadow. Hannover: the big corner house is back. T1: two firs back; T4: a rock and fir group back; T3: the far rocks back. R1: the roof stands on pillars like Arcade.\n\nUnchanged: C1, where Arcade's park tree is still missing (L=300 m in cities), and the near rocks on the inside of T3/T4. These stand in the sight lines, so this is correct by the rule but differs from Arcade. Bern, Nürnberg and Lyon frames are unchanged.\n\nStill worse than Arcade: R2-R5 roofs hang from masts with stays, because the pillar would stand 3.6-12.8 m inside the sight lines. In the clip, two near outside firs in the S-bends are missing.\n\nRisk: some returned houses and crowns overhang into the envelope (the foot-point issue). At C1 this removed the last 9 px of the car at 270 m, though that spot was already hidden in the base. Medium shows the same compositions as high. Popping cannot be judged from stills.",
+ "media": [
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7a/bericht.md – Bericht R7a (Sichtkorridor, Gates, Bilder, Vertragsfragen)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7a/vergleich/T2_hoch_arcade_basis_r7a.jpg – T2 Kassel–Würzburg: linke Baumgruppe zurück (Arcade | Basis | R7a)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7a/vergleich/T1_hoch_arcade_basis_r7a.jpg – T1: zwei Fichten links zurück",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7a/vergleich/T3_hoch_arcade_basis_r7a.jpg – T3 Saragossa–Pau: ferne Felsgruppe zurück, Innenseite frei",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7a/vergleich/T4_hoch_arcade_basis_r7a.jpg – T4 Kehre: Fels- und Fichtengruppe rechts zurück",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7a/vergleich/C1_hoch_arcade_basis_r7a.jpg – C1 Stadtkurve: unverändert, Parkbaum fehlt weiter (L = 300 m)",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7a/vergleich/S4_hoch_arcade_basis_r7a.jpg – S4 Kiel–Hamburg km 80: im Ausschnitt gleich",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7a/vergleich/S0_start_kiel_high.jpg – Start Kiel: die große Eiche links ist zurück",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7a/vergleich/Muenchen_high.jpg – München: rosa Häuserzeile links zurück",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7a/vergleich/Belgrad_km187_high.jpg – Belgrad km 187,4: Häuserzeile rechts und Pappel zurück",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7a/vergleich/Hannover_km142_high.jpg – Hannover km 142,4: großes Eckhaus links zurück",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7a/vergleich/Lyon_km297_high.jpg – Lyon km 297,4: im Ausschnitt gleich",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7a/vergleich/R1_belgrad_sofia_km340_high.jpg – Grenzdach Belgrad–Sofia km 340 wieder auf vier Pfeilern",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7a/bilder/R3_high_ab_00.jpg – Grenzdach Prag km 270: hängt weiter an Masten mit Seilen",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7a/bilder/Bern_high_ab_00.jpg – Bern km 302,7: Altstadt wie Arcade, unverändert",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7a/bilder/Nuernberg_high_ab_00.jpg – Nürnberg Altstadt: unverändert",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7a/bilder/Hannover_medium_ab_00.jpg – Hannover bei „Mittel“: gleiche Komposition",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7a/vergleich/goldens/gold_cmp_modern_start_mittel.jpg – Modern-Golden Start: Basis gegen R7a, Eiche zurück",
+  "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/deliver/R7a/clips/saragossa_pau_bergkurven_km197.mp4 – 20-s-Clip Saragossa–Pau Bergkurven (Arcade | Modern, Hoch)"
+ ]
+}

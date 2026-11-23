@@ -1,0 +1,71 @@
+{
+ "verdict": "Yes, with one condition at the merge. Head 4a43944 is a sound base for RINT-M3. Every gate is green: Arcade is identical, fairness holds, all 811 tests pass, and the render checks that belong to the changed files pass. QR7a-02 is fixed and measured in a tree merged with FIX-RINT. QR7a-01 is only partly fixed. On the branch alone A-17 (2) is still broken at 5,728 props, because the needed props.gd line ships as FIX-R7a's patch. That patch applies cleanly on head + FIX-RINT + FIX-R7c eb97a98 and brings the network check to 0. The lead must apply the patch and rename props_footprint.gd to check_props_footprint.gd. Without the rename nothing in run_tests catches a foot-only regression (mutation M1). With the real model AABBs a shallow rest remains, mostly tree crowns (median 0.18 m). In the pictures (high preset, day, four places) Modern has better detail and light than Arcade. The composition is equal at München and Belgrad and worse at T4 and C1, where A-17 removes Arcade's trees.",
+ "per_finding": [
+  {
+   "id": "QR7a-01",
+   "status": "partly",
+   "evidence": "Measured. props_footprint --full on head 4a43944: FEHLER 5,728 (216,603 drawn, up to 19.03 m deep; logs/fp_head_full.log). patch_props.py B applies cleanly to a scratch tree m3 = merge-tree(4a43944, fix-rint) + diff 9b02f05..fix-r7c eb97a98. There props_footprint --full is OK 0 (218,103 drawn; logs/fp_m3B_full.log). Occlusion probe C1 at 270 m on m3: 5/18/19 px (lane -1 hidden by a lamp post, as in every state; logs/occl_C1.txt). Building overlaps 2,327 pairs with the patch vs 2,341 without. m3 unit tests: test_props 26/0, test_chunk_streamer 9/0, test_structures 14/0, test_terrain_profile 7/0, test_sight_corridor 8/0. Mutations: foot-only drop is caught only by props_footprint; no push and half push are caught only by test_props. Real-AABB probe (probe/fp_true.gd): 5,967 cases (3,414 deeper than 2 m) without the patch, 5,138 with it (96 deeper than 1 m) – see NR7a-01. Partly, because the props.gd line and the rename still have to come at the merge."
+  },
+  {
+   "id": "QR7a-02",
+   "status": "fixed",
+   "evidence": "Measured. git merge-tree --write-tree of 4a43944 with fix-rint 3248211, fix-r7c eb97a98 and fix-r7b c50d58f: all three without conflicts. In the merged update(), _warm_corridor runs only when nothing was collected and _commit_pending() is false. FIX-RINT's COMMITTING state always has a node (it is set in the same step), so _commit_pending() catches it (code read). stats() and reset_stats() hold both key sets. FIX-R7a's warm_vs_commit probe in m3: Saragossa–Pau 1 of 3,000 frames both warmed and committed (1.11 ms, the known race of a task that finishes between check and loop); Kiel–Hamburg 0 of 3,000."
+  }
+ ],
+ "findings": [
+  {
+   "id": "NR7a-01",
+   "severity": "low",
+   "area": "fairness A-17 footprint model",
+   "where": "FIX-R7a patch for scripts/race3d/builders/props.gd _place() (half_w = width*sc/2; reach = half_w or extent_l|r*sc) and tests/race3d/props_footprint.gd _judge() (the same model)",
+   "problem": "The footprint model is smaller than the models, and the network check uses the patch's own model, so it only checks itself. For 24 of 26 tree, plant and rock models the AABB reaches 0.15–0.82 m (at scale 1) beyond width_m/2, and the random yaw turns that part towards the road. In city_french_sud (FIX-R7c/AS5a2) the geometry reaches 2.08 m beyond extent_m.left (AABB x -13.30 vs 11.22).",
+   "evidence": "Measured on m3 with the patch, 128 directions, probe/fp_true.gd (model AABB from the manifest, largest variant, scale, mirroring, foot rule as in the kernel). 5,138 props reach into the envelope, 872 deeper than 0.5 m, 96 deeper than 1 m, 4 deeper than 2 m. Trees: median 0.18 m, p90 0.57 m. 85 city_french_sud reach 1.3–2.2 m in. props_footprint reports 0. Not measured: whether the outermost leaf cards are dense enough to hide a car.",
+   "repro": "Apply patch_props.py B to a tree that contains FIX-R7c, copy m1/NACH-R7a/probe/fp_true.gd into it, then: XDG_DATA_HOME=<abs> godot --headless --path <tree> -s res://nach_probe/fp_true.gd -- --full --verbose (about 5 min). Per-model margins: python3 m1/NACH-R7a/sh/footprint_models.py <tree>.",
+   "fix": "Take the footprint from the model AABB: per set in PropLibrary, reach_r = max(|x0|,|x1|,|z0|,|z1|) of the largest variant for random-yaw classes. For aligned houses use max(extent, AABB side) across the road and the AABB along it (model z = -forward, so from the foot -maxz to -minz). Use the same model in the patch and in props_footprint. AS5a2/R7c: check extent_m of city_french_sud."
+  },
+  {
+   "id": "NR7a-02",
+   "severity": "low",
+   "area": "test coverage after the merge",
+   "where": "tests/race3d/props_footprint.gd (reads only parts.props.list) together with FIX-R7c props.gd attach_list",
+   "problem": "FIX-R7c puts the props a model brings along into attach_list and sends them through the same drop_reason(). The network check does not look at them.",
+   "evidence": "Measured: in m3 there are 0 attach_list entries in the whole network today (fp_true.gd counts them), so the gap has no effect yet. Inferred: the check is blind as soon as a model gets 'attach'.",
+   "repro": "grep attach_list scripts/race3d/builders/props.gd in a tree with FIX-R7c, and compare with tests/race3d/props_footprint.gd.",
+   "fix": "When renaming to check_props_footprint.gd, judge list and attach_list. For attach_list, j >= sprites.size(): take the side from the sign of x; droppable = veg."
+  },
+  {
+   "id": "NR7a-03",
+   "severity": "low",
+   "area": "perf statistics after the merge",
+   "where": "scripts/race3d/chunk_streamer.gd update() in the tree merged with FIX-RINT",
+   "problem": "_warm_corridor() runs between _part_us(\"collect\", tu) and _part_us(\"commit\", tu). So stats().update_ms_max.commit also contains up to WARM_CATCHUP_US (2 ms) of corridor warming, and a warm-only frame shows up as a 'commit' spike.",
+   "evidence": "Inferred from the merged code (m3). The warm max measured in the probe was 2.31 ms.",
+   "repro": "Read update() in merge-tree(4a43944, origin/wip/v080-fix-rint).",
+   "fix": "At RINT-M3: tu = _part_us(\"warm\", tu) directly after _warm_corridor(cam_seg)."
+  },
+  {
+   "id": "NR7a-04",
+   "severity": "low",
+   "area": "doc",
+   "where": "scripts/race3d/terrain_profile.gd header comment (FIX-R7a's line)",
+   "problem": "It says the envelope without the floor is 'what ChunkContext.in_bend_corridor() tests'. The function meant is in_sight_envelope().",
+   "evidence": "Measured (code read).",
+   "repro": "sed -n 20,26p scripts/race3d/terrain_profile.gd",
+   "fix": "Change the name to in_sight_envelope()."
+  }
+ ],
+ "gates": [
+  "import (head and m3): exit 0, no error line",
+  "check_scripts in m3: 334 scripts checked, 0 with errors",
+  "tools/golden.sh check (head, once): GOLDEN arcade: 20 von 20 identisch; GOLDEN arcade-ui: 17 von 17 identisch",
+  "tools/run_tests.sh (head, complete, once): 811 Tests, 0 fehlgeschlagen; 17 steps CHECKS OK; 'Tests bestanden' (1087 s); includes test_far_ground_water, test_props, test_chunk_streamer",
+  "modern_sight --full (head): 6/6 OK – F1 0 up to 270 m, lanes 0 up to 260 m, F2 0.593/0.596/0.555, F3 0 of 5,923, F7 0 of 2,011,532 sides; envelope 0 of 388,907 not covered; exact envelope 0 not covered, 0 without envelope",
+  "modern_path_check --full (head): clearance 267.6 m, loops 2,064 m – OK",
+  "run_render_checks modern terrain_cover (head): OK, T1–T4, S1, C1, K1 each 0.000 % magenta",
+  "run_render_checks modern start_km0 / light_base / structures (head): check_start_km0 OK, check_light_base OK, check_structures OK, check_structures_licht OK",
+  "props_footprint --full: head FEHLER 5,728 (expected without the patch); m3 with patch OK 0 (218,103 drawn)",
+  "m3 unit tests (run_tests.sh filter): test_props 26/0, test_chunk_streamer 9/0, test_structures 14/0, test_terrain_profile 7/0, test_sight_corridor 8/0",
+  "git merge-tree --write-tree 4a43944 with origin/wip/v080-fix-rint, -fix-r7c (eb97a98), -fix-r7b: all without conflicts",
+  "ab_shot (high, day): head C1 Modern picture byte-identical to R7a 509bb16 (MD5 e990fdad…); m3 C1/München/T4/Belgrad looked at, sheets in deliver/NACH-R7a/vergleich, crops in deliver/NACH-R7a/ausschnitte; report deliver/NACH-R7a/bericht.md"
+ ]
+}

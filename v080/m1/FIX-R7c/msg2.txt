@@ -1,0 +1,12 @@
+v0.8.0 FIX-R7c: WIP Render-Prüfungen Stand und Fernlicht, Farb-Mip-Bias je Modell, Doku
+
+- check_lod_band: „…_stand“ (ce_lod_still = 1 sieht aus wie der harte Wechsel, gemessen 0,00 %)
+  und „fernlicht“ (Haussmann lod1, Schatten bis 120 m: +3,5 / +3,7 % bei 140 / 250 m, ohne
+  Fernlicht +11,7 / +11,9 %)
+- lod_band.gdshaderinc: Band bei stehender Kamera höchstens auf ±0,5 mm (keine Lücke), bei
+  ce_lod_still 0 unverändert
+- QR7c-04: albedo_bias je Modell aus graphics.modern.props.albedo_bias (Fachwerk 1,25, sonst 0)
+- Doku §9 nachgezogen
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

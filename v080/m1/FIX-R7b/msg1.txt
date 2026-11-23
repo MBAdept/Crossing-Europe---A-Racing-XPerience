@@ -1,0 +1,13 @@
+v0.8.0 FIX-R7b: WIP – Wahrzeichen nachts wie Arcade (Lichtebene im Anzeigeraum, Flugwarnlicht in Arcades Größe)
+
+B-01: CE_PICTURE mischt Bild und Lichtebene in Anzeigewerten wie Arcade und
+billboard.gdshader (Elbphilharmonie 22 Uhr: Fassade 144,5 -> 116,1, Arcade 112,8).
+B-02: CE_GLOW nimmt den Betrag der Projektions-y-Skala (im Compatibility-Renderer
+negativ) – vorher bekam jeder Leuchtpunkt die Sicherheitsgrenze statt seiner Größe;
+Profil wie Arcades _lm_glow, Größen/Stärken wie Arcade (Florianturm: 15 statt 232 rote
+Pixel, Arcade 10).
+B-07: Netz-Cache der Formen nach height_m allein.
+WIP: Spiegelung (B-04) erst im Anker.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
