@@ -60,6 +60,7 @@ uniform vec4 lights_rect = vec4(0.0);
 uniform float shadow_cut = 0.97;                       // PropLibrary.STANDIN_SHADOW_CUT: the baked ground shadow
 uniform vec2 sun_k = vec2(0.8, 1.15);                  // PropLibrary.STANDIN_SUN
 uniform vec3 headlight_color = vec3(1.0, 0.95, 0.84);
+uniform float mirror = 1.0;                            // -1: the picture mirrored about its anchor (FIX-R7b, B-04)
 #elif defined(CE_ATLAS)
 uniform sampler2D albedo_tex : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform sampler2D emit_tex : source_color, hint_default_black, filter_linear_mipmap, repeat_disable;
@@ -144,7 +145,8 @@ void vertex() {
 	vec3 origin = MODEL_MATRIX[3].xyz;
 	float sx = length(MODEL_MATRIX[0].xyz);
 	float sy = length(MODEL_MATRIX[1].xyz);
-	vec3 wp = origin + cr * (VERTEX.x * sx) + vec3(0.0, VERTEX.y * sy, 0.0);
+	// mirrored: the quad turns over about its anchor and with it the cell (Arcade's sprite_dest with flip)
+	vec3 wp = origin + cr * (VERTEX.x * sx * mirror) + vec3(0.0, VERTEX.y * sy, 0.0);
 	VERTEX = (inverse(MODEL_MATRIX) * vec4(wp, 1.0)).xyz;
 	float facing = dot(normalize(CAMERA_POSITION_WORLD - origin), normalize(ce_sun_dir)) * 0.5 + 0.5;
 	// a picture with baked light gets the sun as level ground does, a little less against it, a little more with it
@@ -272,13 +274,18 @@ void fragment() {
 		float k = clamp(ce_snow, 0.0, 1.0) * smoothstep(0.5, 0.82, up) * (1.0 - la);
 		alb = mix(alb, snow_albedo * (1.0 - snow_night * lights), k);
 	}
-	alb = mix(alb, alb * flood_color * 1.6, flood);
-	ALBEDO = alb * wb;
+	// Arcade floods a plain prop that stands as a landmark at night: its picture's light goes towards the floodlight
+	// colour (modulate.lerp(LANDMARK_FLOOD, flood)). FIX-R7b (B-03): the lit share keeps 1 - flood of its light and the
+	// floodlight shines as light of its own, albedo × flood colour × flood – as an albedo factor alone (R7b) it only
+	// scaled the little light a surface gets at night (Bremer Dom at 22:00 darker than Arcade).
+	ALBEDO = alb * (1.0 - flood) * wb;
 	ROUGHNESS = roughness;
 	METALLIC = 0.0;
 	SPECULAR = 0.35 * wb;
-	// colours are sRGB-encoded here (the engine linearises ALBEDO and EMISSION): energy as pow(e, 1 / 2.2)
-	EMISSION = e * pow(lights * emit_energy, 0.4545);
+	// colours are sRGB-encoded here (the engine linearises ALBEDO and EMISSION): energy as pow(e, 1 / 2.2); the
+	// window light and the floodlight are added as linear light and encoded again
+	vec3 em = to_lin(e * pow(lights * emit_energy, 0.4545)) + to_lin(min(alb * flood_color * flood, vec3(1.0))) * wb;
+	EMISSION = albedo_for(em);
 	FOG = vec4(ce_fog_unshow(min(a.rgb * ce_fog_color.rgb * 1.15, vec3(1.0))), haze * (1.0 - la) * (1.0 - flood));
 #elif defined(CE_VCOL)
 	vec3 alb = COLOR.rgb * tint;

@@ -14,7 +14,8 @@ extends ChunkBuilder
 ##
 ## What a landmark is drawn with (lead decision 3 – the interface for the landmark models of AS6):
 ##   1 MODEL     the set has a model in the manifest (ModelDB): the model, placed like a prop model (origin = the
-##               sprite anchor, local -Z along the road, turned with the road, never mirrored). Surfaces of the classes
+##               sprite anchor, +Z the side the sprite shows) but facing its approach (_place) and mirrored only where
+##               Arcade mirrors the picture (a plain prop with the tag mirror_left on the left side). Surfaces of the classes
 ##               baked / baked_cutout / vpbr draw with assets/shaders/modern/landmark.gdshader (CE_ATLAS / CE_VCOL),
 ##               the classes glass and leaves keep their own materials (they have no landmark law)
 ##   2 PICTURE   else Arcade's own picture: the sprite cell, as Arcade draws it (CE_PICTURE)
@@ -38,9 +39,14 @@ const SHADER_PATH := "res://assets/shaders/modern/landmark.gdshader"
 const FLOOD_K := 0.55               ## RoadRenderer.LANDMARK_FLOOD_K: floodlight on a plain prop standing as a landmark
 const BLEND_FROM := 0.70            ## share of the range L from which the translucent variant draws (the fade starts at 0.72)
 const KEEP_BEHIND_M := 320.0        ## a passed landmark stays this long behind the camera (its body reaches ahead of its anchor)
+const APPROACH_M := 600.0           ## FIX-R7b (B-05): a model or shape faces the road point this far before its anchor …
+const MAX_TURN := 0.6981317         ## … turned at most this far (40°) from the road's heading at the anchor
 const PROC_KINDS: Array[String] = ["domed_church", "tv_tower", "lighthouse", "skyscrapers"]
 ## Arcade's procedural reference heights (RoadRenderer._lm_*: s = px per m × height / reference)
 const PROC_REF := {"domed_church": 80.0, "tv_tower": 368.0, "lighthouse": 51.0, "skyscrapers": 259.0}
+## FIX-R7b (B-05): depth (reference m) of the main axis behind the front face of a shape as _domed_church … build it –
+## proc_mesh() moves it onto the anchor
+const PROC_AXIS_Z := {"domed_church": 22.0, "tv_tower": 16.0, "lighthouse": 7.0, "skyscrapers": 18.0}
 const REP_NAMES: Array[String] = ["none", "model", "picture", "proc"]
 enum { NONE, MODEL, PICTURE, PROC }
 
@@ -157,7 +163,9 @@ func snapshot() -> Dictionary:
 			"rep": REP_NAMES[int(p.get("rep", NONE))], "kind": str(p.get("kind", "")), "z": snappedf(float(p.get("z", 0.0)), 0.01),
 			"x": snappedf(float(p.get("x", 0.0)), 0.01), "d": snappedf(float(e.get("d", 0.0)), 0.01),
 			"keep": snappedf(float(e.get("keep", 0.0)), 0.001), "lights": snappedf(float(e.get("lights", 0.0)), 0.001),
-			"blend": bool(e.get("blend", false)), "visible": bool(e.get("visible", false))})
+			"blend": bool(e.get("blend", false)), "visible": bool(e.get("visible", false)),
+			"mirror": bool(p.get("mirror", false)), "turn_deg": snappedf(float(p.get("turn_deg", 0.0)), 0.01),
+			"shift_m": snappedf(float(p.get("shift_m", 0.0)), 0.01)})
 	list.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return int(a["index"]) < int(b["index"]))
 	return {"landmarks": list}
 
@@ -348,15 +356,12 @@ func _drop(li: int) -> void:
 
 ## Creates landmark li under `world` at its place: the node, its parts and their two material sets.
 func _make(li: int, p: Dictionary, world: Node3D) -> Variant:
-	var z := float(p["z"])
-	var x := float(p["x"])
-	var side := int(p["side"])
-	var sc := float(p["scale"])
 	var node := Node3D.new()
 	node.name = "Landmark%d" % li
 	var e := {"node": node, "slots": [], "mats": [], "has_lights": true}
 	var rep := int(p["rep"])
 	var cast_ok := _casters >= 1
+	var box := AABB()                 # footprint of the model or shape in its own space (_place)
 	match rep:
 		PICTURE:
 			var st := _lib().standin(str(p["set"]))
@@ -371,6 +376,9 @@ func _make(li: int, p: Dictionary, world: Node3D) -> Variant:
 			_slot(e, mi, -1, pair, false)
 			var lr: Variant = src.get_shader_parameter("lights_rect")
 			e["has_lights"] = lr is Vector4 and (lr as Vector4).z > 0.0 or bool(p["flood"])
+			if bool(p.get("mirror", false)):
+				for m: ShaderMaterial in pair:
+					m.set_shader_parameter("mirror", -1.0)
 		MODEL:
 			var md: Dictionary = _lib().models.get(str(p["model"]), {})
 			var reps: Array = md.get("reps", [])
@@ -386,6 +394,7 @@ func _make(li: int, p: Dictionary, world: Node3D) -> Variant:
 				var mi := MeshInstance3D.new()
 				mi.mesh = mesh
 				mi.transform = part.get("transform", Transform3D.IDENTITY)
+				box = mi.transform * mesh.get_aabb() if box.size == Vector3.ZERO else box.merge(mi.transform * mesh.get_aabb())
 				node.add_child(mi)
 				for si in mesh.get_surface_count():
 					var cls := surface_class(mesh, si)
@@ -398,6 +407,7 @@ func _make(li: int, p: Dictionary, world: Node3D) -> Variant:
 			var pm := _proc(str(p["proc_key"]), p["item"])
 			var mi := MeshInstance3D.new()
 			mi.mesh = pm["mesh"]
+			box = (pm["mesh"] as Mesh).get_aabb()
 			node.add_child(mi)
 			_slot(e, mi, -1, [_material("vcol", false), _material("vcol", true)], cast_ok)
 			var gm: Variant = pm.get("glow_mesh")
@@ -413,7 +423,7 @@ func _make(li: int, p: Dictionary, world: Node3D) -> Variant:
 	if rep == PICTURE:
 		e["has_lights"] = bool(e["has_lights"])
 	world.add_child(node)
-	node.transform = _place(z, x, side, sc, rep != PICTURE)
+	node.transform = _place(p, rep, box)
 	_live[li] = e
 	return e
 
@@ -434,22 +444,68 @@ func _slot(e: Dictionary, gi: GeometryInstance3D, surface: int, pair: Array, cas
 	(e["mats"] as Array).append(pair[1])
 
 
-## Transform of a landmark: on the ground at its anchor; a model or shape turned with the road (never mirrored), a
-## picture upright (its shader turns it to the screen).
-func _place(z: float, x: float, side: int, sc: float, turned: bool) -> Transform3D:
+## Transform of landmark plan p (drawn as `rep`, footprint `box` in its own space): on the ground at its anchor; a
+## picture upright (its shader turns it to the screen); a model or shape FACING ITS APPROACH (FIX-R7b, B-05 – Arcade
+## always shows a landmark's front: its +Z side looks at the road point APPROACH_M before the anchor, at most
+## MAX_TURN away from the road's heading there; R7b turned it with the road at the anchor, so in bends it showed its
+## side wall), mirrored in x where Arcade mirrors the picture (B-04, p.mirror), and never nearer the road than turned
+## with the road (near_shift: the turn must not swing a corner of a long church towards the road).
+func _place(p: Dictionary, rep: int, box: AABB) -> Transform3D:
+	var z := float(p["z"])
+	var x := float(p["x"])
+	var side := int(p["side"])
+	var sc := float(p["scale"])
 	var h := 0.0
 	var terrain: Variant = _renderer.get("terrain")
 	if terrain is TerrainProfile and side != 0:
 		var edges := _track.road_edges_at(z)
 		var beyond := (x - edges.y if x > 0.0 else -x + edges.x) - _track.shoulder_w
 		h = (terrain as TerrainProfile).height(int(floor(z / _track.seg_len)), -1 if x < 0.0 else 1, maxf(0.0, beyond))
-	var basis := Basis.from_scale(Vector3(sc, sc, sc))
-	if turned:
-		var path: Variant = _renderer.get("path")
-		if path is RoadPath3D:
-			var a := (path as RoadPath3D).heading_at(z)
-			basis = Basis(RoadPath3D.right_of(a), Vector3.UP, -RoadPath3D.fwd_of(a)).scaled_local(Vector3(sc, sc, sc))
-	return Transform3D(basis, _renderer.call(&"road_to_world", z, x, h))
+	var origin: Vector3 = _renderer.call(&"road_to_world", z, x, h)
+	var mx := -sc if bool(p.get("mirror", false)) else sc
+	var path: Variant = _renderer.get("path")
+	if rep == PICTURE or not (path is RoadPath3D):
+		return Transform3D(Basis.from_scale(Vector3(mx if rep != PICTURE else sc, sc, sc)), origin)
+	var rp := path as RoadPath3D
+	var a := rp.heading_at(z)
+	var from := rp.world(maxf(z - APPROACH_M, rp.z_min()), 0.0, 0.0)
+	var t := face_heading(a, from, origin)
+	var basis := heading_basis(t, Vector3(mx, sc, sc))
+	var shift := near_shift(heading_basis(a, Vector3(mx, sc, sc)), basis, box, a, side)
+	p["turn_deg"] = rad_to_deg(t - a)
+	p["shift_m"] = shift
+	return Transform3D(basis, origin + RoadPath3D.right_of(a) * float(side) * shift)
+
+
+## Heading (RoadPath3D convention: fwd = (sin t, 0, -cos t)) of a landmark at `origin` that faces the road point
+## `from` before it: the bearing from there, at most MAX_TURN away from the road's heading `a` at the anchor (and `a`
+## itself when the two points nearly coincide).
+static func face_heading(a: float, from: Vector3, origin: Vector3) -> float:
+	var d := Vector3(origin.x - from.x, 0.0, origin.z - from.z)
+	if d.length() < 50.0:
+		return a
+	return a + clampf(wrapf(atan2(d.x, -d.z) - a, -PI, PI), -MAX_TURN, MAX_TURN)
+
+
+## Basis of a model standing along heading t (local -Z forward, +Z towards the driver), scaled by s (x < 0 mirrors).
+static func heading_basis(t: float, s: Vector3) -> Basis:
+	return Basis(RoadPath3D.right_of(t), Vector3.UP, -RoadPath3D.fwd_of(t)).scaled_local(s)
+
+
+## How far (m) a footprint `box` placed with basis `turned` must move away from the road (side ±1) so that no corner
+## comes nearer the road – across the road's heading `a` at the anchor – than with basis `along`: 0 when it does not.
+static func near_shift(along: Basis, turned: Basis, box: AABB, a: float, side: int) -> float:
+	if side == 0 or box.size == Vector3.ZERO:
+		return 0.0
+	var r := RoadPath3D.right_of(a)
+	var near_a := INF
+	var near_t := INF
+	for cx: float in [box.position.x, box.end.x]:
+		for cz: float in [box.position.z, box.end.z]:
+			var c := Vector3(cx, 0.0, cz)
+			near_a = minf(near_a, float(side) * (along * c).dot(r))
+			near_t = minf(near_t, float(side) * (turned * c).dot(r))
+	return maxf(0.0, near_a - near_t)
 
 
 # --- materials -------------------------------------------------------------------------------------------------------
@@ -607,14 +663,18 @@ func _proc(key: String, it: Dictionary) -> Dictionary:
 
 ## The 3D shape of Arcade's procedural landmark of item `it` (proc, height_m × scale, wall / dome colours, cross):
 ## {"mesh": ArrayMesh (CE_VCOL vertex format), "glow_mesh": ArrayMesh or null (CE_GLOW), "glows": int, "tris": int}.
-## Model space in metres of the real landmark (scaled by height_m × scale / Arcade's reference height), origin = the
-## middle of its near face on the ground, the body reaching to -Z; the node carries no scale of its own.
+## Model space in metres of the real landmark (height_m / Arcade's reference height; the node carries the placement
+## scale), origin = the foot of its MAIN AXIS – the main dome, the tower, the tallest high-rise – on the ground, the
+## front towards +Z. FIX-R7b (B-05): Arcade draws the whole landmark in the plane of its anchor, the dome at the
+## anchor; with the front face at the anchor the dome stood 25 m further away – lower and smaller than Arcade's, hidden
+## behind a tree at Leipzig.
 static func proc_mesh(it: Dictionary) -> Dictionary:
 	var kind := str(it.get("proc", ""))
 	var hgt := float(it.get("height_m", 40.0))
 	var k := hgt / float(PROC_REF.get(kind, hgt))
 	var kit := ShapeKit.new()
 	kit.k = k
+	kit.oz = float(PROC_AXIS_Z.get(kind, 0.0))
 	match kind:
 		"domed_church":
 			_domed_church(kit, Color(str(it.get("wall", "#ece6d6"))), Color(str(it.get("dome", "#d8b04a"))), bool(it.get("cross", true)))
@@ -780,6 +840,7 @@ static func _skyscrapers(kit: ShapeKit) -> void:
 ## UV2 (the CE_VCOL format of landmark.gdshader); positions in the reference metres of Arcade's drawing × k.
 class ShapeKit:
 	var k := 1.0
+	var oz := 0.0                     ## reference metres added along Z before the scale k (proc_mesh: main axis on the anchor)
 	var _v := PackedVector3Array()
 	var _n := PackedVector3Array()
 	var _c := PackedColorArray()
@@ -805,7 +866,7 @@ class ShapeKit:
 		_ch = Vector2(float(channel) + 0.5, weight) if channel >= 0 else Vector2(-1.0, 0.0)
 
 	func _vert(p: Vector3, nrm: Vector3) -> int:
-		_v.append(p * k)
+		_v.append((p + Vector3(0.0, 0.0, oz)) * k)
 		_n.append(nrm.normalized())
 		_c.append(_col)
 		_uv.append(_ru)
@@ -979,14 +1040,14 @@ class ShapeKit:
 
 	## A glow point (CE_GLOW): colour, strength, size (reference m), minimum px, (mode, period, lit, phase).
 	func glow(p: Vector3, col: Color, strength: float, size_m: float, min_px: float, mode: Vector4) -> void:
-		_gp.append(p * k)
+		_gp.append((p + Vector3(0.0, 0.0, oz)) * k)
 		_gc.append(Color(col.r, col.g, col.b, strength))
 		_gs.append(Vector2(size_m * k, min_px))
 		_gm.append(mode)
 
 	## A lighthouse beam (CE_GLOW mode 3): from p, `length_m` long (reference metres), turning once in `period` s.
 	func beam(p: Vector3, col: Color, strength: float, length_m: float, period: float, phase: float) -> void:
-		_bp.append(p * k)
+		_bp.append((p + Vector3(0.0, 0.0, oz)) * k)
 		_bc.append(Color(col.r, col.g, col.b, strength))
 		_bm.append(Vector4(3.0, period, length_m * k, phase))
 

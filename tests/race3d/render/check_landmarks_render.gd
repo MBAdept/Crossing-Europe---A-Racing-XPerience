@@ -14,10 +14,17 @@ extends SceneTree
 ##                       softly – its difference picture has no dither pattern (the change between neighbouring pixels
 ##                       stays well below the change itself; an ordered dither changes from pixel to pixel)
 ##   wahrzeichen_nacht   km 77.4, 22:00: beyond the night's sight its illumination stays (bright pixels)
+##   nacht_hell          (FIX-R7b, B-01) km 85.6, 22:00: the Elbphilharmonie's facade (upper half of its pixels) is at
+##                       most 1.1 × and at least 0.8 × as bright as in Arcade's frame of the same state
 ##   flugfeuer           Bremen – Dortmund km 225, 22:00: the Florianturm (3D shape of Arcade's TV tower) shows its red
-##                       aviation lights as small glows – some red pixels, and the landmark changes only a small part
-##                       of the picture (the first glows covered the whole sky in red: VIEWPORT_SIZE reads 0 in the
-##                       vertex stage of the Compatibility renderer)
+##                       aviation lights as small glows – some red pixels, at most 3 × Arcade's red pixels of the same
+##                       state (FIX-R7b, B-02), and the landmark changes only a small part of the picture
+##   anstrahlung         (FIX-R7b, B-03) Hamburg – Bremen km 114.4 and Montpellier – Lyon km 299.4, 22:00: a plain prop
+##                       standing as a landmark (the Bremer Dom as a model, the Basilika Fourvière as Arcade's picture)
+##                       is visibly floodlit (≥ 1.25 × the same frame with its floodlight share at 0) and 0.8 … 1.25 ×
+##                       as bright as in Arcade
+## Arcade's landmark pixels: the same paused frame drawn again with its landmark items prepared as empty (the cache
+## "_c" of the frozen RoadRenderer._prep_prop) – nothing of Arcade is edited.
 ## "-- --save=<absolute folder>" keeps the pictures. (Scripts started with -s compile before the autoloads exist.)
 
 const RACE := "res://scenes/race/race.tscn"
@@ -45,7 +52,9 @@ func _run() -> void:
 	await _check_stelle()
 	await _check_weich()
 	await _check_nacht()
+	await _check_nacht_hell()
 	await _check_flugfeuer()
+	await _check_anstrahlung()
 	root.get_node("Settings").call("disarm_crash_guard")
 	print("RENDER-CHECKS %s  (%d fehlgeschlagen)" % ["OK" if _failed.is_empty() else "FEHLER", _failed.size()])
 	quit(0 if _failed.is_empty() else 1)
@@ -111,8 +120,10 @@ func _grab() -> Image:
 	return img
 
 
-## The paused Modern frame with and without the landmark nodes: [with, without, live landmarks of the snapshot].
-func _modern_pair(extra: Dictionary) -> Array:
+## The paused Modern frame with and without the landmark nodes: [with, without, live landmarks of the snapshot,
+## hidden nodes, the frame with the floodlight of the hidden landmarks off (only with flood_off)]. only_set: hide only
+## the landmarks of that set (FIX-R7b).
+func _modern_pair(extra: Dictionary, only_set: String = "", flood_off: bool = false) -> Array:
 	var sc: Node = await _launch("modern", extra)
 	await _settle(sc)
 	var r: Object = sc.get("renderer")
@@ -120,18 +131,103 @@ func _modern_pair(extra: Dictionary) -> Array:
 	for i in 2:
 		await process_frame
 	var with := await _grab()
+	var b: Object = r.call("builder", "landmarks")
+	var live: Array = ((b.call("snapshot") as Dictionary).get("landmarks", []) as Array) if b != null else []
+	var names := {}
+	for e: Dictionary in live:
+		if only_set == "" or str(e.get("set", "")) == only_set or str(e.get("landmark", "")) == only_set:
+			names["Landmark%d" % int(e["index"])] = true
 	var nodes: Array = []
 	var world: Node = r.get("world")
 	for c: Node in world.get_children():
-		if str(c.name).begins_with("Landmark") and (c as Node3D).visible:
-			(c as Node3D).visible = false
+		if str(c.name).begins_with("Landmark") and (c as Node3D).visible and (only_set == "" or names.has(str(c.name))):
 			nodes.append(c)
+	var unlit: Image = null
+	if flood_off:
+		# the same frame with the floodlight share of their materials at 0 (the builder sets lm_fade every update; the
+		# tree is paused) – what the floodlight adds
+		for c: Node in nodes:
+			for mi: Node in c.get_children():
+				var mats: Array = []
+				if mi is GeometryInstance3D and (mi as GeometryInstance3D).material_override != null:
+					mats.append((mi as GeometryInstance3D).material_override)
+				if mi is MeshInstance3D:
+					for si in (mi as MeshInstance3D).get_surface_override_material_count():
+						if (mi as MeshInstance3D).get_surface_override_material(si) != null:
+							mats.append((mi as MeshInstance3D).get_surface_override_material(si))
+				for m: Variant in mats:
+					if m is ShaderMaterial:
+						var f: Variant = (m as ShaderMaterial).get_shader_parameter("lm_fade")
+						if f is Vector4:
+							(m as ShaderMaterial).set_shader_parameter("lm_fade", Vector4(f.x, f.y, f.z, 0.0))
+		await process_frame
+		unlit = await _grab()
+	for c: Node in nodes:
+		(c as Node3D).visible = false
 	await process_frame
 	var without := await _grab()
-	var b: Object = r.call("builder", "landmarks")
-	var live: Array = ((b.call("snapshot") as Dictionary).get("landmarks", []) as Array) if b != null else []
 	await _free(sc)
-	return [with, without, live, nodes.size()]
+	return [with, without, live, nodes.size(), unlit]
+
+
+## FIX-R7b: Arcade's frame of the same state with and without its landmarks ([with, without, hidden items]) – the
+## items of the set (all with only_set "") drawn by nothing: the prepared entry "_c" that the frozen
+## RoadRenderer._prep_prop caches in the item is replaced by an empty one, then the canvas is drawn again.
+func _arcade_pair(extra: Dictionary, only_set: String = "") -> Array:
+	var sc: Node = await _launch("arcade", extra)
+	await _settle(sc)
+	paused = true
+	for i in 2:
+		await process_frame
+	var with := await _grab()
+	var r: Object = sc.get("renderer")
+	var track: Object = r.get("track")
+	var items: Array = (track.get("landmarks") as Array).duplicate()
+	var segs: Variant = track.get("_segs")
+	if segs is Dictionary:
+		for s: Variant in (segs as Dictionary).values():
+			for it: Dictionary in (s as Object).get("sprites"):
+				if bool(it.get("landmark", false)):
+					items.append(it)
+	var hidden := 0
+	for it: Dictionary in items:
+		if only_set == "" or str(it.get("set", "")) == only_set:
+			it["_c"] = ["", [], 0.0, float(it.get("x", 0.0)), "", Color.WHITE]
+			hidden += 1
+	(r as CanvasItem).queue_redraw()
+	for i in 2:
+		await process_frame
+	var without := await _grab()
+	await _free(sc)
+	return [with, without, hidden]
+
+
+## Mean luminance (0..255) of the pixels of `img` where `mask` is set, in the upper `share` of the rows of `box`
+## (houses in front hide the foot of a landmark differently in the two modes).
+static func _mask_lum(img: Image, mask: PackedByteArray, box: Rect2i, share: float) -> Array:
+	var w := img.get_width()
+	var data := img.get_data()
+	var sum := 0.0
+	var n := 0
+	for y in range(box.position.y, box.position.y + int(ceil(float(box.size.y) * share))):
+		for x in range(box.position.x, box.end.x):
+			var i := y * w + x
+			if mask[i] == 1:
+				sum += 0.2126 * float(data[i * 3]) + 0.7152 * float(data[i * 3 + 1]) + 0.0722 * float(data[i * 3 + 2])
+				n += 1
+	return [sum / float(maxi(1, n)), n]
+
+
+## Red aviation-light pixels (QA-R7b's measure: r >= 110, r > 1.8 g, r > 1.8 b) where `mask` is set.
+static func _mask_red(img: Image, mask: PackedByteArray) -> int:
+	var data := img.get_data()
+	var red := 0
+	for i in mask.size():
+		if mask[i] == 1:
+			var rr := float(data[i * 3])
+			if rr >= 110.0 and rr > 1.8 * float(data[i * 3 + 1]) and rr > 1.8 * float(data[i * 3 + 2]):
+				red += 1
+	return red
 
 
 ## Pixels where `a` and `b` differ: [mask (PackedByteArray), bbox Rect2i, count, per-pixel difference (PackedFloat32Array)].
@@ -272,22 +368,78 @@ func _check_nacht() -> void:
 
 func _check_flugfeuer() -> void:
 	var p: Array[String] = []
-	var pair: Array = await _modern_pair({"stage_id": "bremen_dortmund", "from_city": "bremen", "start_km": 225.0,
-		"start_world_minutes": 22.0 * 60.0})
+	var at := {"stage_id": "bremen_dortmund", "from_city": "bremen", "start_km": 225.0, "start_world_minutes": 22.0 * 60.0}
+	var pair: Array = await _modern_pair(at)
 	_save_img(pair[0], "flugfeuer_modern")
 	var dm: Array = _diff(pair[0], pair[1])
 	var img: Image = pair[0]
 	var total := img.get_width() * img.get_height()
-	var mask: PackedByteArray = dm[0]
-	var data := img.get_data()
-	var red := 0
-	for i in mask.size():
-		if mask[i] == 1 and data[i * 3] >= 150 and data[i * 3] > 2 * data[i * 3 + 1] and data[i * 3] > 2 * data[i * 3 + 2]:
-			red += 1
+	var red := _mask_red(img, dm[0])
 	var share := float(int(dm[2])) / float(total)
+	# FIX-R7b (B-02): Arcade's dot at the same simulation state – the lights were 17 × 19 px against Arcade's 4 × 4
+	var apair: Array = await _arcade_pair(at)
+	_save_img(apair[0], "flugfeuer_arcade")
+	var da: Array = _diff(apair[0], apair[1])
+	var red_a := _mask_red(apair[0], da[0])
+	var limit := maxi(3 * red_a, 12)
 	_need(p, red >= 3, "rote Flugwarnlichter zu sehen (%d rote Pixel)" % red)
+	_need(p, red_a >= 3, "Arcades Flugwarnlicht gefunden (%d rote Pixel)" % red_a)
+	_need(p, red <= limit, "nicht größer als Arcades Punkt (%d rote Pixel, höchstens %d = 3 × Arcade)" % [red, limit])
 	_need(p, share <= 0.03, "das Wahrzeichen ändert nur einen kleinen Teil des Bildes (%.2f %%)" % (share * 100.0))
-	_report("flugfeuer", p, "Florianturm 22 Uhr: %d rote Pixel, Wahrzeichen %.2f %% des Bildes (%d Pixel, um %s)" % [red, share * 100.0, int(dm[2]), str(dm[1])])
+	_report("flugfeuer", p, "Florianturm 22 Uhr: %d rote Pixel (Arcade %d), Wahrzeichen %.2f %% des Bildes (%d Pixel, um %s)" % [
+		red, red_a, share * 100.0, int(dm[2]), str(dm[1])])
+
+
+## FIX-R7b (B-01): a picture landmark at night is not brighter than Arcade's – the Elbphilharmonie at 22:00 (its
+## light layer was mixed in linear values: +28 % luminance of the facade).
+func _check_nacht_hell() -> void:
+	var p: Array[String] = []
+	var at := {"start_km": 85.6, "start_world_minutes": 22.0 * 60.0}
+	var lm := "landmarks/elbphilharmonie"
+	var pair: Array = await _modern_pair(at, lm)
+	var dm: Array = _diff(pair[0], pair[1])
+	var apair: Array = await _arcade_pair(at, lm)
+	var da: Array = _diff(apair[0], apair[1])
+	_save_img(pair[0], "nacht_hell_modern")
+	_save_img(apair[0], "nacht_hell_arcade")
+	var m: Array = _mask_lum(pair[0], dm[0], dm[1], 0.5)
+	var a: Array = _mask_lum(apair[0], da[0], da[1], 0.5)
+	var ratio := float(m[0]) / maxf(float(a[0]), 1.0)
+	_need(p, int(m[1]) >= 200 and int(a[1]) >= 200, "Fassade in beiden Bildern (Modern %d, Arcade %d Pixel)" % [int(m[1]), int(a[1])])
+	_need(p, ratio <= 1.1, "nicht heller als Arcade (%.2f × Arcades Luminanz, höchstens 1,10)" % ratio)
+	_need(p, ratio >= 0.8, "nicht viel dunkler als Arcade (%.2f, mindestens 0,80)" % ratio)
+	_report("nacht_hell", p, "Elbphilharmonie 22 Uhr km 85,6: Fassade Ø Luminanz Modern %.1f, Arcade %.1f (%.2f ×; obere Hälfte, %d / %d Pixel)" % [
+		float(m[0]), float(a[0]), ratio, int(m[1]), int(a[1])])
+
+
+## FIX-R7b (B-03): a plain prop standing as a landmark is floodlit at night as in Arcade – the Bremer Dom
+## (props/church as a model) and the Basilika Fourvière in Lyon (props/city_vienna_kirche as Arcade's picture): their
+## floodlight visibly lights them (the frame with the floodlight share at 0 is clearly darker) and they come near
+## Arcade's brightness. R7b's floodlight only scaled the lit albedo of a model; removing it went unnoticed.
+func _check_anstrahlung() -> void:
+	var cases := [["Bremer Dom (Modell)", {"stage_id": "hamburg_bremen", "from_city": "hamburg", "start_km": 114.4,
+		"start_world_minutes": 22.0 * 60.0}, "props/church"],
+		["Fourvière Lyon (Bild)", {"stage_id": "montpellier_lyon", "from_city": "montpellier", "start_km": 299.4,
+		"start_world_minutes": 22.0 * 60.0}, "props/city_vienna_kirche"]]
+	for c: Array in cases:
+		var p: Array[String] = []
+		var pair: Array = await _modern_pair(c[1], c[2], true)
+		var dm: Array = _diff(pair[0], pair[1])
+		var apair: Array = await _arcade_pair(c[1], c[2])
+		var da: Array = _diff(apair[0], apair[1])
+		var tag := str(c[2]).get_file()
+		_save_img(pair[0], "anstrahlung_%s_modern" % tag)
+		_save_img(apair[0], "anstrahlung_%s_arcade" % tag)
+		var lit: Array = _mask_lum(pair[0], dm[0], dm[1], 1.0)
+		var unlit: Array = _mask_lum(pair[4], dm[0], dm[1], 1.0) if pair[4] != null else [0.0, 0]
+		var arc: Array = _mask_lum(apair[0], da[0], da[1], 1.0)
+		var gain := float(lit[0]) / maxf(float(unlit[0]), 1.0)
+		var ratio := float(lit[0]) / maxf(float(arc[0]), 1.0)
+		_need(p, int(lit[1]) >= 100 and int(arc[1]) >= 100, "das Wahrzeichen in beiden Bildern (Modern %d, Arcade %d Pixel)" % [int(lit[1]), int(arc[1])])
+		_need(p, gain >= 1.25, "das Anstrahlen hellt es sichtbar auf (%.2f × ohne Anstrahlen, mindestens 1,25)" % gain)
+		_need(p, ratio >= 0.8 and ratio <= 1.25, "so hell wie Arcade (%.2f × Arcades Luminanz, 0,80 … 1,25)" % ratio)
+		_report("anstrahlung", p, "%s 22 Uhr: Ø Luminanz Modern %.1f (ohne Anstrahlen %.1f, %.2f ×), Arcade %.1f (%.2f ×), %d / %d Pixel" % [
+			str(c[0]), float(lit[0]), float(unlit[0]), gain, float(arc[0]), ratio, int(lit[1]), int(arc[1])])
 
 
 func _need(problems: Array[String], cond: bool, what: String) -> void:

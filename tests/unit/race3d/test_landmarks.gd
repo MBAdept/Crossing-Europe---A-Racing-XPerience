@@ -121,6 +121,95 @@ func test_anchor_is_arcades() -> void:
 		assert_near(float(pp["x"]), 40.0 * float(side) + float(side) * 30.0 * 0.5 * 0.5, 1.0e-4, "Mitte wie Arcades Zeichnung, Seite %d" % side)
 
 
+## FIX-R7b (B-04), network-wide: every landmark of every stage direction stands at Arcade's anchor (RoadRenderer
+## _prep_prop of the same item – edge rule with the extent of the side Arcade shows, a procedural kind centred) and is
+## mirrored exactly where Arcade mirrors its picture (prop_flipped: props/church on the left side). R7b never mirrored
+## and measured the edge with the unmirrored extent: the Magdeburger Dom stood 37.8 m nearer the road (44.7 px at 600 m).
+func test_anchor_and_mirror_like_arcade_network_wide() -> void:
+	var cfg := ConfigLoader.load_merged()
+	var net := Fair.load_network()
+	var items: Array = []
+	var want: Array = []
+	for dir: Dictionary in Fair.directions(net):
+		var plan := StagePlan.build(dir["stage"], str(dir["from"]), net["cities"], net["countries"], cfg, net["city_db"])
+		var t := Track.new()
+		t.setup(plan, cfg, net["scenery"])
+		var pfb := Landmarks.plan_fallbacks(t)
+		for it: Dictionary in t.landmarks:
+			items.append([str(dir["name"]), it.duplicate(true), pfb])
+		for s: String in Landmarks.wanted_sets(t):
+			if not want.has(s):
+				want.append(s)
+	var lib := PropLibrary.new()
+	lib.request(want, self)
+	var guard := 0
+	while lib.pending() > 0 and guard < 60000:
+		OS.delay_msec(1)
+		guard += 1
+	var rr := RoadRenderer.new()
+	rr.proj = Fair.make_projection(cfg)
+	var worst := 0.0
+	var mirrored := 0
+	for row: Array in items:
+		var it: Dictionary = row[1]
+		var pc: Array = rr._prep_prop(it.duplicate())
+		var p: Dictionary = Landmarks.resolve_item(it, lib.sets, row[2])
+		var what := "%s %s" % [str(row[0]), str(it["set"])]
+		if int(p["rep"]) == Landmarks.NONE:
+			continue
+		worst = maxf(worst, absf(float(p["x"]) - float(pc[3])))
+		# a model's extents may differ from its sprite's by the validator's tolerance (A-4: max(2 %, half a sprite pixel
+		# + 5 mm)) – measured at most 0.15 m (props/building_tall × 3.6), 0.2 px at 600 m
+		assert_near(float(p["x"]), float(pc[3]), 0.25, "%s: Anker wie Arcade" % what)
+		var info: Array = pc[1]
+		var flip := not info.is_empty() and RoadRenderer.prop_flipped(int(it.get("side", 1)), bool(it.get("mirror", false)),
+			bool(info[RoadRenderer.SI_MIRROR]))
+		assert_eq(bool(p.get("mirror", false)), flip, "%s: gespiegelt genau wie Arcades Bild" % what)
+		if flip:
+			mirrored += 1
+	rr.free()
+	assert_true(items.size() >= 100, "Wahrzeichen des Netzes geprüft (%d)" % items.size())
+	assert_true(mirrored >= 10, "Requisiten mit mirror_left stehen links gespiegelt wie in Arcade (%d)" % mirrored)
+	print("    Anker wie Arcade bei %d Wahrzeichen (größter Unterschied %.3f m), %d gespiegelt" % [items.size(), worst, mirrored])
+	lib.clear(self)
+	_cleanup()
+
+
+## FIX-R7b (B-05): a model or shape faces its approach – the bearing from the road point before it, at most MAX_TURN
+## from the road's heading – and the turn never brings a corner of its footprint nearer the road than standing along
+## the road would.
+func test_facing_the_approach() -> void:
+	var a := 0.3
+	var origin := Vector3(100.0, 0.0, -600.0)
+	# straight ahead of the approach point: the bearing itself
+	var from := origin - RoadPath3D.fwd_of(a + 0.2) * 600.0
+	assert_near(Landmarks.face_heading(a, from, origin), a + 0.2, 1.0e-4, "Front zur Anfahrt")
+	var far := origin - RoadPath3D.fwd_of(a + 1.2) * 600.0
+	assert_near(Landmarks.face_heading(a, far, origin), a + Landmarks.MAX_TURN, 1.0e-4, "höchstens MAX_TURN von der Straße")
+	assert_near(Landmarks.face_heading(a, origin + Vector3(1.0, 0.0, 1.0), origin), a, 1.0e-6, "Punkte fallen zusammen: Straßenrichtung")
+	# a long footprint (a church 20 m wide, 70 m deep) on the left side, turned 25° each way
+	var box := AABB(Vector3(-4.0, 0.0, -60.0), Vector3(20.0, 30.0, 70.0))
+	for side: int in [1, -1]:
+		for turn: float in [0.44, -0.44]:
+			for mirror: float in [1.0, -1.0]:
+				var s := Vector3(2.6 * mirror, 2.6, 2.6)
+				var along := Landmarks.heading_basis(a, s)
+				var turned := Landmarks.heading_basis(a + turn, s)
+				var shift := Landmarks.near_shift(along, turned, box, a, side)
+				assert_true(shift >= 0.0, "nie zur Straße hin verschoben")
+				var r := RoadPath3D.right_of(a)
+				var near_a := INF
+				var near_t := INF
+				for cx: float in [box.position.x, box.end.x]:
+					for cz: float in [box.position.z, box.end.z]:
+						var c := Vector3(cx, 0.0, cz)
+						near_a = minf(near_a, float(side) * (along * c).dot(r))
+						near_t = minf(near_t, float(side) * ((turned * c) + r * float(side) * shift).dot(r))
+				assert_true(near_t >= near_a - 1.0e-3, "Seite %d, Drehung %.2f, Spiegel %.0f: keine Ecke näher an der Straße (%.2f gegen %.2f)" % [side, turn, mirror, near_t, near_a])
+	assert_near(Landmarks.near_shift(Landmarks.heading_basis(a, Vector3.ONE), Landmarks.heading_basis(a, Vector3.ONE), box, a, 1), 0.0, 1.0e-4, "ungedreht: keine Verschiebung")
+	assert_true(Landmarks.heading_basis(a, Vector3(-1.0, 1.0, 1.0)).determinant() < 0.0, "gespiegelt: negative Determinante (ein MeshInstance3D zeichnet richtig, D24)")
+
+
 ## The procedural shapes: the size of the real landmark (height_m × scale up to its tip; skyscrapers with their
 ## masts as Arcade draws them), a TV tower and a lighthouse slim (N2: no wide block), every face wound outwards (front
 ## faces clockwise for Godot), the aviation lights.
@@ -147,7 +236,11 @@ func test_procedural_shapes() -> void:
 		else:
 			assert_near(top, hgt, hgt * 0.02, "%s: Höhe des Wahrzeichens (%.1f m)" % [what, top])
 		assert_near(aabb.position.y, 0.0, 0.01, "%s: steht auf dem Boden" % what)
-		assert_true(aabb.end.z <= 0.7 and aabb.end.z > -1.0, "%s: Vorderseite am Anker, der Körper reicht nach -Z (%.2f)" % [what, aabb.end.z])
+		# FIX-R7b (B-05): the main axis (dome, tower, tallest high-rise) on the anchor, as Arcade draws it there – the
+		# body reaches to both sides of it in depth (R7b: the front face at the anchor, the dome 25 m behind it)
+		var axis := _axis_z(v, aabb)
+		assert_near(axis, 0.0, maxf(0.5, aabb.size.z * 0.02), "%s: Hauptachse am Anker (z %.2f)" % [what, axis])
+		assert_true(aabb.position.z < -1.0 and aabb.end.z > 1.0, "%s: der Körper reicht vor und hinter den Anker (%.1f .. %.1f)" % [what, aabb.position.z, aabb.end.z])
 		var ratio := aabb.size.x / maxf(top, 0.01)
 		if bool(c["slim"]):
 			assert_true(ratio < 0.4, "%s: schlank (Breite/Höhe %.2f) – kein breiter Block" % [what, ratio])
@@ -170,6 +263,17 @@ func test_procedural_shapes() -> void:
 		assert_true(tri >= 50 and tri <= 25000, "%s: Dreiecke im Budget eines Wahrzeichens (%d)" % [what, tri])
 		assert_eq(int(out["glows"]), int(c["glows"]), "%s: Flugwarn- und Leuchtfeuer" % what)
 		assert_eq(out["glow_mesh"] != null, int(c["glows"]) > 0, "%s: Leuchtpunkte als eigenes Netz" % what)
+
+
+## Depth of a shape's main axis: the mean z of its topmost vertices (spike, antenna, mast – they stand on the axis).
+static func _axis_z(v: PackedVector3Array, aabb: AABB) -> float:
+	var s := 0.0
+	var n := 0
+	for p: Vector3 in v:
+		if p.y >= aabb.end.y - aabb.size.y * 0.03:
+			s += p.z
+			n += 1
+	return s / float(maxi(1, n))
 
 
 ## Amendment A-19: landmarks never use instance uniforms (each landmark has its own small set of materials).
