@@ -67,7 +67,15 @@ const NO_CUSTOM := [0.0, 0.0, 0.0, 0.0]
 const MODEL_COLOR := [1.0, 1.0, 1.0, 1.0]
 const INSTANCE_FLOATS := 20
 const LOD_HYSTERESIS_M := 6.0      ## a chunk leaves a level this much later than it enters it
-const LOD_STEP_M := 2.0            ## update() looks at the chunk levels again after this much driving
+## update() looks at the chunk levels again after this much driving; a level node is switched on this much before its
+## band begins and off this much after it ends (FIX-R7c, QR7c-05: between two looks an instance may enter a band while
+## the node of its finer level is still off – the coarser one fading out would leave dither holes)
+const LOD_STEP_M := 2.0
+## FIX-R7c (QR7c-06): below this camera speed (m/s) the camera "stands": ce_lod_still goes to 1 over LOD_STILL_S seconds
+## (the vehicles' xfade is 0.3–0.5 s, A-16) and every band narrows to a hard swap at its middle – no dithered tree or
+## house in the countdown, a traffic jam or a police stop; driving off widens the bands again over the same time
+const LOD_STILL_SPEED := 1.5
+const LOD_STILL_S := 0.4
 const COVER_PER_TREE := 3          ## pieces of ground cover for a tree dropped in a bend corridor (one for a bush)
 const COVER_SPREAD_M := 2.5        ## … scattered at most this far around its foot
 const COVER_MIN_BEYOND_M := 0.8    ## … and never closer than this to the paved edge
@@ -96,6 +104,7 @@ const LOD_ENDLESS := 1.0e9
 const ALIGN_MAX_DEG := 30.0
 const FACE_ROAD_DEG := 20.0
 const ATTACH_ITEM_BASE := 200000   ## item numbers of attached props (hashes, lists): beyond every real and cover item
+const ATTACH_MAX := 8              ## attachments per model at most (item numbers ATTACH_ITEM_BASE + item × 8 + k)
 ## R7c: what the materials of the prop models get on top of their bands ([uniform, value]; baked.gdshader – its defaults
 ## keep the earlier picture, so the panels of stations, borders and gantries keep their sharp lettering, check_structures
 ## "zieltor"):
@@ -141,6 +150,10 @@ var _far_sun: Dictionary = {}       ## class ("building", "tree", …) or model 
 var _banded: Dictionary = {}        ## model id -> true: its materials carry the bands of the current levels
 var _bands: Dictionary = {}         ## model id -> {rep: Vector4}
 var _models_seen: Dictionary = {}   ## model id -> a set it was drawn for (quality_lowered)
+## FIX-R7c (QR7c-06): ce_lod_still – 1 while the camera stands (the start of a stage is a standing camera)
+var _still := 1.0
+var _still_z := -1.0e12             ## camera position of the last frame (-1e12: none yet)
+var _still_sent := -1.0             ## value of ce_lod_still last set (-1: never)
 
 
 func id() -> String:
@@ -210,11 +223,11 @@ func quality_lowered(levels: Dictionary) -> void:
 	for h: Variant in _holders:
 		if not is_instance_valid(h):
 			continue
-		(h as Node).remove_meta(&"span_key")
 		for c: Node in (h as Node).get_children():
 			if c.has_meta(&"band") and c.has_meta(&"model"):
 				var bands := model_bands(str(c.get_meta(&"model")))
 				c.set_meta(&"band", bands.get(str(c.get_meta(&"rep")), c.get_meta(&"band")))
+		_thresholds(h)          # new bands and shadow reach: new thresholds (and no stale key)
 	_lod_z = -1.0e12
 
 
@@ -356,8 +369,9 @@ func fail_reason() -> String:
 	return _lib().fail_reason() if _prepared else ""
 
 
-func update(view: Dictionary, _dt: float) -> void:
+func update(view: Dictionary, dt: float) -> void:
 	var cam_z := float(view.get("camera_z", 0.0))
+	_update_still(cam_z, dt)
 	if absf(cam_z - _far_z) >= LOD_STEP_M or _far_z < -1.0e11:
 		_far_z = cam_z
 		_update_far_landmarks(view, cam_z)
@@ -373,6 +387,33 @@ func update(view: Dictionary, _dt: float) -> void:
 		else:
 			_apply_lod(h, cam_z, eye)
 		i -= 1
+
+
+## FIX-R7c (QR7c-06): ce_lod_still from the camera's motion along the road (dt = 0 while the stage is prepared: no
+## change). Sets the global only when its value changes.
+func _update_still(cam_z: float, dt: float) -> void:
+	var speed := 0.0
+	if dt > 0.0 and _still_z > -1.0e11:
+		speed = absf(cam_z - _still_z) / dt
+	if dt > 0.0:
+		_still_z = cam_z
+	_still = still_step(_still, speed, dt)
+	if _still != _still_sent:
+		_still_sent = _still
+		ModernMaterials.set_global("ce_lod_still", _still)
+
+
+## The next value of ce_lod_still: towards 1 while the camera moves slower than LOD_STILL_SPEED (m/s), towards 0
+## otherwise, LOD_STILL_S seconds for the whole way.
+static func still_step(still: float, speed: float, dt: float) -> float:
+	if dt <= 0.0:
+		return still
+	return move_toward(still, 1.0 if speed < LOD_STILL_SPEED else 0.0, dt / LOD_STILL_S)
+
+
+## The current ce_lod_still of this builder (tests, debug).
+func lod_still() -> float:
+	return _still
 
 
 ## Position of the main camera (origin-relative world), or null without a renderer camera in the tree (tests).
@@ -894,9 +935,18 @@ static func _place(ctx: ChunkContext, inp: Dictionary, out: Dictionary, i: int, 
 	if is_model and not attached and not is_cover:
 		var md: Dictionary = models.get(model_id, {})
 		var k := 0
+		var z_lo := float(ctx.seg_a) * ctx.seg_len
+		var z_hi := float(ctx.seg_b) * ctx.seg_len
 		for a: Dictionary in md.get("attach", []):
+			if k >= ATTACH_MAX:
+				break           # FIX-R7c (QR7c-08): item numbers item × ATTACH_MAX + k stay apart
 			var ai := attach_item(it, a, z, x, sc, side, flipped, seg_index, j, k)
 			k += 1
+			# FIX-R7c (QR7c-08): an attachment beyond this chunk is not placed – ground() and the corridor test would
+			# read the edge row there (wrong height on a slope; a corridor that begins just beyond the edge, F7), and the
+			# neighbouring chunk does not see this item. Offsets of a few metres lose it only near a chunk end.
+			if float(ai["z"]) < z_lo or float(ai["z"]) >= z_hi:
+				continue
 			_place(ctx, inp, out, i, seg, int(ai["j"]), ai, false)
 
 
@@ -909,7 +959,7 @@ static func attach_item(it: Dictionary, a: Dictionary, z: float, x: float, sc: f
 	var off: Vector3 = a["offset"]
 	var ox := -off.x if flipped else off.x
 	var out := {"kind": "prop", "set": str(a["prop"]), "side": side if side != 0 else 1, "x": x + ox * sc, "z": z - off.z * sc,
-		"scale": float(a["scale"]) * sc, "attached": true, "j": ATTACH_ITEM_BASE + item * 8 + k}
+		"scale": float(a["scale"]) * sc, "attached": true, "j": ATTACH_ITEM_BASE + item * ATTACH_MAX + k}
 	if absf(off.y) > 0.001:
 		out["lift"] = off.y * sc
 	if it.has("tint"):
@@ -1204,14 +1254,22 @@ static func _mmi(part: Dictionary, buf: PackedFloat32Array, n: int, mirrored: bo
 ## of distances of the chunk's instances: straight-line distances of the box of their origins from the camera (eye),
 ## like the shaders; without a renderer camera (tests) the path distances of the instances along the road instead.
 ## meta "lod" = the coarsest chunk level any instance is at (0 / 1 / 2, for debug and tests).
+## FIX-R7c (QR7c-03): the walk over the children runs only when the span crosses one of the holder's thresholds
+## (_thresholds(): every distance at which a child's visibility or the holder's level changes) – the key is the place of
+## the span among them, not the span itself (the 1-m key of R7c changed at every look and walked every child of every
+## chunk every 2 m of driving: the hook cost 2.5–3 x and peaked at 3.8–4.4 ms on the Deck preset, QA-R7c).
+## QR7c-05: a level node is on from LOD_STEP_M before its band to LOD_STEP_M after it (the look comes every LOD_STEP_M).
 func _apply_lod(holder: Node, cam_z: float, eye: Variant = null) -> void:
 	var span := _span(holder, cam_z, eye)
-	var d := span.x
-	var cast := _casters >= 2 and d < _shadow_m + SHADOW_KEEP_M
-	var key := Vector3(snappedf(span.x, 1.0), snappedf(span.y, 1.0), 1.0 if cast else 0.0)
-	if holder.get_meta(&"span_key", Vector3(-1.0, -1.0, -1.0)) == key:
+	if not holder.has_meta(&"thr_lo"):
+		_thresholds(holder)
+	var lo: PackedFloat32Array = holder.get_meta(&"thr_lo")
+	var hi: PackedFloat32Array = holder.get_meta(&"thr_hi")
+	var key := Vector2i(lo.bsearch(span.y, false), hi.bsearch(span.x, true))
+	if holder.get_meta(&"span_key", Vector2i(-1, -1)) == key:
 		return
 	holder.set_meta(&"span_key", key)
+	var cast := _casters >= 2 and span.x < _shadow_m + SHADOW_KEEP_M
 	holder.set_meta(&"lod", lod_level(span.y, -1, _lod0_m, _lod1_m))
 	holder.set_meta(&"cast", cast)
 	for c: Node in holder.get_children():
@@ -1222,9 +1280,27 @@ func _apply_lod(holder: Node, cam_z: float, eye: Variant = null) -> void:
 			n3.visible = cast
 		elif c.has_meta(&"band"):
 			var b: Vector4 = c.get_meta(&"band")
-			n3.visible = span.y >= b.x and span.x <= b.w
+			n3.visible = span.y >= b.x - LOD_STEP_M and span.x <= b.w + LOD_STEP_M
 		else:
 			n3.visible = true
+
+
+## FIX-R7c (QR7c-03): the sorted thresholds of a holder for _apply_lod(): "thr_lo" against the farthest instance (band
+## starts − LOD_STEP_M, the level distances of the meta "lod"), "thr_hi" against the nearest one (band ends + LOD_STEP_M,
+## the reach of the casters). Again after the bands or the shadow reach change (quality_lowered()).
+func _thresholds(holder: Node) -> void:
+	var lo := PackedFloat32Array([_lod0_m, _lod1_m])
+	var hi := PackedFloat32Array([_shadow_m + SHADOW_KEEP_M])
+	for c: Node in holder.get_children():
+		if c.has_meta(&"band"):
+			var b: Vector4 = c.get_meta(&"band")
+			lo.append(b.x - LOD_STEP_M)
+			hi.append(b.w + LOD_STEP_M)
+	lo.sort()
+	hi.sort()
+	holder.set_meta(&"thr_lo", lo)
+	holder.set_meta(&"thr_hi", hi)
+	holder.remove_meta(&"span_key")
 
 
 ## (nearest, farthest) distance of the instance origins of a holder from the camera.
@@ -1234,9 +1310,8 @@ func _span(holder: Node, cam_z: float, eye: Variant) -> Vector2:
 		var wb: AABB = (holder as Node3D).global_transform * box
 		var p: Vector3 = eye
 		var near := p.clamp(wb.position, wb.end).distance_to(p)
-		var far := 0.0
-		for k in 8:
-			far = maxf(far, wb.get_endpoint(k).distance_to(p))
+		# the farthest corner: per axis the end farther from the eye
+		var far := (p - wb.position).abs().max((wb.end - p).abs()).length()
 		return Vector2(near, far)
 	var z0 := float(holder.get_meta(&"iz0", holder.get_meta(&"z0", 0.0)))
 	var z1 := float(holder.get_meta(&"iz1", holder.get_meta(&"z1", 0.0)))

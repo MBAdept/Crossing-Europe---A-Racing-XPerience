@@ -53,6 +53,9 @@ const GLOBALS: Array = [
 	# mirrors (road.gdshader); set by the environment rig
 	["ce_sky_top", RenderingServer.GLOBAL_VAR_TYPE_COLOR, Color(0.11, 0.36, 0.79)],
 	["ce_sky_horizon", RenderingServer.GLOBAL_VAR_TYPE_COLOR, Color(0.73, 0.87, 0.96)],
+	# FIX-R7c (QR7c-06): 1 = the camera stands – the level bands of the props narrow to a hard swap (inc/lod_band.gdshaderinc);
+	# set by builders/props.gd from the camera's speed; 0 = the dither band (every scene without that builder)
+	["ce_lod_still", RenderingServer.GLOBAL_VAR_TYPE_FLOAT, 0.0],
 ]
 
 ## The vehicle LOOK in one place (A-13): the class parameters a scene puts on the shared vehicle materials – [class,
