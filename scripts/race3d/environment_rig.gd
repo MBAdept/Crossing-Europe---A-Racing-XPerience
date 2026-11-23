@@ -123,6 +123,11 @@ const EXIT_QUAD_H := 9.0           ## the glare quad reaches this high above the
 ## outside behind it is over-exposed but the car is not veiled (Arcade's player sprite stays as it is; seen from inside
 ## the tube, the portal still frames the quad)
 const EXIT_CAR_GAP_M := 1.5
+## RINT-M3 (NACH-RINT N-02): once the quad has moved beyond the car it stands outside the tube, and in the last
+## metres before the portal the tube no longer frames it – its top and side edges stood as hard lines against the
+## landscape (Valík, 3 frames). There it covers the whole view (EXIT_COVER_M wide and high, depth tested: the car and the
+## near tube stay as they are) – Arcade over-exposes everything outside in those frames.
+const EXIT_COVER_M := 400.0
 const POST_EXACT := true           ## the post path carries post_lut(): it shows what the passes wrote (RINT-B)
 const POST_LUT_SIZE := 256         ## texels of the 1D LUT (half floats; texel j belongs to the input (j + 0.5) / size)
 
@@ -470,9 +475,12 @@ func _update_exit(view: Dictionary, pal: Dictionary, tunnel01: float, fog_out: C
 		var ez := float(((tb as Object).get("tunnel_state") as Dictionary).get("exit_z", INF))
 		if is_finite(ez) and absf(ez - z_quad) < _track.seg_len:
 			z_quad = ez - EXIT_QUAD_IN_M
+	var beyond := false
 	if not pl.is_empty():
-		z_quad = maxf(z_quad, float(pl.get("z", 0.0)) + float(pl.get("length", 4.5)) + EXIT_CAR_GAP_M)
-	_show_exit(_exit_state, path if glare > 0.0 else null, z_quad, fog_out)
+		var z_car := float(pl.get("z", 0.0)) + float(pl.get("length", 4.5)) + EXIT_CAR_GAP_M
+		beyond = z_car > z_quad
+		z_quad = maxf(z_quad, z_car)
+	_show_exit(_exit_state, path if glare > 0.0 else null, z_quad, fog_out, beyond)
 
 
 ## Alpha of the glare quad for an exit `d` metres ahead of the camera (pure): EXIT_GLARE_FAR far away, EXIT_GLARE_NEAR
@@ -523,8 +531,9 @@ static func exit_behind(track: Track, cam_z: float) -> float:
 	return -1.0
 
 
-## (z_quad: road z of the glare quad – just inside the exit portal, or beyond the player's car)
-func _show_exit(a: Vector2, path: RoadPath3D, z_quad: float, fog_out: Color) -> void:
+## (z_quad: road z of the glare quad – just inside the exit portal, or beyond the player's car; cover: it stands
+## beyond the car, outside the tube – it covers the whole view, EXIT_COVER_M)
+func _show_exit(a: Vector2, path: RoadPath3D, z_quad: float, fog_out: Color, cover: bool = false) -> void:
 	var col := fog_out.lerp(EXIT_GLARE_COLOR, 0.7)
 	if a.x > 0.0 and path != null:
 		if _glare == null:
@@ -532,10 +541,16 @@ func _show_exit(a: Vector2, path: RoadPath3D, z_quad: float, fog_out: Color) -> 
 			add_child(_glare)
 		var edges := _track.road_edges_at(z_quad) if _track.has_method(&"road_edges_at") else Vector2(-8.0, 8.0)
 		var w := (edges.y - edges.x) + 2.0 * 2.5 + 8.0
+		var h := EXIT_QUAD_H
 		var centre := (edges.x + edges.y) * 0.5
+		var lift := EXIT_QUAD_H * 0.5 - 0.5
+		if cover:
+			w = EXIT_COVER_M
+			h = EXIT_COVER_M
+			lift = 0.0
 		# (the rig stands at the renderer's origin with no transform: local = origin-relative world)
-		var fr := path.frame_at(z_quad, centre, EXIT_QUAD_H * 0.5 - 0.5)
-		_glare.transform = Transform3D(fr.basis * Basis.from_scale(Vector3(w, EXIT_QUAD_H, 1.0)), fr.origin)
+		var fr := path.frame_at(z_quad, centre, lift)
+		_glare.transform = Transform3D(fr.basis * Basis.from_scale(Vector3(w, h, 1.0)), fr.origin)
 		_glare_mat.set_shader_parameter(&"glare", Vector4(col.r, col.g, col.b, a.x / EXIT_GLARE_FAR))
 		_glare.visible = true
 	elif _glare != null:
