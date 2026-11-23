@@ -2557,6 +2557,16 @@ in `RoadRenderer.LANDMARK_FLOOD`) für eine gewöhnliche Requisite, die als Wahr
 Die vier Werte gehen als `lm_fade` an die Materialien des Wahrzeichens – **jedes Wahrzeichen hat seine eigenen
 Materialien, keine Instanz-Uniform** (A-19).
 
+Nachts wie Arcade (FIX-R7b):
+- Bild (CE_PICTURE): die Lichtebene des Sprites liegt in **Anzeigewerten** über dem Bild (wie Arcades Leinwand und
+  `billboard.gdshader`), nicht linear gemischt – linear war ein halb heller Mischpixel aus dunkler Fassade und
+  hellem Fenster deutlich heller (Elbphilharmonie 22 Uhr: Fassade +28 % gegen Arcade; jetzt 0,99 ×, Render-Prüfung
+  „nacht_hell“).
+- Anstrahlen einer gewöhnlichen Requisite: im Bild wie Arcade (Bild × Flutlichtfarbe), beim Modell (CE_ATLAS) als
+  eigenes Licht – Albedo × Flutlichtfarbe × Anteil, die beleuchtete Albedo behält 1 − Anteil. R7b skalierte nur die
+  beleuchtete Albedo, die nachts kaum Licht bekommt. Gemessen (Render-Prüfung „anstrahlung“, 22 Uhr): Bremer Dom
+  (Modell) 1,32 × heller als ohne Anstrahlen und 0,97 × Arcade, Fourvière in Lyon (Bild) 1,71 × und 1,05 × Arcade.
+
 Weich statt gerastert (Befund B-09): ab 0,70 L zeichnet ein Wahrzeichen mit der durchscheinenden Variante seines
 Materials (CE_BLEND, `blend_mix`), näher mit der deckenden (Schatten, Tiefe – nahe Wahrzeichen werfen Schatten).
 Jenseits von L bleiben nachts nur seine leuchtenden Pixel. Die durchscheinenden Varianten der beleuchteten Klassen
@@ -2579,7 +2589,8 @@ Flächen eines Netzes überdeckten sich in Zeichenreihenfolge). Prüfungen: `che
   Feuer blitzt viermal je Umdrehung (15 s), dazu Arcades vier kreisende Lichtstrahlen (240 m, flache Bänder, die sich
   um ihre Achse zur Kamera drehen; CE_GLOW Art 3).
 - Hochhausgruppe: fünf Türme mit Glasfassade (Geschossbänder alle 4 m, Pfosten alle 3 m im Shader, nachts 35 % der
-  Fenster hell wie Arcade), Mast oder Pyramide, blinkendes Flugwarnlicht je Turm.
+  Fenster hell wie Arcade), Mast oder Pyramide, blinkendes Flugwarnlicht je Turm (auf der Spitze; auf einem flachen
+  Dach an dessen Vorderkante, sonst verdeckt die Brüstung das Licht in Arcades Größe von unten – FIX-R7b).
 Dreiecke (gemessen): Kuppelkirche 1.626–1.636, Fernsehturm 1.012, Leuchtturm 246, Hochhausgruppe 124 (die Fassade
 zeichnet der Shader) – je eine Fläche plus eine für die Leuchtpunkte; gebaut in 0,3–3,8 ms beim ersten Gebrauch
 (zwischengespeichert je Art, Höhe und Farben – nicht nach dem Maßstab, den trägt der Knoten; FIX-R7b, B-07).

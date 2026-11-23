@@ -832,7 +832,10 @@ static func _skyscrapers(kit: ShapeKit) -> void:
 				kit.set_paint(base.darkened(0.1), 0.5, 0.2, -1, 0.0)
 				kit.pyramid(Vector3(xo - hw, top, zc - hw), Vector3(xo + hw, top, zc + hw), 24.0)
 				top += 24.0
-		kit.glow(Vector3(xo, top, zc), Color(1.0, 0.12, 0.08), 0.85, 3.0, 2.5, Vector4(1.0, 1.6, 0.8, absf(xo) * 0.01))
+		# on a flat roof the light sits on the front edge, a little above it (FIX-R7b: in the roof's middle the parapet
+		# hid the Arcade-sized light from below); on a mast or pyramid at its tip
+		var lp := Vector3(xo, top + 0.6, zc + hw) if int(t[4]) == 0 else Vector3(xo, top, zc)
+		kit.glow(lp, Color(1.0, 0.12, 0.08), 0.85, 3.0, 2.5, Vector4(1.0, 1.6, 0.8, absf(xo) * 0.01))
 		i += 1
 
 
