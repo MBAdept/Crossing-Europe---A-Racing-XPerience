@@ -31,6 +31,10 @@
 // the fog end instead, as Arcade's scenery sprites fade at the end of the sight.
 // Fog: Arcade's law for things in the landscape (inc/fog_law.gdshaderinc, FIX1) instead of the engine's depth fog:
 // the picture's own colour times the brightened fog colour, by 0.7 of the fog amount.
+// R7c: an impostor is the far level of a card tree – it fades in per tree with the dither cross-fade of
+// inc/lod_band.gdshaderinc (lod_band, set by builders/props.gd; stand-ins keep the default: always). Its picture carries
+// the sprite rig's relief of light and shade (A-16): relief_night (> 0 on impostors, PropLibrary) flattens that relief
+// towards the picture's mean colour with the night (ce_night) – there is no sun at night to cast it.
 // Load only through ModernMaterials - never with preload().
 shader_type spatial;
 render_mode unshaded, cull_disabled, depth_draw_opaque;
@@ -50,6 +54,7 @@ uniform vec3 headlight_color = vec3(1.0, 0.95, 0.84);   // linear, at intensity 
 // fading out over the last 28 % of L, its colour going towards the fog colour × 1.15 by 0.85 × the haze from the fog
 // begin to L. x = render.landmark_range_factor (2), y = render.landmark_far_m (1900); x <= 0: an ordinary prop.
 uniform vec2 landmark_law = vec2(0.0, 1900.0);
+uniform float relief_night = 0.0;             // R7c: share of the picture's relief that the night takes away
 
 global uniform float ce_night;
 global uniform float ce_snow;                  // R4: Arcade tints its scenery sprites in snow (RoadRenderer: 15 % towards #bfccd6)
@@ -63,6 +68,7 @@ global uniform vec2 ce_fog_range;
 global uniform vec4 ce_fog_color;
 
 #include "res://assets/shaders/modern/inc/fog_law.gdshaderinc"
+#include "res://assets/shaders/modern/inc/lod_band.gdshaderinc"
 
 varying float v_sun;
 varying float v_head;
@@ -81,6 +87,11 @@ void vertex() {
 	float sy = length(MODEL_MATRIX[1].xyz);
 	vec3 wp = origin + cr * (VERTEX.x * sx) + vec3(0.0, VERTEX.y * sy, 0.0);
 	VERTEX = (inverse(MODEL_MATRIX) * vec4(wp, 1.0)).xyz;
+	v_lod_d = ce_lod_distance(MODEL_MATRIX, MAIN_CAM_INV_VIEW_MATRIX);
+	v_lod_shadow = ce_lod_shadow_pass(CAMERA_POSITION_WORLD, MAIN_CAM_INV_VIEW_MATRIX);
+	if (ce_lod_hidden(v_lod_d)) {
+		VERTEX = vec3(0.0);
+	}
 	// how much of the sun falls on the side the camera sees (a lit model would show the same)
 	float facing = dot(normalize(CAMERA_POSITION_WORLD - origin), normalize(ce_sun_dir)) * 0.5 + 0.5;
 	v_sun = mix(sun_min, sun_max, facing * facing);
@@ -116,9 +127,17 @@ vec3 albedo_for(vec3 x) {
 }
 
 void fragment() {
+	if (ce_lod_discard(v_lod_d, v_lod_shadow, FRAGCOORD.xy)) {
+		discard;
+	}
 	vec4 t = texture(tex, uv_rect.xy + UV * uv_rect.zw);
 	if (t.a < scissor || (t.a < shadow_cut && max(t.r, max(t.g, t.b)) < 0.1)) {
 		discard;
+	}
+	if (relief_night > 0.0) {
+		// the smallest mip level is the picture's mean colour (the transparent texels carry the colour of the edge)
+		vec3 mean = textureLod(tex, uv_rect.xy + vec2(0.5) * uv_rect.zw, 12.0).rgb;
+		t.rgb = mix(t.rgb, mean, relief_night * clamp(ce_night, 0.0, 1.0));
 	}
 	float dist = length(VERTEX);
 	float far_keep = 1.0 - smoothstep(ce_fog_range.y * 0.85, ce_fog_range.y, dist);

@@ -8,8 +8,10 @@ ergibt. Kein Modell wird von Hand gebaut oder importiert. Der Modus „Arcade“
 Stand: erste Zusammenführung von M2 (M2INT) – jedes Fahrzeug-Set hat ein Modell (Spielerautos und Verkehrsautos
 aus Abschnitt 15, Sattelzüge, Busse und Polizei aus Abschnitt 16, die Nacharbeit in Abschnitt 17), dazu Vegetation
 und Natur (Abschnitt 18) und ländliche Gebäude, Stadthäuser, Brückenteile und Schiffe (Abschnitt 19) sowie
-die Stadthäuser der Stilfamilien `german`, `german_old` und `hanse` (Abschnitt 20, AS5a1 mit Nacharbeit AS5aR1); die übrigen Stilfamilien
-(`props/city_*`) und die Wahrzeichen außer dem Michel sind noch Arcade-Bilder.
+die Stadthäuser der Stilfamilien `german`, `german_old` und `hanse` (Abschnitt 20, AS5a1 mit Nacharbeit AS5aR1) und
+`dutch`, `belgian`, `french`, `paris` und `swiss` (Abschnitt 21, AS5a2; Nacharbeit beider Chargen in Abschnitt 22,
+AS5aR2); die übrigen Stilfamilien (`props/city_*`) und die
+Wahrzeichen außer dem Michel sind noch Arcade-Bilder.
 Zahlen mit „gemessen“ stammen von der
 Build-VM (4 Kerne, mit anderen Aufträgen geteilt, Software-OpenGL), „abgeleitet“ ist gerechnet, nicht gemessen.
 
@@ -1694,3 +1696,252 @@ Noch nicht gut (gemessen auf llvmpipe, „Mittel“): Die Häuser flimmern in Be
 weiches Überblenden ist Aufgabe des Renderers (R7); das Foyer des Büroturms leuchtet nachts als gedimmte Fläche ohne
 Auslage. Berichte mit allen Messungen: Lieferordner
 von AS5a1 und AS5aR1.
+
+## 21. Stadthäuser dutch, belgian, french, paris und swiss (Bauabschnitt 5, AS5a2)
+
+Die zwölf Stadthaus-Sets der Stilfamilien `dutch`, `belgian`, `french`, `paris` und `swiss` haben Echtzeit-Modelle
+aus demselben Bauer `city` wie Abschnitt 20. Sie stehen in Amsterdam (dutch), Brüssel, Lüttich und Calais (belgian),
+Tours und Pau (french), Bordeaux, Lyon, Montpellier und Toulouse (french_south: Immeuble und Südhaus), Paris (paris),
+Bern (swiss) und über die Mischstile in Dortmund (ruhr: getönte niederländische Reihenhäuser). Reihenfolge nach
+Häufigkeit im ganzen Netz (gezählt: Platzierungen aller Etappen, mit Wiederholungen): Südhaus 588, belgische
+Reihenhäuser 315, Loire-Haus 209, Lyoner Stadthaus 202, niederländische Reihenhäuser 130, Maashaus 96, Haussmann-Block
+55, Chalet 54, Grachtenhäuser 51, Lauben 46, Grachtenhäuser B 22, Haussmann-Eckhaus 8.
+
+| Set | Platzierungen (Netz) | Maßstab im Spiel | Dreiecke lod0 / lod1 | Atlas | px/m EG + 1. OG / darüber (Modellmaß) | Archiv Netze / Texturen | Export |
+|---|---|---|---|---|---|---|---|
+| `city_french_sud` | 588 | 0,80–1,10 | 5 359 / 3 716 | 1024×1024 | 54 / 54 | 119 / 394 kB | 312 s |
+| `city_belgian_terrace` | 315 | 0,90–1,15 | 2 586 / 1 162 | 2048×1024 | 64 / 51 | 46 / 550 kB | 474 s |
+| `city_french_maison` | 209 | 0,90–1,10 | 3 910 / 1 874 | 1024×1024 | 51 / 51 | 90 / 311 kB | 280 s |
+| `city_french_immeuble` | 202 | 0,95–1,14 | 4 020 / 2 486 | 2048×1024 | 65 / 52 | 75 / 566 kB | 755 s |
+| `city_dutch_terrace` | 130 | 0,90–1,10 | 3 346 / 1 060 | 1024×1024 | 46 / 46 | 73 / 287 kB | 227 s |
+| `city_belgian_stone` | 96 | 0,91–1,15 | 1 336 / 278 | 1024×1024 | 55 / 44 | 21 / 267 kB | 177 s |
+| `city_paris_haussmann` | 55 | 0,95–1,10 | 6 518 / 3 714 | 2048×1024 | 50 / 38 | 125 / 601 kB | 651 s |
+| `city_swiss_chalet` | 54 | 0,90–1,10 | 3 128 / 1 280 | 1024×1024 | 53 / 53 | 56 / 282 kB | 166 s |
+| `city_dutch_canal` | 51 | 0,95–1,10 | 3 734 / 1 802 | 2048×1024 | 50 / 40 | 77 / 631 kB | 483 s |
+| `city_swiss_laube` | 46 | 0,95–1,10 | 4 865 / 942 | 2048×1024 | 44 / 35 | 70 / 569 kB | 308 s |
+| `city_dutch_canal_b` | 22 | 0,95–1,10 | 3 623 / 1 543 | 2048×1024 | 47 / 38 | 69 / 683 kB | 461 s |
+| `city_paris_corner` | 8 | 1,00–1,09 | 5 675 / 3 418 | 2048×1024 | 47 / 35 | 112 / 653 kB | 800 s |
+
+Summe der zwölf Modelle im Archiv (deflate -9 je Datei, wie `tools/pck_report.py`): Netze 0,93 MB, Texturen
+5,79 MB. Zwei Zeichenaufrufe je Stufe (`baked` bzw. `baked_cutout` + `vpbr`), kein Fernbild. Gemessen mit dem
+Export-Bericht (`_cache3d/export_report.json`) und der Dichte der Wandkarten beim Packen; „darüber“ = Geschosse über
+`floors.z` (Faktor `floors.upper`). Im Spiel teilt der Maßstab die Dichte: das Erdgeschoss liegt in allen Sets bei
+mindestens 40 px/m (Lauben bei Maßstab 1,10: 39,8), alle Straßenwände über 26 px/m; Gartenmauern (Südhaus,
+Loire-Haus) mit 0,6 der Dichte. „Export“ = Zeit des echten Exports mit Bake (`nice -n 19`, geteilte Maschine).
+
+### Was neu ist (Bauer `city`, Hooks im Generator)
+
+- **Straßenflanken mit Öffnungen von Anfang an** (Hook `close3d`). Die Flanke zur Fahrbahn (−x) ist im Sprite ein
+  schmaler Streifen und im echten 3D die Wand, die in Augenhöhe vorbeizieht. Grachtenhäuser: die 14 m tiefe Flanke
+  des Treppengiebelhauses mit Schiebefenstern auf 3-m-Achsen in allen Geschossen, Seitentür und Gesims; das
+  Glockengiebelhaus zeigt über der Traufe des Nachbarn drei Fenster seines obersten Geschosses; die Dachrückseiten
+  sind mit Giebeln geschlossen. Grachtenhäuser B: die weiße Flanke des Gesimshauses (14 × 13 m, im Sprite blind) mit
+  Fenstern in allen vier Geschossen, Seitentür, das Kranzgesims um die Ecke. Belgische Reihenhäuser: Erdgeschoss der
+  Flanke mit zwei Fenstern und Seitentür, Blausteinstürze an allen Flankenfenstern, Dachfenster im Giebel.
+  Maashaus: Kreuzstockfenster und Rundbogentür im Blaustein-Erdgeschoss der Flanke. Lyoner Stadthaus: die Bäckerei
+  läuft mit zwei Schaufenstern um die Ecke, Haustür im dritten Feld. Niederländische Reihenhäuser: Fenster und
+  Seitentür mit Vordach im Erdgeschoss des Endhauses, Dachfenster im Giebel. Lauben: zwei Schaufenster und eine Tür
+  im Erdgeschoss der Flanke, Blumenkästen an allen Flankenfenstern.
+- **Geländer als wiederholtes Modul** (`rail_module` {Objekt-Präfix: L}). Ein Geländer des Generators wiederholt
+  sein Muster alle `pitch` Meter längs der Platte, vom Fuß seines Bandes an. Jedes Geländerobjekt wird bei u = k·L
+  geschnitten (L ein Vielfaches des Rasters); eine Fläche, die ein ganzes Modul überspannt, wird gebacken, alle anderen
+  bekommen nach dem Packen die Atlaskoordinaten (u − k·L, z) dieses Moduls; Ober-, Unter- und Stirnflächen die Farbe
+  des Handlaufs. Ein durchgehender Haussmann-Balkon von 22 m kostete vorher 2 × 22 m × 0,95 m bei 150 Texeln je
+  Meter – mehr, als ein 2048×1024-Atlas hält –, jetzt ein Modul je Band. Schräge Platten (die Ecke des Eckhauses)
+  behalten eigene Texel.
+- **Fenstergitter verdecken keine Fenster** (`openings.cover_skip`). Die französischen Fenstergitter stehen 10–16 cm
+  vor dem Glas, innerhalb des Abstands, in dem eine Fläche als Verdeckung gilt (0,3 m): Ihre Fenster blieben gemalt.
+- **Baumkronen ohne Löcher im Atlas** (`weights.solid` {Objekt-Präfix: Gewicht}). Die dezimierten Kronen der
+  Gartenbäume (Platane, Hortensien, Oleander, Hecken) bekommen ein Gewicht unabhängig von der Blickrichtung und gelten
+  nie als verdeckt: Ihre Unterseiten (Gewicht `under` 0,05: weniger als ein Texel) zeigten in Augenhöhe die Farben
+  benachbarter Karten als hellgraue Flecken.
+- **Abgeschrägte Ecke** (`openings.chamfer`): Fenster und Laden der 45°-Ecke des Haussmann-Eckhauses werden
+  geschnitten wie die der Achsenwände (vorher blieben sie gemalt).
+
+### Hook im Generator (Voreinstellung = Sprite)
+
+| Hook | Generator | im 3D-Bau |
+|---|---|---|
+| `close3d` (AS5a2) | `props_cities.dutch_canal` (über `_canal_house`: `side`, `close3d`) | Straßenflanke des Treppengiebelhauses mit Schiebefenstern auf 3-m-Achsen, Seitentür und Gurtgesims; drei Fenster des Glockengiebelhauses über der Nachbartraufe; Rückgiebel aller drei Dächer |
+| `close3d` (AS5a2) | `props_cities.dutch_canal_b` | Straßenflanke des Gesimshauses mit Fenstern in allen Geschossen, Seitentür, Kranzgesims um die Ecke |
+| `close3d` (AS5a2) | `props_cities.dutch_terrace` | Fenster und Seitentür mit Vordach im Erdgeschoss der Endhausflanke, Dachfenster im Giebel |
+| `close3d` (AS5a2) | `props_cities.belgian_terrace` | Erdgeschoss der Flanke mit zwei Fenstern und Seitentür, Blausteinstürze und -bänke an den Flankenfenstern, Dachfenster im Giebel |
+| `close3d` (AS5a2) | `props_cities.belgian_stone` | Kreuzstockfenster und Rundbogentür im Blaustein-Erdgeschoss der Flanke |
+| `close3d` (AS5a2) | `props_cities.french_immeuble` | zwei Schaufenster der Bäckerei und die Haustür im Steinsockel der Flanke |
+| `close3d` (AS5a2) | `props_cities.swiss_laube` | zwei Schaufenster und eine Tür im Erdgeschoss der Flanke, Blumenkästen an den Flankenfenstern |
+
+`check_sprite_geometry.py --only props --jobs 1` nach den Hooks: 86 von 86 Sprite-Sets identisch,
+`CHECK sprite_geometry OK`. Die Änderungen am Bauer `city` sind rückwärtskompatibel: Die elf Modelle von Abschnitt 20,
+die Brückenteile und das Hausboot (ihr Schlüssel enthält `props_cities.py` bzw. `cities3d.py`) kommen beim erneuten
+Export byte-gleich heraus.
+
+### Tönung
+
+`city_dutch_terrace` wird an 50 von 130 Stellen (Vororte des Ruhrgebiets, Mischstil `ruhr`) mit `#ead6cc` getönt. Der
+Atlas trägt die ungetönten Farben des Sprites; Albedo × Tönung ergibt dasselbe wie das getönte Sprite (Kontaktbogen in
+der Lieferung). Bis R7 die Tönung auf Modell-Instanzen legt, stehen diese Häuser ungetönt (etwas röter) da.
+
+### Messungen (llvmpipe, Prüfszene im Renn-Look, gemessen)
+
+| Messung | Ergebnis |
+|---|---|
+| Stufenwechsel lod0 → lod1 bei 60 m („Mittel“), 12 Uhr | 9,1 % (Lauben) bis 18,3 % (Grachtenhäuser) der Pixel, Helligkeit −0,5 bis +0,6 % |
+| dasselbe, 22 Uhr | 7,8 bis 14,5 % der Pixel, Helligkeit +0,6 bis +4,9 % |
+| Flimmern (Pixel je Viertelpixel-Schritt bei 40 / 60 / 100 / 150 m; Sprite) | Haussmann 1,0 / 1,2 / 1,0 / 0,6 % (0,0 / 0,2 / 0,3 / 0,4); Grachtenhäuser 0,8 / 1,1 / 0,8 / 1,1 % (0,1–0,4); belgische Reihe 0,4 / 0,6 / 0,4 / 0,4 % (0,1–0,3); Lyon 0,8 / 0,6 / 0,3 / 0,5 % (0,2–0,5); Chalet 0,5 / 0,9 / 1,0 / 1,3 % (0,2–0,5) |
+| Geländer in den Mip-Stufen (`mipband.py`, Mip 1–4) | Helligkeit des Bandes −3,0 bis +3,6 Stufen gegen Mip 0 (Haussmann, Eckhaus, Lyon, Südhaus, Chalet): das Geländer wird zum Band, verschwindet nicht |
+
+### Ehrliche Einordnung
+
+Gut: Umriss, Geschosse, Dächer, Giebel und Farben wie das Sprite; Tiefe an Front und Straßenflanke – Laibungen,
+Rahmen, Sprossen, Sohlbänke, Fensterläden als Geometrie, Haussmann-Balkone mit Konsolen und durchgehendem Schmiedeeisen,
+französische Fenstergitter vor echten Fenstern, Läden mit Auslage (Lyon, Brüssel, Bern, Paris), die Arkaden der Lauben
+als echte Öffnungen, Blausteinstürze, Gesimse, Treppen-, Glocken-, Hals-, Gesims- und Volutengiebel. Die
+Straßenflanken, im Sprite blind, haben Fenster und Türen im Stil der Front. Nachts leuchten dieselben Fenster wie im
+Sprite, die Auslagen mit Waren dahinter. Im Rennen (Paris, A/B) zeigt Modern an der Flanke des Haussmann-Blocks
+Bogenläden mit Auslage, Balkone und Gitter, wo Arcade eine flache Wand zeigt.
+
+Noch nicht gut: Die Modelle flimmern in Bewegung 2- bis 5-mal so stark wie ihre Sprites (Sprossen, Gitter, Rahmen;
+Haussmann bis 1,2 % gegen 0,2 %); der Wechsel lod0 → lod1 bei 60 m ändert 8–18 % der Pixel (Überblenden ist Sache des
+Renderers, R7). In lod1 überwiegen bei 200–250 m die weißen Rahmen und Ringe des Atlas das dunkle Glas: die
+Fensterreihen wirken heller als im Sprite (in der Prüfszene deutlich, im Rennen bei Paris nicht auffällig). Die
+Rückseite des Haussmann-Eckhauses (abgeschrägter Grundriss: keine gespiegelte Gegenwand gefunden) und die rechte Flanke
+des Halsgiebelhauses sind blinde Wände wie im Generator – zu sehen nur in Kurven. Gartenbäume und Oleander sind
+dezimierte Kugelkronen, keine AS3-Bäume. Keine Wandlampen (die Generatoren haben keine). Die Tönung der Reihenhäuser
+im Ruhrgebiet fehlt, bis R7 sie aufträgt.
+
+## 22. Nacharbeit der Stadthäuser nach der Kunstkritik (AS5aR2)
+
+Die unabhängige Kunstkritik von Abschnitt 21 (KRITIK-5a2) fand die zwölf Häuser bei Tag klar feiner als die
+Arcade-Bilder, nachts in den Ladenstraßen aber dunkler und leerer, die Fassaden ab 100 m blass mit rosa-lila
+Fenstern, den Gartenbaum des häufigsten Hauses als Klumpen und die Geländer flimmernd. Die Nacharbeit ändert den
+Bauer `city` und baut alle 23 Stadthäuser (Abschnitte 20 und 21) neu; die Sprites sind unverändert.
+
+### Was geändert ist
+
+- **Schaufenster nachts (`cities3d._display_mat`, alle Läden beider Chargen).** Die Lichtschicht der Auslage war
+  0,2 + 0,8 × Innenfarbe × Lichtfarbe × 1,25 × Stärke × `PANE_LIGHT_K` – im Mittel ein Viertel der Lichtfarbe, ein
+  Drittel eines Wohnfensters. Jetzt: 0,3 + 0,75 × √Innenfarbe (Rückwand und Waren im Licht, Möbel bleiben lesbar),
+  ein Band Deckenlicht im oberen Viertel (+0,35) und `SHOP_GLOW` 1,6 statt 1,25. Bei Tag unverändert (die Auslage
+  hinter dem dunklen Glas).
+- **Fernfenster (`wallmat`-Hooks `inner_k`, `bars_k`).** Der Innenrahmen-Ring von AS5aR1 (6 cm Rahmenfarbe innen im
+  gemalten Fenster, damit die flache lod1 dieselbe Glas- und Lichtfläche zeigt wie die geschnittenen Fenster von lod0)
+  erhöht den Weißanteil einer Fensterzelle der Fernstufe gegenüber dem Sprite (gerechnet 36 statt 23 %). Ring und
+  gemalte Sprossen liegen jetzt `INNER_K` 0,75 bzw. `BARS_K` 0,35 des Weges von der Rahmen- zur Glasfarbe – der Rahmen
+  im Schatten der Laibung. lod0 zeigt beide nie: sein geometrischer Rahmen und seine Sprossen liegen 1,5 cm davor.
+  Gegen die blassen Fernfassaden hilft das kaum (gemessen, siehe unten): der Ring war nicht die Hauptursache.
+- **lod1 ohne Alpha-Test (`lod1_opaque`).** Sechs Häuser mit Ausschneide-Klasse (Mietshaus, Gründerzeit, Lyoner
+  Haus, Haussmann, Eckhaus, Chalet) zeichnen lod1 als `baked` mit Rückseiten-Culling: ein
+  Geländer ist dort das Band aus seinen Stäben und der `cut_fill`-Farbe – was das Auge ab 60 m mittelt –, ohne das
+  Kippen des Alpha-Tests. lod0 bleibt `baked_cutout` (A-22: `cut_fill`, Schwelle 0,5).
+- **Blattkarten für Gartenbäume (`leaf_cards`).** Die dezimierte Kugelkrone des Generators war aus 10–15 m eine Traube
+  facettierter Steine. Jetzt liegen Blattkarten auf den Blobs der Krone (`props_nature.CROWN_LOG`, dieselben Blobs, auf
+  denen die AS3-Kartenbäume wachsen), ihre Textur – vier Blattbüschel von `leafatlas.cluster` in den zwei
+  Blattfarben des Generators, mit Halo und Farbauslauf für die Schwelle 0,5 – liegt in einem reservierten Feld des
+  Hausatlas (ein Hilfsviereck `ce_leafres` 60 m unter dem Modell bekommt beim Packen `leaf_px` Texel und wird nicht
+  gezeichnet). Jede Ecke hat die Normale ihres Blobs (mit 22 % der Kronenrundung): ein Blob ist auf der Sonnenseite
+  hell wie die Kugeln des Sprites. Die dezimierte Krone schrumpft um `core` (0,9) und bleibt als Blattmasse innen;
+  lod1 zeigt dieselben Karten (`n1` = `n`, `half1` = `half`) und behält dafür die Ausschneide-Klasse – mit dem Kern
+  allein tauschte der Stufenwechsel bei 60 m beim Südhaus 34,8 % der Pixel, mit weniger, größeren Karten 27,5 %, mit
+  denselben Karten 8,2 % (gemessen; mit der alten Kugelkrone 16,4 %). Weil die Karten Alpha brauchen und ein
+  Stadthaus zwei Zeichenaufrufe hat, gibt es sie nur bei Häusern mit Ausschneide-Klasse
+  (`single_cutout`): Südhaus und Loire-Haus (dieses ist dafür jetzt `single_cutout`).
+- **Geranien (`flower_shape`).** Die Blumenkugeln des Chalets werden je Kugel flacher,
+  längs des Kastens gestreckt (1,2 / 0,8 / 0,6) und um bis zu 4 cm versetzt: niedrige, ineinanderlaufende Polster
+  statt einer Perlenkette.
+
+### Nicht geändert (geprüft)
+
+- **Gartenmauer von Südhaus und Loire-Haus:** 0,6 der Dichte = 32,5 px/m an der Straßenseite (Exportbericht
+  `ppm_road_min`, GLB-Dreiecke gemessen). Die 15 px/m der Kritik waren die Kronen von Platane und Oleander (Gewicht 0,3).
+- **Geländer in kleinen Mips:** Die Deckung wächst, wie A-22 es will (`cut_fill`); gegen die Füllfarbe bleibt die
+  Helligkeit des Bandes in Mip 1–4 innerhalb ±4 Stufen. Eine „deckungserhaltende" Lücke würde die Dunkelheit
+  verlieren (die durchgelassenen Texel tragen die Mischfarbe).
+
+### Hooks im Generator (Voreinstellung = Sprite)
+
+| Hook | Generator | im 3D-Bau |
+|---|---|---|
+| `inner_k`, `bars_k` (AS5aR2) | `props_cities.wallmat` (nur mit `inner_frame`) | Innenring und gemalte Sprossen der Fenster zum Glas hin |
+
+### Katalog-Optionen des Bauers `city` (neu)
+
+`lod1_opaque` (bool), `leaf_cards` {Kronen-Präfix: dict(n, half, out, el, crown_w, down, core, atlas, n1, half1)}, `leaf_px`
+(256), `flower_shape` {Präfix: (x, y, z, Versatz)}, `inner_k` / `bars_k` (Voreinstellung `INNER_K` 0,75 / `BARS_K` 0,35).
+
+### Budgets nach dem Neu-Export (gemessen: Export-Bericht, Packdichte, Archivanteil wie `tools/pck_report.py`)
+
+| Set | Dreiecke lod0 / lod1 | Klassen lod0 / lod1 | Atlas | px/m Straße min / Packdichte | Archiv Netze / Texturen | Export |
+|---|---|---|---|---|---|---|
+| `city_french_sud` | 5 820 / 3 916 | baked_cutout / baked_cutout | 1024×1024 | 32,1 / 53,5 | 145 / 418 kB | 169 s |
+| `city_belgian_terrace` | 2 586 / 1 162 | baked / baked | 2048×1024 | 51,0 / 63,7 | 46 / 546 kB | 371 s |
+| `city_french_maison` | 4 250 / 2 100 | baked_cutout / baked_cutout | 1024×1024 | 29,9 / 49,8 | 111 / 365 kB | 196 s |
+| `city_french_immeuble` | 4 020 / 2 486 | baked_cutout / baked | 2048×1024 | 51,9 / 64,8 | 75 / 562 kB | 470 s |
+| `city_dutch_terrace` | 3 346 / 1 060 | baked / baked | 1024×1024 | 46,3 / 46,3 | 73 / 286 kB | 158 s |
+| `city_belgian_stone` | 1 336 / 278 | baked / baked | 1024×1024 | 43,7 / 54,6 | 21 / 268 kB | 114 s |
+| `city_paris_haussmann` | 6 518 / 3 714 | baked_cutout / baked | 2048×1024 | 37,6 / 50,1 | 125 / 619 kB | 483 s |
+| `city_swiss_chalet` | 3 109 / 1 280 | baked_cutout / baked | 1024×1024 | 53,4 / 53,4 | 56 / 282 kB | 126 s |
+| `city_dutch_canal` | 3 734 / 1 802 | baked / baked | 2048×1024 | 40,0 / 50,0 | 77 / 628 kB | 328 s |
+| `city_swiss_laube` | 4 865 / 942 | baked / baked | 2048×1024 | 35,0 / 43,8 | 70 / 567 kB | 253 s |
+| `city_dutch_canal_b` | 3 625 / 1 545 | baked / baked | 2048×1024 | 37,9 / 47,4 | 69 / 691 kB | 311 s |
+| `city_paris_corner` | 5 675 / 3 418 | baked_cutout / baked | 2048×1024 | 35,2 / 47,0 | 112 / 678 kB | 490 s |
+| `city_german_house` | 2 962 / 1 406 | baked / baked | 1024×1024 | 60,0 / 60,0 | 80 / 254 kB | 142 s |
+| `city_german_mietshaus` | 2 176 / 506 | baked_cutout / baked | 2048×1024 | 52,9 / 52,9 | 34 / 484 kB | 353 s |
+| `city_german_gruenderzeit` | 4 410 / 2 394 | baked_cutout / baked | 2048×1024 | 40,8 / 54,4 | 76 / 560 kB | 315 s |
+| `city_german_office` | 427 / 203 | baked / baked | 2048×1024 | 15,9 / 21,2 | 11 / 360 kB | 95 s |
+| `city_german_old_fachwerk` | 7 084 / 1 050 | baked / baked | 2048×1024 | 34,1 / 42,7 | 102 / 524 kB | 692 s |
+| `city_german_old_fachwerk_b` | 5 319 / 990 | baked / baked | 2048×1024 | 41,7 / 52,1 | 78 / 437 kB | 553 s |
+| `city_german_old_barock` | 4 938 / 2 401 | baked / baked | 2048×1024 | 37,8 / 47,2 | 95 / 467 kB | 345 s |
+| `city_hanse_gabled` | 4 882 / 1 240 | baked / baked | 2048×1024 | 33,5 / 41,9 | 80 / 671 kB | 324 s |
+| `city_hanse_kontor` | 9 865 / 749 | baked / baked | 2048×1024 | 28,8 / 41,2 | 109 / 731 kB | 206 s |
+| `city_hanse_speicher` | 8 950 / 1 283 | baked / baked | 2048×1024 | 29,8 / 42,6 | 114 / 744 kB | 344 s |
+| `city_hanse_crane` | 1 260 / 1 052 | baked / baked | 1024×1024 | 90,0 / 90,0 | 39 / 116 kB | 46 s |
+
+Alle 23 unter 10 000 Dreiecken in lod0 und zwei Zeichenaufrufen je Stufe; im Archiv (deflate -9) Charge 2 mit 0,98 MB
+Netzen und 5,91 MB Texturen (Grenze je Charge 3 / 7 MB), Charge 1 mit 0,82 / 5,35 MB. Die Blattkarten kosten das
+Südhaus 460 und das Loire-Haus 340 Dreiecke je Stufe und 4–6 % des Atlas (Blattfeld 246 bzw. 248 Texel); die
+Wanddichte sank dadurch um 1–2,5 %. „px/m Straße min“ ist die kleinste Dichte der Straßenwände (bei Südhaus und
+Loire-Haus die Gartenmauer mit 0,6 der Dichte), „Export“ die Zeit mit Bake (`nice -n 19`, geteilte Maschine).
+
+### Messungen vorher / nachher (llvmpipe, gemessen)
+
+| Messung | vorher (AS5a2) | nachher |
+|---|---|---|
+| Paris km 387,9, 22 Uhr, Hoch: Läden im Erdgeschoss des Eckhauses, Anteil warmer Pixel / mittlere Farbe (Arcade 28,2 %, (250,215,157)) | 10,9 %, (192,150,105) | 22,7 %, (233,193,135) |
+| dasselbe +4 s, Ladenflanke rechts (Arcade 24,2 %) | 4,8 % | 9,4 % |
+| Bern km 303, 22 Uhr: warmes Licht im Bild (Arcade 5,2 / 5,0 %) | 2,0 / 2,7 % | 2,9 / 3,7 % |
+| Gründerzeithaus 30 m, 22 Uhr (Prüfszene, Erdgeschoss) | 16,7 %, (186,143,96) | 31,7 %, (234,190,129) |
+| Stufenwechsel 60 m „Mittel“, 12 / 22 Uhr: Südhaus | 16,4 / 7,8 % der Pixel | 8,2 / 4,3 % |
+| dasselbe: Loire-Haus | 11,9 / 7,8 % | 8,6 / 6,0 % |
+| Flimmern 40 / 60 / 100 / 150 m: Haussmann (Sprite 0,0 / 0,2 / 0,3 / 0,4 %) | 1,0 / 1,2 / 1,0 / 0,6 % | 0,9 / 1,1 / 0,3 / 0,5 % |
+| dasselbe: Eckhaus (Sprite 0,1 / 0,2 / 0,2 / 0,3 %) | 1,1 / 1,2 / 1,0 / 0,7 % | 1,1 / 1,1 / 0,2 / 0,4 % |
+| dasselbe: Südhaus (Sprite 0,2 / 0,3 / 0,4 / 0,6 %) – Blattkarten | 0,4 / 0,4 / 0,6 / 0,8 % | 0,9 / 0,9 / 1,0 / 1,5 % |
+| Fernbild: dunkles Zehntel lod0 60 m → lod1 250 m, Haussmann / Lauben / Maashaus | +23 / +25 / +22 | +23 / +26 / +22 (unverändert) |
+| Gartenmauer Südhaus / Loire-Haus, Straßenseite (Packdichte × 0,6) | 32,5 / 30,6 px/m | 32,1 / 29,9 px/m |
+
+Nicht erreicht: Die Fernfassaden bleiben blass (Ursache unten – im Modell nicht zu beheben); die Blattkarten flimmern
+bei 100–150 m mehr als die alte Kugelkrone; Haussmann und Eckhaus flimmern in lod0 (40–60 m) weiter 5–10 × so stark
+wie das Sprite (Alpha-Test der Gitter, geometrische Sprossen) – Fall für TAA/Mip-Bias oder ein kürzeres lod0 (R7).
+
+### Warum ferne Fassaden blass werden (gemessen)
+
+Dieselbe Prüfszene (`lodcol`: lod0, lod1 und Sprite im Renn-Licht, 12 Uhr, Hoch) dreimal: mit den Schatten des
+Rennens (Reichweite 200 m, Ausblenden ab 170 m), mit 1 000 m Reichweite und ganz ohne Sonnenschatten. Mittlere
+Helligkeit lod0 bei 60 → 250 m:
+
+| Modell | Schatten wie im Rennen | Reichweite 1 000 m | ohne Schatten | Sprite |
+|---|---|---|---|---|
+| Haussmann | 134 → 147 (+10 %) | 136 → 142 (+5 %) | 106 → 106 (−1 %) | 112 → 110 |
+| Chalet | 75 → 96 (+29 %) | 76 → 83 (+8 %) | 71 → 70 (−1 %) | 74 → 70 |
+| Lauben | 105 → 110 (+5 %) | 106 → 104 (−2 %) | 83 → 79 (−4 %) | 92 → 89 |
+| Südhaus | 116 → 127 (+10 %) | 117 → 119 (+2 %) | 94 → 93 (−1 %) | 101 → 98 |
+| Maashaus | 107 → 111 (+4 %) | 107 → 110 (+3 %) | 78 → 80 (+3 %) | 91 → 89 |
+
+Ohne Sonnenschatten bleibt jedes Modell über die Entfernung gleich hell, und sein dunkles Zehntel (die Fenster) hellt
+von 60 auf 250 m nur um 1–9 Stufen auf wie das des Sprites (3–11) – die Mip-Kette des Atlas ist es nicht (Ausnahme
+Maashaus +15 gegen +7). Blass macht die Fassaden das Ende der Echtzeitschatten: jenseits der Reichweite (Hoch 200 m,
+Mittel 120 m, ausgeblendet ab 85 %) fällt die Sonne voll auf Laibungen, Arkaden, Balkon- und Traufschatten; davor
+löst die gröbste Schattenstufe die feinen Schatten schon nicht mehr auf (mit 1 000 m Reichweite dunkles Zehntel
+noch +1 bis +21). Das Sprite hat seine Schatten eingebacken. Ohne Schatten ist das ganze Bild dunkler (vermutlich, weil der
+Kompatibilitäts-Renderer das Sonnenlicht dann in einem anderen Durchgang rechnet) – verglichen wird nur der Verlauf
+über die Entfernung. Abhilfe gehört in den Renderer (R4/R7): jenseits der Schattenreichweite den gerichteten Anteil
+auf Gebäuden um einen mittleren Schattenanteil senken oder ein Fernbild mit eingebackenen Schatten (A-16).

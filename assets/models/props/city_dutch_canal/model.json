@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/city_dutch_canal",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 19, "height_m": 17.6, "length_m": 14},
+  "extent_m": {"left": 13.76, "right": 9.3},
+  "aabb": [-9.8, 0, -14, 9.875, 17.704, 1.9],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 3734,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_dutch_canal/lod0_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 1802,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_dutch_canal/lod1_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/city_dutch_canal/albedo.webp", "emit": "props/city_dutch_canal/emit.png"},
+  "roughness": 0.86,
+  "auto_lod": false,
+  "tags": ["prop", "building", "city", "mirror_left", "dutch", "center"],
+  "bytes": 563194,
+  "hash": "77258b6be999de89c935c573fd5cfc323f29a69a"
+ },
+ "sets": {
+  "props/city_dutch_canal": {"model": "props/city_dutch_canal"}
+ }
+}

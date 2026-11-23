@@ -37,8 +37,8 @@
   "roughness": 0.86,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "hanse", "center"],
-  "bytes": 602318,
-  "hash": "8a8188e9a2563cf720f3c75ecfb8d1d6ae35332c"
+  "bytes": 583468,
+  "hash": "8aede7ccb73113d61ea99f1314645b04ac66cf57"
  },
  "sets": {
   "props/city_hanse_kontor": {"model": "props/city_hanse_kontor"}

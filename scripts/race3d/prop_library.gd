@@ -54,6 +54,9 @@ const GROUP_ENERGY := 1.6
 const WALL_RANGE_M := 5.0
 const WALL_ENERGY := 0.4
 const BEACON_MIN_H_M := 25.0
+## R7c (A-16): share of an impostor's relief (the sprite rig's light and shade baked into the picture) that the night
+## takes away (billboard.gdshader relief_night × ce_night) – far trees at night show their mean colour, not a sunlit side.
+const IMPOSTOR_RELIEF_NIGHT := 0.75
 
 var sets: Dictionary = {}
 var models: Dictionary = {}
@@ -94,12 +97,21 @@ func request(set_ids: Array, owner: Object) -> void:
 		models = models.duplicate()
 	_ready = false
 	var new_models: Array[String] = []
-	for set_id: String in added:
+	var i := 0
+	while i < added.size():
+		var set_id := added[i]
+		i += 1
 		var e := _resolve(set_id)
 		sets[set_id] = e
 		if int(e["kind"]) == MODEL:
 			_model_sets.append(set_id)
 			new_models.append(set_id)
+			# R7c (lead decision 6): the props a model names in "attach" are sets of their own – resolved and loaded too
+			for v: Variant in e["variants"]:
+				for a: Dictionary in (models.get(str(v), {}) as Dictionary).get("attach", []):
+					var aid := str(a["prop"])
+					if aid != "" and not sets.has(aid) and not added.has(aid):
+						added.append(aid)
 		elif int(e["kind"]) == SPRITE:
 			_request_sheet(set_id)
 	if not new_models.is_empty():
@@ -223,6 +235,12 @@ func _resolve(set_id: String) -> Dictionary:
 	elif not sp.is_empty() and str(r.get("fallback", "sprite")) == "sprite":
 		e["kind"] = SPRITE
 	e["mirror_left"] = tags.has("mirror_left")
+	# R7c (A-16): placement tags of the model – tilt to the ground normal, set on the lowest ground point of the
+	# footprint, turn at most FACE_ROAD_DEG away from facing the road – and the footprint's half length along the road
+	e["ground_align"] = tags.has("ground_align")
+	e["ground_sink"] = tags.has("ground_sink")
+	e["face_road"] = tags.has("face_road")
+	e["length"] = float(obj.get("length_m", e["width"]))
 	if str(e["cls"]) == "other":
 		e["cls"] = _cls_of_tags(tags)
 	e["veg"] = str(e["cls"]) == "tree" or str(e["cls"]) == "plant"
@@ -262,10 +280,12 @@ func _add_model(model_id: String) -> void:
 		return
 	var m := ModelDB.model(model_id)
 	var levels: Array[String] = []
+	var dists: Array[float] = []       # R7c: max_dist_m of each level (model.json; the last level's is "endless")
 	for l: Variant in m.get("lods", []):
 		var d: Dictionary = l
 		if float(d.get("max_dist_m", 0.0)) > 0.0:
 			levels.append(str(d.get("name", "")))
+			dists.append(float(d.get("max_dist_m", 0.0)))
 	var imp: Dictionary = m.get("impostor", {})
 	var reps: Array[String] = []
 	if not levels.is_empty():
@@ -286,8 +306,31 @@ func _add_model(model_id: String) -> void:
 			"energy": LAMP_ENERGY})
 	lamp_pools(lamps)
 	var size: Array = imp.get("size_m", [1.0, 1.0])
+	# the distances of the representations: the end of level 0 and of level 1 as model.json gives them (0 = none)
+	var lod_m := Vector2(dists[0] if dists.size() > 1 else 0.0, dists[1] if dists.size() > 2 or (dists.size() == 2 and not imp.is_empty()) else 0.0)
 	models[model_id] = {"reps": reps, "caster": m.has("shadow"), "lamps": lamps, "imp_w": float(size[0]) if size.size() >= 2 else 1.0,
-		"imp_h": float(size[1]) if size.size() >= 2 else 1.0, "imp_ax": float(imp.get("anchor_x", 0.5))}
+		"imp_h": float(size[1]) if size.size() >= 2 else 1.0, "imp_ax": float(imp.get("anchor_x", 0.5)), "lod_m": lod_m,
+		"attach": attachments(m)}
+
+
+## R7c (lead decision 6, A-22 extension): the separate props a model places with itself – model.json "attach":
+## [{"prop": "props/tree_beech", "offset": [x, y, z] (model space: +X right of travel, -Z away from the road), "scale": s}]
+## – as [{"prop": set id, "offset": Vector3, "scale": float}]. Entries without a prop set are left out.
+static func attachments(model: Dictionary) -> Array:
+	var out: Array = []
+	var list: Variant = model.get("attach", [])
+	if not (list is Array):
+		return out
+	for a: Variant in list:
+		if not (a is Dictionary) or str((a as Dictionary).get("prop", "")) == "":
+			continue
+		var d: Dictionary = a
+		var off: Variant = d.get("offset", [0.0, 0.0, 0.0])
+		var v := Vector3.ZERO
+		if off is Array and (off as Array).size() >= 3:
+			v = Vector3(float(off[0]), float(off[1]), float(off[2]))
+		out.append({"prop": str(d["prop"]), "offset": v, "scale": maxf(0.01, float(d.get("scale", 1.0)))})
+	return out
 
 
 ## Range and energy of the light pool of every lamp of one model (see GROUP_ENERGY): lamps that look down share
@@ -385,9 +428,10 @@ func mesh_parts(model_id: String, rep: String) -> Array:
 		var imp: Dictionary = m.get("impostor", {})
 		var tex := ModelDB.texture(str(imp.get("texture", ""))) if not imp.is_empty() else null
 		if tex != null:
+			var bm := _billboard(tex, Rect2(0.0, 0.0, 1.0, 1.0), Rect2())
+			bm.set_shader_parameter("relief_night", IMPOSTOR_RELIEF_NIGHT)
 			out.append({"mesh": ModelFactory.billboard_mesh(float(md.get("imp_w", 1.0)), float(md.get("imp_h", 1.0)), float(md.get("imp_ax", 0.5))),
-				"material": _billboard(tex, Rect2(0.0, 0.0, 1.0, 1.0), Rect2()), "transform": Transform3D.IDENTITY, "shadow": false,
-				"billboard": true})
+				"material": bm, "transform": Transform3D.IDENTITY, "shadow": false, "billboard": true})
 	else:
 		# ModelFactory resolves a SET; every model is reachable through a set of its own name or through this model id
 		for p: Variant in _factory_parts(model_id, rep):
@@ -395,6 +439,26 @@ func mesh_parts(model_id: String, rep: String) -> Array:
 			out.append({"mesh": part["mesh"], "material": null, "transform": part.get("transform", Transform3D.IDENTITY),
 				"shadow": bool(part.get("shadow", false)), "billboard": false})
 	_parts[key] = out
+	return out
+
+
+## R7c: the materials a representation of a model draws with (each surface of each visible part, and the impostor's
+## billboard) – the materials of its own that carry the level's distance band (ModernMaterials.material(…, mesh_path)).
+func rep_materials(model_id: String, rep: String) -> Array[ShaderMaterial]:
+	var out: Array[ShaderMaterial] = []
+	for p: Variant in mesh_parts(model_id, rep):
+		var part: Dictionary = p
+		if bool(part["shadow"]):
+			continue
+		if part.get("material") is ShaderMaterial:
+			out.append(part["material"])
+			continue
+		var mesh: Variant = part.get("mesh")
+		if mesh is Mesh:
+			for s in (mesh as Mesh).get_surface_count():
+				var m := (mesh as Mesh).surface_get_material(s)
+				if m is ShaderMaterial and not out.has(m):
+					out.append(m)
 	return out
 
 

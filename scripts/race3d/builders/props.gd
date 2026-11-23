@@ -37,7 +37,18 @@ extends ChunkBuilder
 ## (dark_material(), FIX-WASSER-R, QA-WASSER B2): Arcade's procedural pylon stays concrete grey at night, while the
 ## light layer of the sprite – a floodlit pylon – made the Köhlbrandbrücke's pylons glow almost white.
 ## build() runs on worker threads: ctx snapshot arrays and the plain tables of collect() only.
-## Owner: package terrain / props / far ground.
+## R7c (A-16, A-22, lead decisions of R7c): the level of detail of a model is chosen PER INSTANCE by its distance from
+## the camera, with a dither cross-fade, in the shaders (inc/lod_band.gdshaderinc): every level draws through
+## materials of its own (one per mesh, ModernMaterials) that carry its distance band (lod_band()); the chunk only
+## switches off the MultiMesh nodes none of whose instances lies inside their band (update(): straight-line distances
+## of the instance origins, like the shaders). The distances: Details' prop_lod0_m / prop_lod1_m scaled by the model's
+## own max_dist_m (model.json; graphics.modern.props.lod0_m overrides it per model until the asset owner writes it)
+## against lod_ref_m / lod1_ref_m. Beyond the reach of the real-time shadows a model that casts takes its mean
+## shadowed share of the sun (far_sun, graphics.modern.props.far_sun). Per instance the MultiMesh custom data carry the
+## tint AND a phase (a = 1 + phase): the rotors of turbines and windmills and the sway of trees no longer jump at a
+## rebase of the floating origin. Placement tags of the models (A-16): ground_align, ground_sink, face_road. A model may
+## place separate props with itself ("attach" in model.json, PropLibrary.attachments()).
+## Owner: package terrain / props / far ground; R7c in wave 5.
 
 const OBJECT_SETS := {"streetlight": "props/streetlight"}   ## Track "object" items drawn here while builders/city.gd is missing
 const RIBBON_MARGIN_M := 1.0       ## a prop needs this much ribbon beyond its foot
@@ -56,7 +67,15 @@ const NO_CUSTOM := [0.0, 0.0, 0.0, 0.0]
 const MODEL_COLOR := [1.0, 1.0, 1.0, 1.0]
 const INSTANCE_FLOATS := 20
 const LOD_HYSTERESIS_M := 6.0      ## a chunk leaves a level this much later than it enters it
-const LOD_STEP_M := 2.0            ## update() looks at the chunk levels again after this much driving
+## update() looks at the chunk levels again after this much driving; a level node is switched on this much before its
+## band begins and off this much after it ends (FIX-R7c, QR7c-05: between two looks an instance may enter a band while
+## the node of its finer level is still off – the coarser one fading out would leave dither holes)
+const LOD_STEP_M := 2.0
+## FIX-R7c (QR7c-06): below this camera speed (m/s) the camera "stands": ce_lod_still goes to 1 over LOD_STILL_S seconds
+## (the vehicles' xfade is 0.3–0.5 s, A-16) and every band narrows to a hard swap at its middle – no dithered tree or
+## house in the countdown, a traffic jam or a police stop; driving off widens the bands again over the same time
+const LOD_STILL_SPEED := 1.5
+const LOD_STILL_S := 0.4
 const COVER_PER_TREE := 3          ## pieces of ground cover for a tree dropped in a bend corridor (one for a bush)
 const COVER_SPREAD_M := 2.5        ## … scattered at most this far around its foot
 const COVER_MIN_BEYOND_M := 0.8    ## … and never closer than this to the paved edge
@@ -73,6 +92,32 @@ const PYLON_BLINK := Vector3(1.6, 0.8, 0.4)
 ## 58.0 – but 2 levels above Arcade at km 79.7, where the street lamps light the cables beside the deck; 0.45 keeps the
 ## pylon at or below Arcade along the whole bridge (docs/renderer-modern.md 14.7).
 const PYLON_NIGHT_ALBEDO := 0.45
+## R7c: the level distances. A model's own max_dist_m of level 0 (1) is read against these reference values – the
+## exporter's defaults, which are the distances of "Details: Mittel" – so the model keeps its share at every Details level.
+const LOD_REF_M := 60.0
+const LOD1_REF_M := 200.0
+## Half width of the cross-fade band around a level distance D: clamp(D x frac, min, max) metres – 0.4 s at 100 km/h
+## around 60 m (the vehicles' xfade is 0.3–0.5 s, A-16), wider far away where a metre moves less on the screen.
+const LOD_FADE := Vector3(0.12, 4.0, 25.0)
+const LOD_ENDLESS := 1.0e9
+## ground_align: at most this tilt (degrees) towards the ground normal; face_road: at most this turn away from the road
+const ALIGN_MAX_DEG := 30.0
+const FACE_ROAD_DEG := 20.0
+const ATTACH_ITEM_BASE := 200000   ## item numbers of attached props (hashes, lists): beyond every real and cover item
+const ATTACH_MAX := 8              ## attachments per model at most (item numbers ATTACH_ITEM_BASE + item × 8 + k)
+## R7c: what the materials of the prop models get on top of their bands ([uniform, value]; baked.gdshader – its defaults
+## keep the earlier picture, so the panels of stations, borders and gantries keep their sharp lettering, check_structures
+## "zieltor"):
+##   cutout_bias 2        the alpha test of baked_cutout two mip levels coarser (railings, leaf cards flicker less,
+##                        lead decision 3; the bake keeps the coverage of every level, A-22)
+##   window_ramp 0.6      the night atlas at its full light from ce_night 0.6 (Arcade's light layer: lights 0.65 at 19:30)
+##   window_cover 1       a lit window replaces the facade's lit colour (lead decision 4)
+## and albedo_bias / albedo_bias_m per model (albedo_bias_of(): graphics.modern.props.albedo_bias) – the colour up to that
+## many levels coarser, growing between the two distances. FIX-R7c (QR7c-04): R7c put 1.25 from 30 to 120 m on every
+## model, which turned the white window frames of far facades grey (Nürnberg, ~100 m: 1.09 levels there). Measured
+## (sparkcam, lod1, "Mittel"): without the bias the Barockhaus flickers 2.5 x its sprite at 150 m and the Grachtenhaus B
+## 2.25 x – so the bias stays, but from 60 to 150 m (0.52 levels at 100 m); the half-timbered rows keep 30 to 120 m.
+const PROP_LOOK: Array = [["cutout_bias", 2.0], ["window_ramp", 0.6], ["window_cover", 1.0]]
 
 var library: PropLibrary
 
@@ -101,6 +146,20 @@ var _far: Dictionary = {}          ## index into Track.landmarks -> MeshInstance
 var _far_z := -1.0e12              ## camera position of the last look at the far landmarks
 var _lm_fallback: Dictionary = {}  ## landmark set Arcade draws procedurally -> fallback set of the stage plan (B1)
 var _dark_mats: Dictionary = {}    ## set id -> stand-in material without light layer and headlights (B2)
+## R7c: level distances and far light
+var _lod_ref := Vector2(LOD_REF_M, LOD1_REF_M)
+var _lod_fade := LOD_FADE
+var _lod0_override: Dictionary = {} ## model id -> lod0 distance (m at "Mittel"), graphics.modern.props.lod0_m
+var _far_sun: Dictionary = {}       ## class ("building", "tree", …) or model id -> mean shadowed share of the sun
+var _albedo_bias: Dictionary = {}   ## "default" or model id -> [mip bias of the colour far away, from m, to m] (QR7c-04)
+var _banded: Dictionary = {}        ## model id -> true: its materials carry the bands of the current levels
+var _bands: Dictionary = {}         ## model id -> {rep: Vector4}
+var _models_seen: Dictionary = {}   ## model id -> a set it was drawn for (quality_lowered)
+## FIX-R7c (QR7c-06): ce_lod_still – 1 while the camera stands (the start of a stage is a standing camera)
+var _still := 1.0
+var _still_z := -1.0e12             ## camera position of the last frame (-1e12: none yet)
+var _still_t := -1.0e12             ## view time of the last frame (-1e12: none yet)
+var _still_sent := -1.0             ## value of ce_lod_still last set (-1: never)
 
 
 func id() -> String:
@@ -131,9 +190,26 @@ func _read_config(cfg: Dictionary) -> void:
 		float(ConfigLoader.lookup(cfg, "render.landmark_far_m", 1900.0)))
 	var p: Variant = ConfigLoader.lookup(cfg, "graphics.modern.props", {})
 	if p is Dictionary:
-		var list: Variant = (p as Dictionary).get("bend_cover", [])
+		var pd: Dictionary = p
+		var list: Variant = pd.get("bend_cover", [])
 		_cover_sets = list if list is Array else []
-		_cover_max_h = maxf(0.05, float((p as Dictionary).get("bend_cover_max_h_m", 0.5)))
+		_cover_max_h = maxf(0.05, float(pd.get("bend_cover_max_h_m", 0.5)))
+		# R7c: level distances, cross-fade band, far light
+		_lod_ref = Vector2(maxf(1.0, float(pd.get("lod_ref_m", LOD_REF_M))), maxf(1.0, float(pd.get("lod1_ref_m", LOD1_REF_M))))
+		var fade: Variant = pd.get("lod_fade", {})
+		if fade is Dictionary:
+			_lod_fade = Vector3(float((fade as Dictionary).get("frac", LOD_FADE.x)), float((fade as Dictionary).get("min_m", LOD_FADE.y)),
+				float((fade as Dictionary).get("max_m", LOD_FADE.z)))
+		var ov: Variant = pd.get("lod0_m", {})
+		_lod0_override = (ov as Dictionary).duplicate() if ov is Dictionary else {}
+		_lod0_override.erase("_doc")
+		var fs: Variant = pd.get("far_sun", {})
+		_far_sun = (fs as Dictionary).duplicate() if fs is Dictionary else {}
+		_far_sun.erase("_doc")
+		var ab: Variant = pd.get("albedo_bias", {})
+		_albedo_bias = (ab as Dictionary).duplicate() if ab is Dictionary else {}
+		_albedo_bias.erase("_doc")
+	_banded.clear()
 
 
 func apply_quality(levels: Dictionary) -> void:
@@ -142,6 +218,128 @@ func apply_quality(levels: Dictionary) -> void:
 	_density = float(levels.get("deco_density", _density))
 	_casters = int(levels.get("shadow_casters", _casters))
 	_shadow_m = float(levels.get("shadow_distance_m", _shadow_m))
+	_banded.clear()
+	_bands.clear()
+
+
+## The slowness watchdog stepped the preset down during the countdown (modern_renderer.gd): new level distances and
+## shadow reach for the models already drawn – their materials get the new bands at once, the chunks follow in update().
+func quality_lowered(levels: Dictionary) -> void:
+	apply_quality(levels)
+	for mid: Variant in _models_seen.keys():
+		_ensure_bands(str(mid), str(_models_seen[mid]))
+	# the level nodes already committed switch by the new bands too (their meta "band" decides in _apply_lod())
+	for h: Variant in _holders:
+		if not is_instance_valid(h):
+			continue
+		for c: Node in (h as Node).get_children():
+			if c.has_meta(&"band") and c.has_meta(&"model"):
+				var bands := model_bands(str(c.get_meta(&"model")))
+				c.set_meta(&"band", bands.get(str(c.get_meta(&"rep")), c.get_meta(&"band")))
+		_thresholds(h)          # new bands and shadow reach: new thresholds (and no stale key)
+	_lod_z = -1.0e12
+
+
+## R7c: the distance band of every representation of a model, for the shaders (lod_band, inc/lod_band.gdshaderinc):
+## {rep: Vector4(in0, in1, out0, out1)}. reps = the representations at chunk levels 0, 1, 2 (PropLibrary: lod0, lod1,
+## impostor or the coarsest level); lod_m = the model's own ends of level 0 and 1 (0 = no such level); lod0_m, lod1_m =
+## the Details distances; ref = the reference distances they are read against; override0 > 0 replaces lod_m.x; fade =
+## LOD_FADE. A representation that serves several levels gets their union; a model of one level is always shown.
+static func lod_bands(reps: Array, lod_m: Vector2, lod0_m: float, lod1_m: float, ref: Vector2, override0: float, fade: Vector3) -> Dictionary:
+	var out := {}
+	if reps.is_empty():
+		return out
+	var always := Vector4(-2.0, -1.0, LOD_ENDLESS, 2.0 * LOD_ENDLESS)
+	var own0 := override0 if override0 > 0.0 else lod_m.x
+	if own0 <= 0.0 or (str(reps[0]) == str(reps[mini(1, reps.size() - 1)]) and str(reps[0]) == str(reps[reps.size() - 1])):
+		for r: Variant in reps:
+			out[str(r)] = always
+		return out
+	var d0 := lod0_m * own0 / maxf(1.0, ref.x)
+	var w0 := clampf(d0 * fade.x, fade.y, fade.z)
+	var d1 := LOD_ENDLESS
+	var w1 := 0.0
+	if lod_m.y > 0.0:
+		d1 = lod1_m * lod_m.y / maxf(1.0, ref.y)
+		w1 = clampf(d1 * fade.x, fade.y, fade.z)
+		d1 = maxf(d1, d0 + w0 + w1 + 2.0)
+	var lv: Array[Vector4] = [Vector4(-2.0, -1.0, d0 - w0, d0 + w0),
+		Vector4(d0 - w0, d0 + w0, d1 - w1 if d1 < LOD_ENDLESS else LOD_ENDLESS, d1 + w1 if d1 < LOD_ENDLESS else 2.0 * LOD_ENDLESS),
+		Vector4(d1 - w1, d1 + w1, LOD_ENDLESS, 2.0 * LOD_ENDLESS) if d1 < LOD_ENDLESS else Vector4(LOD_ENDLESS, 2.0 * LOD_ENDLESS, LOD_ENDLESS, 2.0 * LOD_ENDLESS)]
+	for level in mini(3, reps.size()):
+		var r := str(reps[level])
+		var b: Vector4 = lv[level]
+		if out.has(r):
+			var a: Vector4 = out[r]
+			b = Vector4(minf(a.x, b.x), minf(a.y, b.y), maxf(a.z, b.z), maxf(a.w, b.w))
+		out[r] = b
+	return out
+
+
+## The bands of a model at the current levels (cached until the levels change).
+func model_bands(model_id: String) -> Dictionary:
+	var b: Variant = _bands.get(model_id)
+	if b != null:
+		return b
+	var md: Dictionary = _lib().models.get(model_id, {})
+	var lod_m: Vector2 = md.get("lod_m", Vector2.ZERO)
+	var out := lod_bands(md.get("reps", []), lod_m, _lod0_m, _lod1_m, _lod_ref, lod0_override(model_id), _lod_fade)
+	_bands[model_id] = out
+	return out
+
+
+## The lod0 distance (m at "Mittel") graphics.modern.props.lod0_m gives a model: its own entry, else that of the first of
+## its tags that has one ("city": the city houses); 0 = the model's own max_dist_m.
+func lod0_override(model_id: String) -> float:
+	if _lod0_override.has(model_id):
+		return float(_lod0_override[model_id])
+	for t: Variant in ModelDB.model(model_id).get("tags", []):
+		if _lod0_override.has("tag:" + str(t)):
+			return float(_lod0_override["tag:" + str(t)])
+	return 0.0
+
+
+## Mean shadowed share of the sun beyond the shadow reach for a model of class cls (1 = no change): the model's own
+## entry of graphics.modern.props.far_sun, else that of its class.
+func far_sun_of(model_id: String, cls: String) -> float:
+	return clampf(float(_far_sun.get(model_id, _far_sun.get(cls, 1.0))), 0.0, 1.0)
+
+
+## FIX-R7c (QR7c-04): the far mip bias of a model's colour (baked.gdshader albedo_bias, albedo_bias_m) as
+## Vector3(levels, from m, to m): its own entry of graphics.modern.props.albedo_bias, else "default"; an entry is
+## [levels, from, to] or a plain number (from 30 to 120 m). (0, …) = the atlas as sharp as near the camera.
+func albedo_bias_of(model_id: String) -> Vector3:
+	var v: Variant = _albedo_bias.get(model_id, _albedo_bias.get("default", 0.0))
+	if v is Array and (v as Array).size() >= 3:
+		var a: Array = v
+		return Vector3(maxf(0.0, float(a[0])), float(a[1]), maxf(float(a[1]) + 1.0, float(a[2])))
+	return Vector3(maxf(0.0, float(v)), 30.0, 120.0)
+
+
+## Puts the bands and the far light of a model on the materials of its representations (main thread). set_id: a set
+## the model is drawn for (its class and whether it casts at the current shadow level).
+func _ensure_bands(model_id: String, set_id: String) -> void:
+	if _banded.has(model_id):
+		return
+	_banded[model_id] = true
+	_models_seen[model_id] = set_id
+	var lib := _lib()
+	var e: Dictionary = lib.sets.get(set_id, {})
+	var casts := not e.is_empty() and _casters >= int(e.get("cast", 3)) and _casters >= 2
+	var fs := far_sun_of(model_id, str(e.get("cls", "other"))) if casts else 1.0
+	var reach := _shadow_m if _shadow_m > 0.0 else 0.0
+	var far := Vector2(reach * 0.85, reach) if casts and fs < 0.999 and reach > 0.0 else Vector2.ZERO
+	var bands := model_bands(model_id)
+	for rep: String in bands:
+		for m: ShaderMaterial in lib.rep_materials(model_id, rep):
+			m.set_shader_parameter("lod_band", bands[rep])
+			m.set_shader_parameter("shadow_far", far)
+			m.set_shader_parameter("far_sun", fs)
+			for l: Array in PROP_LOOK:
+				m.set_shader_parameter(str(l[0]), l[1])
+			var ab := albedo_bias_of(model_id)
+			m.set_shader_parameter("albedo_bias", ab.x)
+			m.set_shader_parameter("albedo_bias_m", Vector2(ab.y, ab.z))
 
 
 ## ctx.sets = every sprite set id the stage can show: the prop and landmark sets are resolved and loaded here.
@@ -194,22 +392,68 @@ func fail_reason() -> String:
 	return _lib().fail_reason() if _prepared else ""
 
 
-func update(view: Dictionary, _dt: float) -> void:
+func update(view: Dictionary, dt: float) -> void:
 	var cam_z := float(view.get("camera_z", 0.0))
+	_update_still(cam_z, dt, float(view["time"]) if view.has("time") else NAN)
 	if absf(cam_z - _far_z) >= LOD_STEP_M or _far_z < -1.0e11:
 		_far_z = cam_z
 		_update_far_landmarks(view, cam_z)
 	if absf(cam_z - _lod_z) < LOD_STEP_M:
 		return      # the levels are a matter of tens of metres: looked at every few metres of driving
 	_lod_z = cam_z
+	var eye: Variant = _eye()
 	var i := _holders.size() - 1
 	while i >= 0:
 		var h: Variant = _holders[i]
 		if not is_instance_valid(h):
 			_holders.remove_at(i)
 		else:
-			_apply_lod(h, cam_z)
+			_apply_lod(h, cam_z, eye)
 		i -= 1
+
+
+## FIX-R7c (QR7c-06): ce_lod_still from the camera's motion along the road. The clock is the view's own "time" (Rule 10)
+## where the view has one – the same view drawn twice (render checks, a paused game) changes nothing, the picture stays
+## the same –, else dt (dt = 0 while the stage is prepared: no change). Sets the global only when its value changes.
+func _update_still(cam_z: float, dt: float, view_time: float = NAN) -> void:
+	var step := dt
+	if not is_nan(view_time):
+		step = view_time - _still_t if _still_t > -1.0e11 else 0.0
+		if step > 0.0 or _still_t < -1.0e11:
+			_still_t = view_time
+		step = maxf(0.0, step)
+	var speed := 0.0
+	if step > 0.0 and _still_z > -1.0e11:
+		speed = absf(cam_z - _still_z) / step
+	if step > 0.0 or _still_z < -1.0e11:
+		_still_z = cam_z
+	_still = still_step(_still, speed, step)
+	if _still != _still_sent:
+		_still_sent = _still
+		ModernMaterials.set_global("ce_lod_still", _still)
+
+
+## The next value of ce_lod_still: towards 1 while the camera moves slower than LOD_STILL_SPEED (m/s), towards 0
+## otherwise, LOD_STILL_S seconds for the whole way.
+static func still_step(still: float, speed: float, dt: float) -> float:
+	if dt <= 0.0:
+		return still
+	return move_toward(still, 1.0 if speed < LOD_STILL_SPEED else 0.0, dt / LOD_STILL_S)
+
+
+## The current ce_lod_still of this builder (tests, debug).
+func lod_still() -> float:
+	return _still
+
+
+## Position of the main camera (origin-relative world), or null without a renderer camera in the tree (tests).
+func _eye() -> Variant:
+	if _renderer == null:
+		return null
+	var cam: Variant = _renderer.get("camera")
+	if cam is Camera3D and (cam as Camera3D).is_inside_tree():
+		return (cam as Camera3D).global_position
+	return null
 
 
 func perf() -> Dictionary:
@@ -544,16 +788,22 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 	var inp: Dictionary = input if input is Dictionary else {}
 	# out: what the chunk part collects – groups: key -> {"model" | "set", "mirror", "buf": PackedFloat32Array, "n"}
 	var out := {"groups": {}, "blobs": PackedFloat32Array(), "blob_n": 0, "lamps": [], "list": [], "cover_list": [], "counts": {},
-		"dropped": {"ribbon": 0, "corridor": 0, "missing": 0, "density": 0}}
+		"dropped": {"ribbon": 0, "corridor": 0, "missing": 0, "density": 0}, "attach_list": [],
+		"box_min": Vector3(INF, INF, INF), "box_max": Vector3(-INF, -INF, -INF), "iz": Vector3(INF, -INF, 0.0)}
 	var rows := ctx.row_count()
 	for i in rows - 1:
 		var seg: Dictionary = ctx.segs[i]
 		var sprites: Array = seg["sprites"]
 		for j in sprites.size():
 			_place(ctx, inp, out, i, seg, j, sprites[j], false)
+	var bmin: Vector3 = out["box_min"]
+	var bmax: Vector3 = out["box_max"]
+	var iz: Vector3 = out["iz"]
 	return {"groups": out["groups"], "blobs": out["blobs"], "blob_n": out["blob_n"], "lamps": out["lamps"], "list": out["list"],
-		"cover_list": out["cover_list"], "counts": out["counts"], "dropped": out["dropped"],
-		"z0": float(ctx.seg_a) * ctx.seg_len, "z1": float(ctx.seg_b) * ctx.seg_len}
+		"cover_list": out["cover_list"], "attach_list": out["attach_list"], "counts": out["counts"], "dropped": out["dropped"],
+		"z0": float(ctx.seg_a) * ctx.seg_len, "z1": float(ctx.seg_b) * ctx.seg_len,
+		"box": AABB(bmin, bmax - bmin) if bmin.x <= bmax.x else AABB(), "iz0": iz.x if iz.x <= iz.y else float(ctx.seg_a) * ctx.seg_len,
+		"iz1": iz.y if iz.x <= iz.y else float(ctx.seg_b) * ctx.seg_len, "lat": iz.z}
 
 
 ## One item of a segment (row i of the chunk, item j of TrackSegment.sprites) into the part `out` (build(), worker
@@ -609,12 +859,17 @@ static func _place(ctx: ChunkContext, inp: Dictionary, out: Dictionary, i: int, 
 	if side != 0 and not it.has("offset") and cover.has(str(e["set"])) and ctx.in_bend_corridor(z, x):
 		sc = minf(sc, cover_max_h / maxf(0.01, float(e["height"])))   # ground cover inside the corridor
 	var h := 0.0
+	var yaw_base := hash01(seg_index, j, 5)
 	if it.has("h"):
 		# given relative to the road (ships on the water); RINT-M2 (QR5-08): with the bridge builder the water lies
 		# WATER_LIFT (0.15 m) above the terrain's water rows – the boats float on it, not 15 cm below
 		h = float(it["h"]) + (BRIDGE_WATER_LIFT if bool(inp.get("skip_bridge", false)) else 0.0)
 	elif not it.has("bridge"):
 		h = ctx.ground(z, x)
+		if bool(e.get("ground_sink", false)):
+			# R7c (A-16): rocks and cliffs stand on the lowest ground point of their footprint (no edge in the air)
+			h = sink_height(ctx, z, x, 0.5 * maxf(float(e["width"]), float(e.get("length", e["width"]))) * sc, h)
+	h += float(it.get("lift", 0.0))
 	var key := ""
 	var model_id := ""
 	var tr: Transform3D
@@ -625,8 +880,12 @@ static func _place(ctx: ChunkContext, inp: Dictionary, out: Dictionary, i: int, 
 	var dark := not landmark and bool(it.get("prefer_proc", false))
 	if is_model:
 		model_id = chunk_variant(ctx.index, str(e["set"]), e["variants"])
-		var yaw := hash01(seg_index, j, 5) * TAU if bool(e["veg"]) or str(e["cls"]) == "rock" else 0.0
+		var yaw := yaw_base * TAU if bool(e["veg"]) or str(e["cls"]) == "rock" else 0.0
+		if bool(e.get("face_road", false)):
+			yaw = (yaw_base - 0.5) * 2.0 * deg_to_rad(FACE_ROAD_DEG)   # R7c (A-16): at most ±20° away from facing the road
 		tr = ctx.frame(z, x, h, yaw).scaled_local(Vector3(sc, sc, sc))
+		if bool(e.get("ground_align", false)) and not it.has("h") and not it.has("bridge"):
+			tr.basis = align_basis(ctx, z, x, h, tr.basis)          # R7c (A-16): tilted to the ground normal
 		key = "%s|%s|%d" % ["md" if dark else "m", model_id, 1 if flipped else 0]
 		var lamps: Array = out["lamps"]
 		var pylon := str(it.get("proc", "")) == "pylon"
@@ -661,12 +920,22 @@ static func _place(ctx: ChunkContext, inp: Dictionary, out: Dictionary, i: int, 
 	# INSTANCE_FLOATS (see NO_CUSTOM)
 	if is_model:
 		buf.append_array(PackedFloat32Array(MODEL_COLOR))
-		buf.append_array(PackedFloat32Array([tint.r, tint.g, tint.b, 1.0]))
+		# R7c: a = 1 + phase (0 .. 0.999): the shaders read the tint for a > 0.5 as before and the phase of rotors and
+		# sway from fract(a) – the custom data are half floats in the Compatibility renderer (1/1024 steps of the phase)
+		buf.append_array(PackedFloat32Array([tint.r, tint.g, tint.b, 1.0 + instance_phase(seg_index, j)]))
 	else:
 		buf.append_array(PackedFloat32Array([tint.r, tint.g, tint.b, 1.0]))
 		buf.append_array(PackedFloat32Array(NO_CUSTOM))
 	g["buf"] = buf
 	g["n"] = int(g["n"]) + 1
+	# R7c: the box of the instance origins (chunk-local) and their path range – update() decides from it which level
+	# nodes have an instance inside their band
+	var bmin: Vector3 = out["box_min"]
+	var bmax: Vector3 = out["box_max"]
+	out["box_min"] = bmin.min(tr.origin)
+	out["box_max"] = bmax.max(tr.origin)
+	var iz: Vector3 = out["iz"]
+	out["iz"] = Vector3(minf(iz.x, z), maxf(iz.y, z), maxf(iz.z, absf(x)))
 	# contact shadow on the ground plane under the prop
 	if float(e["blob"]) > 0.0 and not it.has("h") and not it.has("bridge") and not landmark:
 		var w := float(e["width"]) * sc
@@ -687,9 +956,83 @@ static func _place(ctx: ChunkContext, inp: Dictionary, out: Dictionary, i: int, 
 		out["blobs"] = blobs
 		out["blob_n"] = int(out["blob_n"]) + 1
 	var counts: Dictionary = out["counts"]
+	var attached := bool(it.get("attached", false))
 	counts[str(e["set"]) if is_cover else set_id] = int(counts.get(str(e["set"]) if is_cover else set_id, 0)) + 1
-	(out["cover_list"] if is_cover else out["list"]).append([seg_index, j, str(e["set"]), snappedf(x, 0.001), snappedf(z, 0.001),
-		snappedf(sc, 0.0001), 1 if flipped else 0, int(e["kind"])])
+	(out["cover_list"] if is_cover else (out["attach_list"] if attached else out["list"])).append([seg_index, j, str(e["set"]),
+		snappedf(x, 0.001), snappedf(z, 0.001), snappedf(sc, 0.0001), 1 if flipped else 0, int(e["kind"])])
+	# R7c (lead decision 6): the props the model places with itself – ordinary items of their own sets (own level of
+	# detail, own drops: an attached tree inside a bend corridor is left out like any tree)
+	if is_model and not attached and not is_cover:
+		var md: Dictionary = models.get(model_id, {})
+		var k := 0
+		var z_lo := float(ctx.seg_a) * ctx.seg_len
+		var z_hi := float(ctx.seg_b) * ctx.seg_len
+		for a: Dictionary in md.get("attach", []):
+			if k >= ATTACH_MAX:
+				break           # FIX-R7c (QR7c-08): item numbers item × ATTACH_MAX + k stay apart
+			var ai := attach_item(it, a, z, x, sc, side, flipped, seg_index, j, k)
+			k += 1
+			# FIX-R7c (QR7c-08): an attachment beyond this chunk is not placed – ground() and the corridor test would
+			# read the edge row there (wrong height on a slope; a corridor that begins just beyond the edge, F7), and the
+			# neighbouring chunk does not see this item. Offsets of a few metres lose it only near a chunk end.
+			if float(ai["z"]) < z_lo or float(ai["z"]) >= z_hi:
+				continue
+			_place(ctx, inp, out, i, seg, int(ai["j"]), ai, false)
+
+
+## R7c (lead decision 6): the item of a prop a model places with itself ("attach" of model.json, PropLibrary.attachments()):
+## offset in model space (+X right of travel, -Z along the road away from the near face – a building's depth), mirrored
+## with a mirrored model, turned with the road; the prop stands on the ground at that point (+ the offset's y).
+## Not for models turned by a random yaw (they have no attachments today: trees, rocks).
+static func attach_item(it: Dictionary, a: Dictionary, z: float, x: float, sc: float, side: int, flipped: bool, seg_index: int, item: int,
+		k: int) -> Dictionary:
+	var off: Vector3 = a["offset"]
+	var ox := -off.x if flipped else off.x
+	var out := {"kind": "prop", "set": str(a["prop"]), "side": side if side != 0 else 1, "x": x + ox * sc, "z": z - off.z * sc,
+		"scale": float(a["scale"]) * sc, "attached": true, "j": ATTACH_ITEM_BASE + item * ATTACH_MAX + k}
+	if absf(off.y) > 0.001:
+		out["lift"] = off.y * sc
+	if it.has("tint"):
+		out["tint"] = it["tint"]
+	return out
+
+
+## R7c (A-16): the phase of an instance (0 .. 0.999) for rotors and sway – stable per item, independent of the origin.
+static func instance_phase(seg_index: int, item: int) -> float:
+	return hash01(seg_index, item, 29) * 0.999
+
+
+## R7c (A-16, tag ground_sink): ground height under a footprint of radius r around (z, x): the lowest of the centre and
+## eight points on the circle – a rock or cliff on a slope is set down to its low side instead of floating there.
+static func sink_height(ctx: ChunkContext, z: float, x: float, r: float, h0: float) -> float:
+	var h := h0
+	if r <= 0.05:
+		return h
+	for k in 8:
+		var a := float(k) * TAU / 8.0
+		h = minf(h, ctx.ground(z + cos(a) * r, x + sin(a) * r))
+	return h
+
+
+## R7c (A-16, tag ground_align): a basis tilted from its up axis towards the ground normal at (z, x) (at most
+## ALIGN_MAX_DEG) – heather and ground cover lie on the slope instead of standing upright out of it.
+static func align_basis(ctx: ChunkContext, z: float, x: float, h: float, basis: Basis) -> Basis:
+	var p0 := ctx.local(z, x, h)
+	var px := ctx.local(z, x + SLOPE_PROBE_M, ctx.ground(z, x + SLOPE_PROBE_M)) - p0
+	var pz := ctx.local(z + SLOPE_PROBE_M, x, ctx.ground(z + SLOPE_PROBE_M, x)) - p0
+	var n := px.cross(pz).normalized()
+	if n.y < 0.0:
+		n = -n
+	if n.y < 0.2:
+		return basis
+	var up := basis.y.normalized()
+	var ang := up.angle_to(n)
+	if ang < 0.001:
+		return basis
+	var axis := up.cross(n).normalized()
+	if axis.length() < 0.5:
+		return basis
+	return Basis(axis, minf(ang, deg_to_rad(ALIGN_MAX_DEG))) * basis
 
 
 ## Variant model of a set in a chunk (§4.6.6 variants): ONE per chunk and set, by a stable hash of the chunk index and
@@ -825,6 +1168,8 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 			var rep_levels := {}          # representation -> bit mask of the chunk LOD levels that show it
 			for level in reps.size():
 				rep_levels[str(reps[level])] = int(rep_levels.get(str(reps[level]), 0)) | (1 << level)
+			_ensure_bands(model_id, str(g["set"]))
+			var bands := model_bands(model_id)
 			for rep: String in rep_levels:
 				for p: Variant in lib.mesh_parts(model_id, rep):
 					var mp: Dictionary = p
@@ -839,6 +1184,8 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 						else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 					node.set_meta(&"levels", int(rep_levels[rep]))
 					node.set_meta(&"rep", rep)
+					node.set_meta(&"band", bands.get(rep, Vector4(-2.0, -1.0, LOD_ENDLESS, 2.0 * LOD_ENDLESS)))
+					node.set_meta(&"model", model_id)
 					holder.add_child(node)
 			if has_caster and cast_ok and not reps.is_empty():
 				for p: Variant in lib.mesh_parts(model_id, str(reps[mini(1, reps.size() - 1)])):
@@ -882,6 +1229,10 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 			(c["material"] as ShaderMaterial).set_shader_parameter("real_to_m", _shadow_m)
 	holder.set_meta(&"z0", float(part.get("z0", 0.0)))
 	holder.set_meta(&"z1", float(part.get("z1", 0.0)))
+	holder.set_meta(&"box", part.get("box", AABB()))
+	holder.set_meta(&"iz0", float(part.get("iz0", part.get("z0", 0.0))))
+	holder.set_meta(&"iz1", float(part.get("iz1", part.get("z1", 0.0))))
+	holder.set_meta(&"lat", float(part.get("lat", 0.0)))
 	holder.set_meta(&"counts", part.get("counts", {}))
 	holder.set_meta(&"instances", instances)
 	holder.set_meta(&"lod", -1)
@@ -896,7 +1247,7 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 		var lamps: Array = part.get("lamps", [])
 		if not lamps.is_empty() and (renderer as Object).has_method(&"add_lamps"):
 			(renderer as Object).call(&"add_lamps", holder, lamps)
-	_apply_lod(holder, cam_z)
+	_apply_lod(holder, cam_z, _eye())
 
 
 ## A MultiMeshInstance3D for one mesh; buf: INSTANCE_FLOATS per instance (transform, colour, custom – see NO_CUSTOM).
@@ -928,16 +1279,28 @@ static func _mmi(part: Dictionary, buf: PackedFloat32Array, n: int, mirrored: bo
 	return node
 
 
-## Shows the representation of every model group that belongs to the chunk's distance from the camera (path
-## distance of its nearest row) and switches the shadow casters off beyond the reach of the shadow map.
-func _apply_lod(holder: Node, cam_z: float) -> void:
-	var d := maxf(0.0, maxf(float(holder.get_meta(&"z0", 0.0)) - cam_z, cam_z - float(holder.get_meta(&"z1", 0.0))))
-	var old := int(holder.get_meta(&"lod", -1))
-	var level := lod_level(d, old, _lod0_m, _lod1_m)
-	var cast := _casters >= 2 and d < _shadow_m + SHADOW_KEEP_M
-	if level == old and cast == bool(holder.get_meta(&"cast", false)):
+## R7c: switches on every representation node that has at least one instance inside its distance band (the shaders
+## choose per instance, inc/lod_band.gdshaderinc) and the shadow casters inside the reach of the shadow map. The range
+## of distances of the chunk's instances: straight-line distances of the box of their origins from the camera (eye),
+## like the shaders; without a renderer camera (tests) the path distances of the instances along the road instead.
+## meta "lod" = the coarsest chunk level any instance is at (0 / 1 / 2, for debug and tests).
+## FIX-R7c (QR7c-03): the walk over the children runs only when the span crosses one of the holder's thresholds
+## (_thresholds(): every distance at which a child's visibility or the holder's level changes) – the key is the place of
+## the span among them, not the span itself (the 1-m key of R7c changed at every look and walked every child of every
+## chunk every 2 m of driving: the hook cost 2.5–3 x and peaked at 3.8–4.4 ms on the Deck preset, QA-R7c).
+## QR7c-05: a level node is on from LOD_STEP_M before its band to LOD_STEP_M after it (the look comes every LOD_STEP_M).
+func _apply_lod(holder: Node, cam_z: float, eye: Variant = null) -> void:
+	var span := _span(holder, cam_z, eye)
+	if not holder.has_meta(&"thr_lo"):
+		_thresholds(holder)
+	var lo: PackedFloat32Array = holder.get_meta(&"thr_lo")
+	var hi: PackedFloat32Array = holder.get_meta(&"thr_hi")
+	var key := Vector2i(lo.bsearch(span.y, false), hi.bsearch(span.x, true))
+	if holder.get_meta(&"span_key", Vector2i(-1, -1)) == key:
 		return
-	holder.set_meta(&"lod", level)
+	holder.set_meta(&"span_key", key)
+	var cast := _casters >= 2 and span.x < _shadow_m + SHADOW_KEEP_M
+	holder.set_meta(&"lod", lod_level(span.y, -1, _lod0_m, _lod1_m))
 	holder.set_meta(&"cast", cast)
 	for c: Node in holder.get_children():
 		var n3 := c as Node3D
@@ -945,8 +1308,47 @@ func _apply_lod(holder: Node, cam_z: float) -> void:
 			continue
 		if c.has_meta(&"caster"):
 			n3.visible = cast
+		elif c.has_meta(&"band"):
+			var b: Vector4 = c.get_meta(&"band")
+			n3.visible = span.y >= b.x - LOD_STEP_M and span.x <= b.w + LOD_STEP_M
 		else:
-			n3.visible = (int(c.get_meta(&"levels", 7)) & (1 << level)) != 0
+			n3.visible = true
+
+
+## FIX-R7c (QR7c-03): the sorted thresholds of a holder for _apply_lod(): "thr_lo" against the farthest instance (band
+## starts − LOD_STEP_M, the level distances of the meta "lod"), "thr_hi" against the nearest one (band ends + LOD_STEP_M,
+## the reach of the casters). Again after the bands or the shadow reach change (quality_lowered()).
+func _thresholds(holder: Node) -> void:
+	var lo := PackedFloat32Array([_lod0_m, _lod1_m])
+	var hi := PackedFloat32Array([_shadow_m + SHADOW_KEEP_M])
+	for c: Node in holder.get_children():
+		if c.has_meta(&"band"):
+			var b: Vector4 = c.get_meta(&"band")
+			lo.append(b.x - LOD_STEP_M)
+			hi.append(b.w + LOD_STEP_M)
+	lo.sort()
+	hi.sort()
+	holder.set_meta(&"thr_lo", lo)
+	holder.set_meta(&"thr_hi", hi)
+	holder.remove_meta(&"span_key")
+
+
+## (nearest, farthest) distance of the instance origins of a holder from the camera.
+func _span(holder: Node, cam_z: float, eye: Variant) -> Vector2:
+	var box: AABB = holder.get_meta(&"box", AABB())
+	if eye is Vector3 and holder is Node3D and (holder as Node3D).is_inside_tree():
+		var wb: AABB = (holder as Node3D).global_transform * box
+		var p: Vector3 = eye
+		var near := p.clamp(wb.position, wb.end).distance_to(p)
+		# the farthest corner: per axis the end farther from the eye
+		var far := (p - wb.position).abs().max((wb.end - p).abs()).length()
+		return Vector2(near, far)
+	var z0 := float(holder.get_meta(&"iz0", holder.get_meta(&"z0", 0.0)))
+	var z1 := float(holder.get_meta(&"iz1", holder.get_meta(&"z1", 0.0)))
+	var lat := float(holder.get_meta(&"lat", 0.0))
+	var dn := maxf(0.0, maxf(z0 - cam_z, cam_z - z1))
+	var df := maxf(absf(z1 - cam_z), absf(cam_z - z0))
+	return Vector2(dn, sqrt(df * df + lat * lat))
 
 
 ## Chunk LOD level 0 / 1 / 2 for a path distance, with a little hysteresis against the level it has (old; -1 = none).

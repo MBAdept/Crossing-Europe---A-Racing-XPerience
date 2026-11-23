@@ -37,8 +37,8 @@
   "roughness": 0.86,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "german_old", "center"],
-  "bytes": 341869,
-  "hash": "2746e5e171206c8cca4ececf0014fe4e15c941fa"
+  "bytes": 334625,
+  "hash": "90b23b587b76dabdbacc5f631f5917576157cdc5"
  },
  "sets": {
   "props/city_german_old_barock": {"model": "props/city_german_old_barock"}

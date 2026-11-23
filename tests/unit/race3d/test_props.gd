@@ -317,7 +317,7 @@ func test_placement_drops_and_lamps() -> void:
 		fake.view["camera_z"] = cam
 		b.update({"camera_z": cam}, 0.0)
 		var calls := {}
-		var mirrored_nodes := 0
+		var mirrored_sets := {}
 		for c: Node in holder.get_children():
 			var mmi := c as MultiMeshInstance3D
 			if not mmi.visible or mmi.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY or mmi.name == &"Contact":
@@ -327,12 +327,20 @@ func test_placement_drops_and_lamps() -> void:
 			# per side: a set placed on both roadsides needs a second, mirrored node (D24), and a model with two
 			# surfaces (a house: baked walls + vpbr panes, AS1b) then costs 2 x 2 – the budget holds per set, chunk and side
 			key += " (gespiegelt)" if mmi.basis.determinant() < 0.0 else ""
-			calls[key] = int(calls.get(key, 0)) + mmi.multimesh.mesh.get_surface_count()
+			# R7c: per representation – while the instances of a chunk cross a level boundary (the dither cross-fade)
+			# two neighbouring levels of a set are drawn, each within the budget
+			var rep := str(mmi.get_meta(&"rep", ""))
+			var per: Dictionary = calls.get(key, {})
+			per[rep] = int(per.get(rep, 0)) + mmi.multimesh.mesh.get_surface_count()
+			calls[key] = per
 			if mmi.basis.determinant() < 0.0:
-				mirrored_nodes += 1
+				mirrored_sets[key] = true
 		for key: String in calls:
-			assert_true(int(calls[key]) <= DRAW_CALLS_PER_SET, "höchstens %d Zeichenaufrufe je Set, Stück und Seite (%s: %d, Kamera %.0f)" % [DRAW_CALLS_PER_SET, key, calls[key], cam])
-		assert_eq(mirrored_nodes, 3, "drei gespiegelte Knoten (Bauernhaus, Buche, Laterne links)")
+			var per: Dictionary = calls[key]
+			assert_true(per.size() <= 2, "höchstens zwei Stufen eines Sets zugleich (Überblenden: %s %s, Kamera %.0f)" % [key, str(per.keys()), cam])
+			for rep: String in per:
+				assert_true(int(per[rep]) <= DRAW_CALLS_PER_SET, "höchstens %d Zeichenaufrufe je Set, Stufe, Stück und Seite (%s %s: %d, Kamera %.0f)" % [DRAW_CALLS_PER_SET, key, rep, per[rep], cam])
+		assert_eq(mirrored_sets.size(), 3, "drei gespiegelte Sets (Bauernhaus, Buche, Laterne links)")
 	parent.free()
 	_cleanup()
 
@@ -360,9 +368,11 @@ func test_model_instances_carry_the_placement_tint() -> void:
 		assert_near(buf[16], want.r, 1.0e-4, "getönt: rot")
 		assert_near(buf[17], want.g, 1.0e-4, "getönt: grün")
 		assert_near(buf[18], want.b, 1.0e-4, "getönt: blau")
-		assert_near(buf[19], 1.0, 1.0e-6, "getönt: a = 1 (die Shader lesen die Tönung nur dann)")
-		for k in 4:
+		# R7c: a = 1 + phase (rotor and sway phase per instance) – the shaders read the tint for a > 0.5
+		assert_between(buf[19], 1.0, 1.999, "getönt: a = 1 + Phase (die Shader lesen die Tönung bei a > 0,5)")
+		for k in 3:
 			assert_near(buf[20 + 16 + k], 1.0, 1.0e-6, "ungetönt: weiß (Bild unverändert) [%d]" % k)
+		assert_between(buf[20 + 19], 1.0, 1.999, "ungetönt: a = 1 + Phase")
 		var fb := Color("#ff8080") * Color("#808080")
 		assert_near(buf[40 + 16], fb.r, 1.0e-4, "Ersatz-Set: tint × fallback_tint (rot)")
 		assert_near(buf[40 + 17], fb.g, 1.0e-4, "Ersatz-Set: tint × fallback_tint (grün)")
@@ -421,6 +431,10 @@ static func _code_only(code: String) -> String:
 
 
 func test_chunk_lod_shows_one_representation() -> void:
+	# R7c: the chunk switches on the representations whose distance band holds at least one of its instances (the
+	# shaders choose per instance, with the cross-fade): far from the band edges exactly one, inside a band both
+	# neighbours. (FIX-R7c, QR7c-07: this note stands inside the function, so that the assembly with FIX-RINT, which
+	# adds a helper right above it, merges without a conflict.)
 	var t := _track()
 	_put(t, 198, {"kind": "prop", "set": "props/tree_oak", "side": 1, "x": _x(t, 1, 12.0), "scale": 1.0})
 	_put(t, 210, {"kind": "prop", "set": "props/tree_oak", "side": -1, "x": _x(t, -1, 20.0), "scale": 1.0})
@@ -431,8 +445,10 @@ func test_chunk_lod_shows_one_representation() -> void:
 	var parent := Node3D.new()
 	b.commit(ctx, part, parent)
 	var holder := parent.get_child(0)
-	var z0 := 192.0 * 3.0
-	for probe: Array in [[z0 + 10.0, "lod0", true], [z0 - 100.0, "lod1", true], [z0 - 150.0, "lod1", true], [z0 - 400.0, PropLibrary.IMPOSTOR, false]]:
+	# the oaks stand at z 595 and 631 (1 m into their segments), 14 and 22 m beside the centre line
+	var zi := 198.0 * 3.0 + 1.0
+	for probe: Array in [[zi + 5.0, ["lod0"], true], [zi - 100.0, ["lod1"], true], [zi - 125.0, ["lod1"], true],
+			[zi - 61.0, ["lod0", "lod1"], true], [zi - 400.0, [PropLibrary.IMPOSTOR], false]]:
 		b.update({"camera_z": float(probe[0])}, 0.0)
 		var shown: Array = []
 		var caster := false
@@ -447,8 +463,25 @@ func test_chunk_lod_shows_one_representation() -> void:
 				shown.append(str(n3.get_meta(&"rep")))
 				assert_eq(n3.cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_OFF, "das sichtbare Netz der Eiche wirft selbst nicht")
 				assert_eq(n3.multimesh.instance_count, 2, "beide Eichen in einem MultiMesh")
-		assert_eq(shown, [str(probe[1])], "Kamera %.0f m vor dem Stück: %s" % [z0 - float(probe[0]), probe[1]])
+		shown.sort()
+		var want: Array = probe[1]
+		assert_eq(shown, want, "Kamera %.0f m vor der ersten Eiche: %s" % [zi - float(probe[0]), str(want)])
 		assert_eq(caster, bool(probe[2]), "Schattenwerfer nur in Reichweite der Schattenkarte")
+	# the bands on the level materials: lod0 fades out where lod1 fades in, the impostor takes over at the end of lod1
+	var bands := b.model_bands("props/tree_oak")
+	var b0: Vector4 = bands["lod0"]
+	var b1: Vector4 = bands["lod1"]
+	var bi: Vector4 = bands[PropLibrary.IMPOSTOR]
+	assert_near(b0.z, b1.x, 1.0e-4, "lod0 blendet aus, wo lod1 einblendet (Anfang)")
+	assert_near(b0.w, b1.y, 1.0e-4, "… und Ende des Bandes")
+	assert_near(b1.z, bi.x, 1.0e-4, "lod1 → Fernbild: dasselbe Band")
+	assert_near((b0.z + b0.w) * 0.5, 60.0, 1.0e-3, "Mitte des Bandes = prop_lod0_m × 60 / 60")
+	for mat: ShaderMaterial in b.library.rep_materials("props/tree_oak", "lod0"):
+		assert_eq(mat.get_shader_parameter("lod_band"), b0, "das Band steht auf dem Material von lod0")
+		for l: Array in Props.PROP_LOOK:
+			assert_eq(mat.get_shader_parameter(str(l[0])), l[1], "Requisitenbild %s auf dem Material" % str(l[0]))
+	for mat: ShaderMaterial in b.library.rep_materials("props/tree_oak", "lod1"):
+		assert_eq(mat.get_shader_parameter("lod_band"), b1, "… und auf dem von lod1")
 	parent.free()
 	# "Schatten: Aus" / "Niedrig": no caster nodes at all
 	var b2 := Props.new()
@@ -908,4 +941,570 @@ func test_chunk_list_is_the_tracks_list_minus_the_documented_drops() -> void:
 	assert_true(sceneries.size() >= 5, "mindestens fünf Landschaften geprüft (%s)" % str(sceneries.keys()))
 	assert_true(total > 300, "Requisiten verglichen (%d)" % total)
 	assert_true(int(total_dropped["corridor"]) > 0, "an einer der Stellen liegt ein Kurvenkorridor (%s)" % str(total_dropped))
+	_cleanup()
+
+
+## R7c (A-22, lead decision 1): the distance bands of the levels – per model from its max_dist_m (or the override of
+## graphics.modern.props.lod0_m) scaled with Details, complementary at every level boundary, a model of one level always
+## shown, a building's last level endless.
+func test_lod_bands_per_model() -> void:
+	var fade := Props.LOD_FADE
+	var ref := Vector2(Props.LOD_REF_M, Props.LOD1_REF_M)
+	var tree := Props.lod_bands(["lod0", "lod1", PropLibrary.IMPOSTOR], Vector2(60.0, 200.0), 60.0, 200.0, ref, 0.0, fade)
+	assert_eq((tree as Dictionary).size(), 3, "Baum: drei Darstellungen")
+	var t0: Vector4 = tree["lod0"]
+	var t1: Vector4 = tree["lod1"]
+	var ti: Vector4 = tree[PropLibrary.IMPOSTOR]
+	assert_true(t0.x < 0.0 and t0.y < 0.0, "lod0 von Anfang an sichtbar")
+	assert_near((t0.z + t0.w) * 0.5, 60.0, 1.0e-3, "lod0 endet bei 60 m (Mittel)")
+	assert_near(t0.w - t0.z, 2.0 * 7.2, 1.0e-3, "Band ±12 % = ±7,2 m")
+	assert_near(t1.x, t0.z, 1.0e-4, "lod1 beginnt, wo lod0 ausblendet")
+	assert_near((t1.z + t1.w) * 0.5, 200.0, 1.0e-3, "lod1 endet bei 200 m")
+	assert_near(ti.x, t1.z, 1.0e-4, "Fernbild beginnt, wo lod1 ausblendet")
+	assert_true(ti.w >= Props.LOD_ENDLESS, "Fernbild bis ans Ende")
+	# Details "Hoch": twice the distances
+	var hi := Props.lod_bands(["lod0", "lod1", PropLibrary.IMPOSTOR], Vector2(60.0, 200.0), 120.0, 350.0, ref, 0.0, fade)
+	assert_near(((hi["lod0"] as Vector4).z + (hi["lod0"] as Vector4).w) * 0.5, 120.0, 1.0e-3, "Hoch: lod0 bis 120 m")
+	# a building: lod1 is its last level (reps lod0, lod1, lod1), endless
+	var house := Props.lod_bands(["lod0", "lod1", "lod1"], Vector2(60.0, 0.0), 60.0, 200.0, ref, 0.0, fade)
+	assert_eq((house as Dictionary).size(), 2, "Haus: zwei Darstellungen")
+	assert_true((house["lod1"] as Vector4).w >= Props.LOD_ENDLESS, "lod1 eines Hauses bis ans Ende")
+	# the half-timbered house: lod0 at 35 m on "Mittel" (override), 70 m on "Hoch", 23.3 m on "Niedrig"
+	for row: Array in [[60.0, 35.0], [120.0, 70.0], [40.0, 23.333]]:
+		var fw := Props.lod_bands(["lod0", "lod1", "lod1"], Vector2(60.0, 0.0), float(row[0]), 200.0, ref, 35.0, fade)
+		var f0: Vector4 = fw["lod0"]
+		assert_near((f0.z + f0.w) * 0.5, float(row[1]), 1.0e-2, "Fachwerk: lod0 bis %.1f m bei prop_lod0_m %.0f" % [row[1], row[0]])
+		assert_true(f0.w - f0.z >= 2.0 * fade.y - 1.0e-4, "Band mindestens ±%.0f m" % fade.y)
+	# one level: always
+	var one := Props.lod_bands(["lod0", "lod0", "lod0"], Vector2.ZERO, 60.0, 200.0, ref, 0.0, fade)
+	assert_eq((one as Dictionary).size(), 1, "eine Stufe: eine Darstellung")
+	assert_true((one["lod0"] as Vector4).x < 0.0 and (one["lod0"] as Vector4).w >= Props.LOD_ENDLESS, "eine Stufe: immer sichtbar")
+	# the configured override reaches the builder
+	var b := Props.new()
+	b._read_config(cfg())
+	b.apply_quality({"prop_lod0_m": 60.0, "prop_lod1_m": 200.0})
+	# measured shimmer (lead decision 3): lod0 of the half-timbered and the Paris houses ends at 30 m on "Mittel" (their
+	# beams, railings and frames flicker 1–1.4 % in lod0 at 40–60 m, the sprite 0–0.3 %). FIX-R7c (QR7c-01): the other city
+	# houses keep their own max_dist_m (60 m on "Mittel") – the Speicher's lod1 has flat doors, the level of the sprite
+	assert_near(b.lod0_override("props/city_german_old_fachwerk"), 30.0, 1.0e-4, "Konfiguration: Fachwerk lod0 30 m")
+	for mid: String in ["props/city_german_old_fachwerk_b", "props/city_paris_haussmann", "props/city_paris_corner"]:
+		assert_near(b.lod0_override(mid), 30.0, 1.0e-4, "Konfiguration: %s lod0 30 m" % mid.get_file())
+	for mid: String in ["props/city_dutch_canal", "props/city_hanse_speicher", "props/city_hanse_kontor", "props/city_german_gruenderzeit"]:
+		assert_near(b.lod0_override(mid), 0.0, 1.0e-4, "%s: kein Ersatz, eigenes max_dist_m (QR7c-01)" % mid.get_file())
+	assert_near(b.lod0_override("props/farmhouse"), 0.0, 1.0e-4, "Bauernhaus: kein Ersatz (eigenes max_dist_m)")
+
+
+## R7c: the static vpbr variant carries the level band, the far light and the rotor phase (static_code() patches the
+## source of vpbr.gdshader – a changed line there would silently drop a patch: every marker must be in the result);
+## every level of a static model has materials of its own, vehicles share theirs.
+func test_static_materials_per_mesh_and_injection() -> void:
+	var mats := ModernMaterials.shared()
+	var code := ModernMaterials.static_code(mats.shader("vpbr").code)
+	for marker: String in ModernMaterials.STATIC_MARKERS:
+		assert_true(code.contains(marker), "vpbr_static enthält „%s“" % marker)
+	for cls: String in ["baked", "leaves", "billboard"]:
+		var c := mats.shader(cls).code
+		assert_true(c.contains("inc/lod_band.gdshaderinc") and c.contains("ce_lod_discard(v_lod_d"), "%s blendet die Stufen über" % cls)
+	var m0 := ModelFactory.multimesh_parts("props/tree_oak", "lod0", mats)
+	var m1 := ModelFactory.multimesh_parts("props/tree_oak", "lod1", mats)
+	assert_true(not m0.is_empty() and not m1.is_empty(), "Eiche lod0 und lod1 geladen")
+	if not m0.is_empty() and not m1.is_empty():
+		var a := ((m0[0] as Dictionary)["mesh"] as Mesh).surface_get_material(0)
+		var c := ((m1[0] as Dictionary)["mesh"] as Mesh).surface_get_material(0)
+		assert_true(a != null and c != null and a != c, "lod0 und lod1 der Eiche haben eigene Materialien")
+	var v0 := ModelFactory.multimesh_parts("traffic/sedan_red", "lod1", mats)
+	var v1 := ModelFactory.multimesh_parts("traffic/sedan_red", "lod2", mats)
+	if not v0.is_empty() and not v1.is_empty():
+		assert_eq(((v0[0] as Dictionary)["mesh"] as Mesh).surface_get_material(0), ((v1[0] as Dictionary)["mesh"] as Mesh).surface_get_material(0),
+			"Fahrzeuge teilen ihr vpbr-Material")
+	_cleanup()
+
+
+## R7c (A-16): the phase of rotors and sway comes from the instance data (stable per item), not from the origin-relative
+## position, which jumps at every rebase; cliffs turn at most ±20° away from the road (face_road); rocks stand on the
+## lowest point of their footprint (ground_sink).
+func test_instance_phase_and_tags() -> void:
+	var t := _track()
+	_put(t, 198, {"kind": "prop", "set": "props/wind_turbine", "side": 1, "x": _x(t, 1, 40.0), "scale": 1.0})
+	for k in 6:
+		_put(t, 200 + k * 2, {"kind": "prop", "set": "props/cliff", "side": 1 if k % 2 == 0 else -1, "x": _x(t, 1 if k % 2 == 0 else -1, 25.0), "scale": 1.0})
+	var ctx := _ctx(t, 6)
+	var b := Props.new()
+	var part := b.build(ctx, b.collect(ctx))
+	var g: Dictionary = (part["groups"] as Dictionary).get("m|props/wind_turbine|0", {})
+	var buf: PackedFloat32Array = g.get("buf", PackedFloat32Array())
+	assert_eq(buf.size(), Props.INSTANCE_FLOATS, "ein Windrad")
+	if buf.size() == Props.INSTANCE_FLOATS:
+		assert_near(buf[19] - 1.0, Props.instance_phase(198, 0), 1.0e-5, "Phase des Windrads aus Segment und Nummer")
+	# the same item seen from a chunk context with another floating origin: the same phase
+	var p2 := RoadPath3D.new()
+	p2.setup(t, 0, float(ConfigLoader.lookup(cfg(), "road.curve_radius_at_1_m", 120.0)))
+	p2.set_clear_reach(1842.0)
+	p2.ensure(900)
+	p2.rebase(150)
+	var tp2 := TerrainProfile.new()
+	tp2.setup(p2, t, ConfigLoader.lookup(cfg(), "graphics.modern.terrain", {}), {})
+	var ctx2 := ChunkContext.new()
+	ctx2.cfg = cfg()
+	ctx2.capture(6, 192, 224, p2, tp2, t)
+	var part2 := b.build(ctx2, b.collect(ctx2))
+	var g2: Dictionary = (part2["groups"] as Dictionary).get("m|props/wind_turbine|0", {})
+	var buf2: PackedFloat32Array = g2.get("buf", PackedFloat32Array())
+	assert_eq(buf2.size(), Props.INSTANCE_FLOATS, "dasselbe Windrad nach dem Verschieben des Ursprungs")
+	if buf.size() == Props.INSTANCE_FLOATS and buf2.size() == Props.INSTANCE_FLOATS:
+		assert_near(buf2[19], buf[19], 1.0e-6, "nach dem Verschieben des Ursprungs dieselbe Phase")
+	# face_road: every cliff within ±20° of facing the road (its local -Z along the road forward)
+	var lib := b.library
+	assert_true(bool((lib.sets["props/cliff"] as Dictionary).get("face_road", false)), "Klippe trägt face_road")
+	assert_true(bool((lib.sets["props/cliff"] as Dictionary).get("ground_sink", false)), "Klippe trägt ground_sink")
+	var n := 0
+	for key: String in part["groups"]:
+		var gg: Dictionary = (part["groups"] as Dictionary)[key]
+		if str(gg["set"]) != "props/cliff":
+			continue
+		for tr: Transform3D in _transforms(gg["buf"], Props.INSTANCE_FLOATS):
+			var fwd: Vector3 = ctx.rows_f[ctx.row_count() / 2]
+			var mz := -tr.basis.z.normalized()
+			var ang := rad_to_deg(acos(clampf(Vector3(mz.x, 0.0, mz.z).normalized().dot(Vector3(fwd.x, 0.0, fwd.z).normalized()), -1.0, 1.0)))
+			assert_true(ang <= Props.FACE_ROAD_DEG + 1.5, "Klippe höchstens 20° aus der Straßenrichtung gedreht (%.1f°)" % ang)
+			n += 1
+	assert_eq(n, 6, "sechs Klippen geprüft")
+	# ground_sink: never above the ground at its anchor
+	var h0 := ctx.ground(600.0, 30.0)
+	assert_true(Props.sink_height(ctx, 600.0, 30.0, 6.0, h0) <= h0 + 1.0e-5, "abgesenkt höchstens auf den Boden am Anker")
+	_cleanup()
+
+
+## R7c (lead decision 6): a model may name props to place with itself ("attach" in model.json); props.gd places them as
+## ordinary instances of their own sets (own level of detail), mirrored with the model on the left roadside. Built and
+## tested with a test manifest (no shipped model uses it yet).
+func test_model_attachments() -> void:
+	var src: Variant = JSON.parse_string(FileAccess.get_file_as_string(ModelDB.ROOT + ModelDB.MANIFEST))
+	assert_true(src is Dictionary, "Manifest gelesen")
+	if not src is Dictionary:
+		return
+	var m: Dictionary = src
+	m["root"] = ModelDB.ROOT
+	(m["models"]["props/farmhouse"] as Dictionary)["attach"] = [{"prop": "props/tree_oak", "offset": [4.0, 0.0, -6.0], "scale": 0.8},
+		{"prop": "props/bush_round", "offset": [-3.0, 0.0, -2.0]}]
+	var path := "user://test_props_manifest_attach.json"
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	f.store_string(JSON.stringify(m))
+	f.close()
+	ModelDB.release_all()
+	ModernMaterials.drop_shared()
+	assert_true(ModelDB.load_manifest(path), "Test-Manifest mit Anbauten geladen")
+	var t := _track()
+	var x := _x(t, 1, 40.0)
+	_put(t, 196, {"kind": "prop", "set": "props/farmhouse", "side": 1, "x": x, "scale": 1.0})
+	_put(t, 206, {"kind": "prop", "set": "props/farmhouse", "side": -1, "x": -x, "scale": 1.0})
+	var ctx := _ctx(t, 6)
+	var b := Props.new()
+	var part := b.build(ctx, b.collect(ctx))
+	var att: Array = part.get("attach_list", [])
+	assert_eq(att.size(), 4, "zwei Häuser × zwei Anbauten (%s)" % str(att))
+	var found_right := false
+	var found_left := false
+	for e: Array in att:
+		if str(e[2]) == "props/tree_oak" and absf(float(e[4]) - (196.0 * 3.0 + 1.0 + 6.0)) < 0.01:
+			found_right = absf(float(e[3]) - (x + 4.0)) < 0.01 and absf(float(e[5]) - 0.8) < 1.0e-4
+		if str(e[2]) == "props/tree_oak" and absf(float(e[4]) - (206.0 * 3.0 + 1.0 + 6.0)) < 0.01:
+			found_left = absf(float(e[3]) - (-x - 4.0)) < 0.01
+	assert_true(found_right, "Eiche 4 m rechts und 6 m hinter dem Haus, Maßstab 0,8")
+	assert_true(found_left, "links gespiegelt: 4 m weiter von der Straße weg")
+	assert_eq(int((part["counts"] as Dictionary).get("props/tree_oak", 0)), 2, "die Eichen als Instanzen ihres Sets gezählt")
+	var groups: Dictionary = part["groups"]
+	var oak_groups := 0
+	for key: String in groups:
+		if str((groups[key] as Dictionary)["set"]) == "props/tree_oak":
+			oak_groups += 1
+	assert_true(oak_groups >= 1, "eigene Gruppe der Eiche (eigene Detailstufen)")
+	assert_eq((part["list"] as Array).size(), 2, "die Streckenliste bleibt die der Strecke (zwei Häuser)")
+	ModelDB.release_all()
+	ModernMaterials.drop_shared()
+	assert_true(ModelDB.load_manifest() and not ModelDB.model("props/farmhouse").has("attach"), "ausgeliefertes Manifest wieder geladen")
+	_cleanup()
+
+
+## R7c: the slowness watchdog lowers the preset during the countdown – the bands on the materials AND on the level
+## nodes already committed follow at once (a node keeping its old band would hide instances the shader shows).
+func test_quality_lowered_moves_the_bands() -> void:
+	var t := _track()
+	_put(t, 198, {"kind": "prop", "set": "props/tree_oak", "side": 1, "x": _x(t, 1, 12.0), "scale": 1.0})
+	var ctx := _ctx(t, 6)
+	var b := Props.new()
+	b.apply_quality({"prop_lod0_m": 60.0, "prop_lod1_m": 200.0, "shadow_casters": 2, "shadow_distance_m": 120.0, "deco_density": 1.0})
+	var parent := Node3D.new()
+	b.commit(ctx, b.build(ctx, b.collect(ctx)), parent)
+	b.quality_lowered({"prop_lod0_m": 40.0, "prop_lod1_m": 120.0, "shadow_casters": 0, "shadow_distance_m": 0.0, "deco_density": 0.6})
+	var want: Dictionary = b.model_bands("props/tree_oak")
+	assert_near(((want["lod0"] as Vector4).z + (want["lod0"] as Vector4).w) * 0.5, 40.0, 1.0e-3, "neues Band: lod0 bis 40 m")
+	var seen := 0
+	for c: Node in parent.get_child(0).get_children():
+		if c.has_meta(&"band") and str(c.get_meta(&"model", "")) == "props/tree_oak":
+			assert_eq(c.get_meta(&"band"), want[str(c.get_meta(&"rep"))], "Knoten %s mit dem neuen Band" % str(c.get_meta(&"rep")))
+			seen += 1
+	assert_eq(seen, 3, "drei Stufenknoten der Eiche")
+	for mat: ShaderMaterial in b.library.rep_materials("props/tree_oak", "lod0"):
+		assert_eq(mat.get_shader_parameter("lod_band"), want["lod0"], "Material von lod0 mit dem neuen Band")
+		assert_eq(mat.get_shader_parameter("shadow_far"), Vector2.ZERO, "ohne Schattenwerfer kein Fernlicht")
+	parent.free()
+	_cleanup()
+
+
+# --- FIX-R7c: guards of the R7c rules (QA-R7c QR7c-02: 11 of 17 one-line mutations stayed green) -----------------
+
+## Shader code without its comments (// to the end of the line, /* … */) – a rule a comment only mentions does not count.
+## (Named apart from FIX-RINT's _code_only(), which the assembly brings into this file.)
+static func _shader_code(code: String) -> String:
+	var rx := RegEx.create_from_string("/\\*[\\s\\S]*?\\*/|//[^\\n]*")
+	return rx.sub(code, "", true)
+
+
+## QR7c-02 (a, U7): the far light of the configuration reaches the materials of a building that casts – the class value
+## (building 0.78) and a model's own value (Haussmann 0.72) – with the shadow reach of the level (fade from 85 %); a
+## building that does not cast at the shadow level keeps the full sun.
+func test_far_light_reaches_the_materials() -> void:
+	var t := _track()
+	_put(t, 196, {"kind": "prop", "set": "props/farmhouse", "side": 1, "x": _x(t, 1, 40.0), "scale": 1.0})
+	_put(t, 204, {"kind": "prop", "set": "props/city_paris_haussmann", "side": 1, "x": _x(t, 1, 12.0), "scale": 1.0})
+	var ctx := _ctx(t, 6)
+	var b := Props.new()
+	b._read_config(cfg())
+	b.apply_quality({"prop_lod0_m": 60.0, "prop_lod1_m": 200.0, "shadow_casters": 2, "shadow_distance_m": 120.0, "deco_density": 1.0})
+	var parent := Node3D.new()
+	b.commit(ctx, b.build(ctx, b.collect(ctx)), parent)
+	var fs: Dictionary = ConfigLoader.lookup(cfg(), "graphics.modern.props.far_sun", {})
+	assert_true(float(fs.get("building", 1.0)) < 0.99, "Konfiguration: Fernlicht der Gebäude (%s)" % str(fs.get("building")))
+	var want := {"props/farmhouse": float(fs.get("props/farmhouse", fs.get("building", 1.0))),
+		"props/city_paris_haussmann": float(fs.get("props/city_paris_haussmann", fs.get("building", 1.0)))}
+	assert_true(absf(float(want["props/city_paris_haussmann"]) - float(want["props/farmhouse"])) > 0.01, "Haussmann hat einen eigenen Wert")
+	for sid: String in want:
+		var mid := ""
+		for v: Variant in (b.library.sets[sid] as Dictionary).get("variants", []):
+			mid = str(v)
+		var n := 0
+		for rep: String in b.model_bands(mid):
+			for mat: ShaderMaterial in b.library.rep_materials(mid, rep):
+				assert_near(float(mat.get_shader_parameter("far_sun")), float(want[sid]), 1.0e-4, "%s %s: far_sun aus der Konfiguration" % [sid.get_file(), rep])
+				assert_eq(mat.get_shader_parameter("shadow_far"), Vector2(102.0, 120.0), "%s %s: Fernlicht ab 85 %% der Schattenreichweite" % [sid.get_file(), rep])
+				n += 1
+		assert_true(n >= 2, "%s: Materialien beider Stufen geprüft (%d)" % [sid.get_file(), n])
+	parent.free()
+	# "Schatten: Niedrig" (casters 1): buildings do not cast – full sun, no far light
+	var b2 := Props.new()
+	b2._read_config(cfg())
+	b2.apply_quality({"prop_lod0_m": 60.0, "prop_lod1_m": 200.0, "shadow_casters": 1, "shadow_distance_m": 80.0, "deco_density": 1.0})
+	var parent2 := Node3D.new()
+	b2.commit(ctx, b2.build(ctx, b2.collect(ctx)), parent2)
+	for mat: ShaderMaterial in b2.library.rep_materials(str((b2.library.sets["props/farmhouse"] as Dictionary)["variants"][0]), "lod1"):
+		assert_near(float(mat.get_shader_parameter("far_sun")), 1.0, 1.0e-6, "ohne Schattenwurf: volle Sonne")
+		assert_eq(mat.get_shader_parameter("shadow_far"), Vector2.ZERO, "ohne Schattenwurf: kein Fernlicht")
+	parent2.free()
+	_cleanup()
+
+
+## QR7c-02 (b, R3/R4/R5/R6/U8 and QR7c-06): the rules of R7c in the shader code itself, comments stripped – the far
+## light lowers the directional light to far_sun, the cut-out tests a coarser mip, a lit window replaces the facade
+## colour, the impostor's relief goes with the night, the sway phase comes from the instance data, a standing camera
+## narrows the band.
+func test_shader_rules_of_the_far_lod() -> void:
+	var mats := ModernMaterials.shared()
+	var band := _shader_code(FileAccess.get_file_as_string("res://assets/shaders/modern/inc/lod_band.gdshaderinc"))
+	var rx_far := RegEx.create_from_string("float\\s+ce_far_attenuation\\s*\\([^)]*\\)\\s*\\{\\s*if\\s*\\([^)]*\\)\\s*\\{\\s*return\\s+att;\\s*\\}\\s*return\\s+mix\\(\\s*att\\s*,\\s*min\\(\\s*att\\s*,\\s*far_sun\\s*\\)\\s*,\\s*smoothstep\\(\\s*shadow_far\\.x\\s*,\\s*shadow_far\\.y\\s*,\\s*depth\\s*\\)\\s*\\)\\s*;\\s*\\}")
+	assert_true(rx_far.search(band) != null, "Fernlicht: gerichtetes Licht jenseits der Schatten auf far_sun (ce_far_attenuation)")
+	assert_true(band.contains("global uniform float ce_lod_still;") and band.contains("float still = clamp(ce_lod_still, 0.0, 1.0);") and band.contains("b = vec4(b.y - w.x, b.y, b.w - w.y, b.w);"),
+		"stehende Kamera: das Band zieht sich zusammen (ce_lod_still)")
+	var baked := _shader_code(mats.shader("baked").code)
+	assert_true(baked.contains("float att = ce_far_attenuation(ATTENUATION, LIGHT_IS_DIRECTIONAL, v_lod_depth);"), "baked: light() nimmt das Fernlicht")
+	assert_true(baked.contains("DIFFUSE_LIGHT += LIGHT_COLOR * att * ndl"), "baked: diffuses Licht mit dem Fernlicht")
+	assert_true(baked.contains("texture(albedo_tex, UV, cutout_bias).a < 0.5"), "baked_cutout: Alphatest aus der gröberen Mip (cutout_bias)")
+	assert_true(baked.contains("float cover_k = window_cover *") and baked.contains("alb * (1.0 - cover_k)"),
+		"baked: ein leuchtendes Fenster ersetzt die Fassadenfarbe (window_cover)")
+	assert_true(baked.contains("albedo_bias * smoothstep(albedo_bias_m.x, albedo_bias_m.y, dist)"), "baked: Farb-Mip-Bias mit der Entfernung")
+	var board := _shader_code(mats.shader("billboard").code)
+	assert_true(board.contains("t.rgb = mix(t.rgb, mean, relief_night * clamp(ce_night, 0.0, 1.0));"), "Fernbild: Relief nachts zurückgenommen")
+	var leaves := _shader_code(mats.shader("leaves").code)
+	assert_true(leaves.contains("INSTANCE_CUSTOM.a > 0.5 ? fract(INSTANCE_CUSTOM.a) * 37.0"), "Laub: Wiegen aus der Phase der Instanz")
+	assert_false(RegEx.create_from_string("float\\s+tree\\s*=\\s*wp\\.").search(leaves) != null, "Laub: keine Phase allein aus der Weltlage")
+	assert_true(leaves.contains("ce_far_attenuation("), "Laub: Fernlicht")
+	_cleanup()
+
+
+## QR7c-02 (c, U3): the phase differs from item to item (rotors and crowns do not turn and sway in step) and stays in
+## [0, 1) – custom a = 1 + phase < 2.
+func test_instance_phases_differ() -> void:
+	var seen := {}
+	for seg in [198, 199, 640, 5123]:
+		for item in 4:
+			var p := Props.instance_phase(seg, item)
+			assert_between(p, 0.0, 0.999, "Phase in [0, 1)")
+			seen[snappedf(p, 0.001)] = true
+	assert_true(seen.size() >= 14, "16 Gegenstände, (fast) alle mit eigener Phase (%d verschiedene)" % seen.size())
+	var t := _track()
+	_put(t, 198, {"kind": "prop", "set": "props/wind_turbine", "side": 1, "x": _x(t, 1, 40.0), "scale": 1.0})
+	_put(t, 205, {"kind": "prop", "set": "props/wind_turbine", "side": 1, "x": _x(t, 1, 60.0), "scale": 1.0})
+	var ctx := _ctx(t, 6)
+	var b := Props.new()
+	var part := b.build(ctx, b.collect(ctx))
+	var buf: PackedFloat32Array = ((part["groups"] as Dictionary).get("m|props/wind_turbine|0", {}) as Dictionary).get("buf", PackedFloat32Array())
+	assert_eq(buf.size(), 2 * Props.INSTANCE_FLOATS, "zwei Windräder in einer Gruppe")
+	if buf.size() == 2 * Props.INSTANCE_FLOATS:
+		assert_true(absf(buf[19] - buf[Props.INSTANCE_FLOATS + 19]) > 0.01, "zwei Windräder drehen nicht im Gleichschritt (%.3f / %.3f)" % [buf[19], buf[Props.INSTANCE_FLOATS + 19]])
+	_cleanup()
+
+
+## A spot of the synthetic track whose ground falls by at least `drop` metres within `r` of it (right roadside, chunk ci):
+## Vector3(z, x, the lowest ground of the circle) – (0, 0, 0) when there is none.
+func _slope_spot(ctx: ChunkContext, r: float, drop: float) -> Vector3:
+	for row in range(2, ctx.row_count() - 3):
+		var z := (float(ctx.seg_a) + float(row) + 0.5) * ctx.seg_len
+		for k in 40:
+			var x := ctx.shoulder_edge(row, 1) + 2.0 + float(k) * 1.5
+			if absf(x) - ctx.shoulder_edge(row, 1) > ctx.ribbon_width(z, 1) - 4.0:
+				break
+			var h0 := ctx.ground(z, x)
+			var low := h0
+			for q in 8:
+				var a := float(q) * TAU / 8.0
+				low = minf(low, ctx.ground(z + cos(a) * r, x + sin(a) * r))
+			if h0 - low >= drop:
+				return Vector3(z, x, low)
+	return Vector3.ZERO
+
+
+## QR7c-02 (d, U4/U5): on a slope a rock stands on the lowest ground point of its footprint (ground_sink: a concrete
+## height below the ground at its anchor) and heather leans with the ground (ground_align: tilted, at most 30°).
+func test_ground_sink_and_align_on_a_slope() -> void:
+	var t := _track()
+	var ctx := _ctx(t, 6)
+	var lib := PropLibrary.new()
+	lib.request(["props/rock_a", "props/heather"], self)
+	var guard := 0
+	while lib.pending() > 0 and guard < 20000:
+		OS.delay_msec(1)
+		guard += 1
+	var rock: Dictionary = lib.sets.get("props/rock_a", {})
+	assert_true(bool(rock.get("ground_sink", false)), "Fels trägt ground_sink")
+	assert_true(bool((lib.sets.get("props/heather", {}) as Dictionary).get("ground_align", false)), "Heide trägt ground_align")
+	var r := 0.5 * maxf(float(rock.get("width", 1.0)), float(rock.get("length", rock.get("width", 1.0))))
+	var spot := Vector3.ZERO
+	var ci := 6
+	for c in [6, 2, 10, 14, 20, 26, 30]:
+		ctx = _ctx(t, c)
+		spot = _slope_spot(ctx, r, 0.05)
+		if spot != Vector3.ZERO:
+			ci = c
+			break
+	assert_true(spot != Vector3.ZERO, "ein Hang neben der Straße gefunden (Boden fällt um ≥ 5 cm im Umkreis %.2f m)" % r)
+	if spot == Vector3.ZERO:
+		lib.clear(self)
+		_cleanup()
+		return
+	var h0 := ctx.ground(spot.x, spot.y)
+	assert_near(Props.sink_height(ctx, spot.x, spot.y, r, h0), spot.z, 1.0e-4, "sink_height = tiefster Punkt des Umkreises")
+	assert_true(spot.z < h0 - 0.04, "tiefer als der Boden am Anker (%.3f < %.3f)" % [spot.z, h0])
+	# the builder places them so (seg_index from the spot; the item at the spot's z)
+	var seg := int(floor(spot.x / t.seg_len))
+	_put(t, seg, {"kind": "prop", "set": "props/rock_a", "side": 1, "x": spot.y, "scale": 1.0, "dz": spot.x - float(seg) * t.seg_len})
+	_put(t, seg, {"kind": "prop", "set": "props/heather", "side": 1, "x": spot.y, "scale": 1.0, "dz": spot.x - float(seg) * t.seg_len})
+	ctx = _ctx(t, ci)
+	var b := Props.new()
+	var part := b.build(ctx, b.collect(ctx))
+	var rock_y := INF
+	var heather_up := Vector3.ZERO
+	for key: String in part["groups"]:
+		var g: Dictionary = (part["groups"] as Dictionary)[key]
+		for tr: Transform3D in _transforms(g["buf"], Props.INSTANCE_FLOATS):
+			if str(g["set"]) == "props/rock_a":
+				rock_y = tr.origin.y
+			elif str(g["set"]) == "props/heather":
+				heather_up = tr.basis.y.normalized()
+	assert_near(rock_y, ctx.local(spot.x, spot.y, spot.z).y, 1.0e-3, "Fels steht auf dem tiefsten Punkt seines Fußes")
+	var n := (ctx.local(spot.x, spot.y + Props.SLOPE_PROBE_M, ctx.ground(spot.x, spot.y + Props.SLOPE_PROBE_M)) - ctx.local(spot.x, spot.y, h0)).cross(
+		ctx.local(spot.x + Props.SLOPE_PROBE_M, spot.y, ctx.ground(spot.x + Props.SLOPE_PROBE_M, spot.y)) - ctx.local(spot.x, spot.y, h0)).normalized()
+	if n.y < 0.0:
+		n = -n
+	var tilt := rad_to_deg(heather_up.angle_to(Vector3.UP))
+	assert_true(tilt > 0.5 and tilt <= Props.ALIGN_MAX_DEG + 0.1, "Heide zum Hang geneigt (%.1f°)" % tilt)
+	assert_true(heather_up.angle_to(n) < Vector3.UP.angle_to(n), "… zur Geländenormalen hin")
+	lib.clear(self)
+	_cleanup()
+
+
+## QR7c-02 (e, U10, F7) and QR7c-08: an attached tree inside the sight corridor of a bend is left out like any tree (the
+## house, placed by an event, stays); an attachment that would stand beyond the chunk is not placed by it (its ground and
+## corridor would be those of the edge row); at most ATTACH_MAX attachments per model.
+func test_attachments_respect_the_corridor_and_the_chunk() -> void:
+	var src: Variant = JSON.parse_string(FileAccess.get_file_as_string(ModelDB.ROOT + ModelDB.MANIFEST))
+	if not src is Dictionary:
+		assert_true(false, "Manifest gelesen")
+		return
+	var m: Dictionary = src
+	m["root"] = ModelDB.ROOT
+	(m["models"]["props/farmhouse"] as Dictionary)["attach"] = [{"prop": "props/tree_oak", "offset": [4.0, 0.0, -6.0], "scale": 0.8}]
+	var path := "user://test_props_manifest_attach2.json"
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	f.store_string(JSON.stringify(m))
+	f.close()
+	ModelDB.release_all()
+	ModernMaterials.drop_shared()
+	assert_true(ModelDB.load_manifest(path), "Test-Manifest mit Anbau geladen")
+	var t := _track()
+	# a spot inside a bend corridor on the right (inside of the right bend), whatever the corridor's law
+	var spot := Vector2.ZERO
+	var ci := -1
+	for c in range(12, 22):
+		var ctx0 := _ctx(t, c)
+		for row in range(3, 20):
+			var z := (float(ctx0.seg_a) + float(row) + 0.5) * ctx0.seg_len
+			for k in 30:
+				var x := ctx0.shoulder_edge(row, 1) + 3.0 + float(k)
+				if ctx0.in_bend_corridor(z, x) and ctx0.in_bend_corridor(z, x + 2.0) and ctx0.in_bend_corridor(z - 3.0, x):
+					spot = Vector2(z, x)
+					ci = c
+					break
+			if ci >= 0:
+				break
+		if ci >= 0:
+			break
+	assert_true(ci >= 0, "ein Kurvenkorridor rechts gefunden")
+	if ci < 0:
+		_cleanup()
+		return
+	# the house 6 m before and 4 m left of the spot, "offset": placed by an event, it stays in the corridor
+	var hz := spot.x - 6.0
+	var seg := int(floor(hz / t.seg_len))
+	_put(t, seg, {"kind": "prop", "set": "props/farmhouse", "side": 1, "x": spot.y - 4.0, "scale": 1.0, "offset": spot.y - 4.0,
+		"dz": hz - float(seg) * t.seg_len})
+	# a second house on the straight, 2 m before the end of chunk 30: its tree (6 m on) would stand in chunk 31
+	var zc := float(31 * 32) * t.seg_len - 2.0
+	var seg2 := int(floor(zc / t.seg_len))
+	_put(t, seg2, {"kind": "prop", "set": "props/farmhouse", "side": 1, "x": _x(t, 1, 40.0), "scale": 1.0, "dz": zc - float(seg2) * t.seg_len})
+	var ctx := _ctx(t, ci)
+	var b := Props.new()
+	var part := b.build(ctx, b.collect(ctx))
+	assert_eq((part["list"] as Array).size(), 1, "das Haus steht (Ereignis, kein Schmuck)")
+	assert_eq((part["attach_list"] as Array).size(), 0, "die angebaute Eiche im Kurvenkorridor fehlt (%s)" % str(part["attach_list"]))
+	assert_true(int((part["dropped"] as Dictionary)["corridor"]) >= 1, "als Kurvenkorridor gezählt")
+	var ctx2 := _ctx(t, 30)
+	var part2 := b.build(ctx2, b.collect(ctx2))
+	assert_eq((part2["list"] as Array).size(), 1, "Haus am Ende des Stücks")
+	assert_eq((part2["attach_list"] as Array).size(), 0, "sein Anbau jenseits des Stücks wird hier nicht gestellt")
+	ModelDB.release_all()
+	ModernMaterials.drop_shared()
+	assert_true(ModelDB.load_manifest(), "ausgeliefertes Manifest wieder geladen")
+	_cleanup()
+
+
+## QR7c-06: the standing camera – ce_lod_still goes to 1 within LOD_STILL_S below LOD_STILL_SPEED and back to 0 when the
+## camera drives off; the builder follows the camera's motion along the road (no change while dt is 0: the stage is
+## prepared). The lod0_m override still works per tag (none in the shipped configuration since QR7c-01).
+func test_standing_camera_narrows_the_bands() -> void:
+	var s := 0.0
+	for i in 12:
+		s = Props.still_step(s, 0.0, 1.0 / 60.0)
+	assert_near(s, 12.0 / 60.0 / Props.LOD_STILL_S, 1.0e-4, "steigt mit der Zeit (0,2 s)")
+	for i in 60:
+		s = Props.still_step(s, 0.5, 1.0 / 60.0)
+	assert_near(s, 1.0, 1.0e-6, "steht: 1 nach LOD_STILL_S")
+	assert_near(Props.still_step(s, 20.0, 0.0), 1.0, 1.0e-6, "dt 0 (Vorbereitung): unverändert")
+	s = Props.still_step(s, 20.0, 0.1)
+	assert_near(s, 1.0 - 0.1 / Props.LOD_STILL_S, 1.0e-4, "fährt an: das Band öffnet sich über die Zeit")
+	var b := Props.new()
+	assert_near(b.lod_still(), 1.0, 1.0e-6, "Start einer Etappe: stehende Kamera")
+	b.update({"camera_z": 100.0}, 1.0 / 60.0)
+	for i in 30:
+		b.update({"camera_z": 100.0 + float(i + 1) * 0.5}, 1.0 / 60.0)    # 30 m/s
+	assert_near(b.lod_still(), 0.0, 1.0e-6, "fährt mit 30 m/s: Band offen")
+	for i in 30:
+		b.update({"camera_z": 115.0}, 1.0 / 60.0)
+	assert_near(b.lod_still(), 1.0, 1.0e-6, "steht 0,5 s: hart")
+	# with the view's own clock (Rule 10): the same view drawn twice changes nothing (check_weather draws a view twice
+	# and wants the same picture); the clock, not dt, drives the ramp
+	var c := Props.new()
+	c.update({"camera_z": 0.0, "time": 10.0}, 1.0 / 60.0)
+	for i in 12:
+		c.update({"camera_z": float(i + 1) * 0.5, "time": 10.0 + float(i + 1) / 60.0}, 1.0 / 60.0)
+	var s12 := c.lod_still()
+	assert_near(s12, 1.0 - 12.0 / 60.0 / Props.LOD_STILL_S, 1.0e-4, "fährt an: nach der Uhr der Ansicht")
+	var v13 := {"camera_z": 6.5, "time": 10.2 + 1.0 / 60.0}
+	c.update(v13, 1.0 / 60.0)
+	var s13 := c.lod_still()
+	assert_true(s13 < s12 - 0.01, "ein Bild weiter gefahren: weiter offen (%.3f)" % s13)
+	c.update(v13, 1.0 / 60.0)
+	c.update(v13, 1.0 / 60.0)
+	assert_near(c.lod_still(), s13, 1.0e-6, "dieselbe Ansicht noch zweimal: unverändert (trotz dt > 0)")
+	# the tag override of graphics.modern.props.lod0_m still works (a configuration may name a tag again)
+	b._lod0_override = {"tag:city": 42.0}
+	assert_near(b.lod0_override("props/city_dutch_canal"), 42.0, 1.0e-4, "Ersatz je Tag")
+	assert_near(b.lod0_override("props/farmhouse"), 0.0, 1.0e-4, "ohne Tag: kein Ersatz")
+
+
+## QR7c-03 / QR7c-05: the chunk walks its level nodes only when the span of its instances crosses a threshold (not at every
+## look), and a node is on from LOD_STEP_M before its band to LOD_STEP_M after it.
+func test_chunk_lod_walks_only_at_thresholds() -> void:
+	var t := _track()
+	_put(t, 198, {"kind": "prop", "set": "props/tree_oak", "side": 1, "x": _x(t, 1, 12.0), "scale": 1.0})
+	var ctx := _ctx(t, 6)
+	var b := Props.new()
+	b.apply_quality({"prop_lod0_m": 60.0, "prop_lod1_m": 200.0, "shadow_casters": 2, "shadow_distance_m": 120.0, "deco_density": 1.0})
+	var parent := Node3D.new()
+	b.commit(ctx, b.build(ctx, b.collect(ctx)), parent)
+	var holder := parent.get_child(0)
+	var lo: PackedFloat32Array = holder.get_meta(&"thr_lo")
+	var hi: PackedFloat32Array = holder.get_meta(&"thr_hi")
+	var bands := b.model_bands("props/tree_oak")
+	var b0: Vector4 = bands["lod0"]
+	var b1: Vector4 = bands["lod1"]
+	assert_true(lo.has(b1.x - Props.LOD_STEP_M) and hi.has(b0.w + Props.LOD_STEP_M), "Schwellen: Bandanfang − 2 m, Bandende + 2 m")
+	var zi := 198.0 * 3.0 + 1.0
+	# far from every threshold the key stays while the camera moves 4 m (two looks)
+	b.update({"camera_z": zi - 100.0}, 0.0)
+	var key: Variant = holder.get_meta(&"span_key")
+	b.update({"camera_z": zi - 97.0}, 0.0)
+	assert_eq(holder.get_meta(&"span_key"), key, "keine Schwelle gekreuzt: Schlüssel bleibt (kein Gang über die Kinder)")
+	# lod0 switches on 2 m before its band: the oak's nearest distance at b0.w + 1 m
+	var lat := absf(_x(t, 1, 12.0))
+	# no camera in the tree: path distances – the camera b0.w + 1 m before the oak
+	b.update({"camera_z": zi - (b0.w + 1.0)}, 0.0)
+	var on0 := false
+	for c: Node in holder.get_children():
+		if c.has_meta(&"band") and str(c.get_meta(&"rep")) == "lod0":
+			on0 = (c as Node3D).visible
+	assert_true(on0, "lod0 schon 1 m vor seinem Band an (Spielraum LOD_STEP_M, %.1f m seitlich)" % lat)
+	parent.free()
+	_cleanup()
+
+
+## QR7c-04: the far mip bias of the colour per model – the half-timbered houses keep it from 30 m against their painted
+## beams, every other model gets it only from 60 m (full at 150 m): the white window frames of far facades turned grey
+## with R7c's 1.25 from 30 m (1.09 levels at 100 m, now 0.52), while without any bias the Barockhaus flickers 2.5 x its
+## sprite at 150 m (sparkcam, measured).
+func test_albedo_bias_per_model() -> void:
+	var b := Props.new()
+	b._read_config(cfg())
+	for mid: String in ["props/city_german_old_fachwerk", "props/city_german_old_fachwerk_b"]:
+		assert_eq(b.albedo_bias_of(mid), Vector3(1.25, 30.0, 120.0), "%s: 1,25 von 30 bis 120 m" % mid.get_file())
+	for mid: String in ["props/city_german_old_barock", "props/city_hanse_kontor", "props/farmhouse"]:
+		assert_eq(b.albedo_bias_of(mid), Vector3(1.25, 60.0, 150.0), "%s: 1,25 erst von 60 bis 150 m" % mid.get_file())
+	b._albedo_bias = {"default": 0.5}
+	assert_eq(b.albedo_bias_of("props/farmhouse"), Vector3(0.5, 30.0, 120.0), "eine Zahl: 30 bis 120 m")
+	b._read_config(cfg())
+	var t := _track()
+	_put(t, 198, {"kind": "prop", "set": "props/city_german_old_fachwerk", "side": 1, "x": _x(t, 1, 12.0), "scale": 1.0})
+	_put(t, 204, {"kind": "prop", "set": "props/city_german_old_barock", "side": 1, "x": _x(t, 1, 12.0), "scale": 1.0})
+	var ctx := _ctx(t, 6)
+	var parent := Node3D.new()
+	b.commit(ctx, b.build(ctx, b.collect(ctx)), parent)
+	for row: Array in [["props/city_german_old_fachwerk", Vector2(30.0, 120.0)], ["props/city_german_old_barock", Vector2(60.0, 150.0)]]:
+		var mid := str((b.library.sets[str(row[0])] as Dictionary)["variants"][0])
+		var n := 0
+		for mat: ShaderMaterial in b.library.rep_materials(mid, "lod1"):
+			if mat.shader != null and mat.shader.code.contains("albedo_bias"):
+				assert_near(float(mat.get_shader_parameter("albedo_bias")), 1.25, 1.0e-4, "%s lod1: albedo_bias auf dem Material" % mid.get_file())
+				assert_eq(mat.get_shader_parameter("albedo_bias_m"), row[1], "%s lod1: albedo_bias_m auf dem Material" % mid.get_file())
+				n += 1
+		assert_true(n >= 1, "%s: baked-Material geprüft" % mid.get_file())
+	parent.free()
 	_cleanup()

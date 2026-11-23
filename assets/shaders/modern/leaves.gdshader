@@ -12,6 +12,9 @@
 // the fog end instead, as Arcade's scenery sprites fade at the end of the sight.
 // Fog: Arcade's law for things in the landscape (inc/fog_law.gdshaderinc, FIX1) instead of the engine's depth fog –
 // the far crowns were grey-blue "ghost trees" on green fields (QA QB-07).
+// R7c: the level of detail per tree with a dither cross-fade and the far light (inc/lod_band.gdshaderinc, A-16); the
+// sway phase of a tree comes from its instance data (MultiMesh custom data a = 1 + phase, builders/props.gd), not from
+// its origin-relative position, which jumps at every rebase of the floating origin.
 // Load only through ModernMaterials - never with preload().
 shader_type spatial;
 render_mode cull_disabled, depth_draw_opaque;
@@ -37,6 +40,7 @@ global uniform vec2 ce_fog_range;
 global uniform vec4 ce_fog_color;
 
 #include "res://assets/shaders/modern/inc/fog_law.gdshaderinc"
+#include "res://assets/shaders/modern/inc/lod_band.gdshaderinc"
 
 varying float v_bright;
 varying vec3 v_tint;     // RINT-M2 (A-19): placement tint (MultiMesh custom data r, g, b, 1); white without
@@ -52,16 +56,25 @@ void vertex() {
 	float gust = ce_wind.w;
 	// one slow sway of the whole crown (per tree: phase from the world position) + flutter per card
 	vec3 wp = (MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-	float tree = wp.x * 0.37 + wp.z * 0.23;
+	float tree = INSTANCE_CUSTOM.a > 0.5 ? fract(INSTANCE_CUSTOM.a) * 37.0 : wp.x * 0.37 + wp.z * 0.23;
 	float slow = sin(ce_time * 1.1 + tree) + 0.5 * sin(ce_time * 2.3 + tree * 1.7 + gust * 3.0);
 	float fast = sin(ce_time * 5.3 + phase) * soft;
 	vec3 push = vec3(dir.x, 0.0, dir.y) * (slow * sway_m * amp * amp * strength);
 	push += vec3(sin(phase), 0.3, cos(phase)) * (fast * flutter_m * strength * amp);
 	// the push is given in world axes; trees are only turned about the vertical axis and scaled
 	VERTEX += (inverse(MODEL_MATRIX) * vec4(push, 0.0)).xyz;
+	v_lod_d = ce_lod_distance(MODEL_MATRIX, MAIN_CAM_INV_VIEW_MATRIX);
+	v_lod_shadow = ce_lod_shadow_pass(CAMERA_POSITION_WORLD, MAIN_CAM_INV_VIEW_MATRIX);
+	if (ce_lod_hidden(v_lod_d)) {
+		VERTEX = vec3(0.0);
+	}
+	v_lod_depth = -(MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).z;
 }
 
 void fragment() {
+	if (ce_lod_discard(v_lod_d, v_lod_shadow, FRAGCOORD.xy)) {
+		discard;
+	}
 	vec4 t = texture(leaf_tex, UV);
 	if (t.a < scissor) {
 		discard;
@@ -85,7 +98,7 @@ void fragment() {
 }
 
 void light() {
-	float att = LIGHT_IS_DIRECTIONAL ? mix(1.0, ATTENUATION, shadow_part) : ATTENUATION;
+	float att = LIGHT_IS_DIRECTIONAL ? mix(1.0, ce_far_attenuation(ATTENUATION, true, v_lod_depth), shadow_part) : ATTENUATION;
 	float ndl = dot(NORMAL, LIGHT);
 	float diff = max((ndl + wrap) / (1.0 + wrap), 0.0);
 	float through = max(-ndl, 0.0) * backlight;
