@@ -1402,6 +1402,21 @@ func test_standing_camera_narrows_the_bands() -> void:
 	for i in 30:
 		b.update({"camera_z": 115.0}, 1.0 / 60.0)
 	assert_near(b.lod_still(), 1.0, 1.0e-6, "steht 0,5 s: hart")
+	# with the view's own clock (Rule 10): the same view drawn twice changes nothing (check_weather draws a view twice
+	# and wants the same picture); the clock, not dt, drives the ramp
+	var c := Props.new()
+	c.update({"camera_z": 0.0, "time": 10.0}, 1.0 / 60.0)
+	for i in 12:
+		c.update({"camera_z": float(i + 1) * 0.5, "time": 10.0 + float(i + 1) / 60.0}, 1.0 / 60.0)
+	var s12 := c.lod_still()
+	assert_near(s12, 1.0 - 12.0 / 60.0 / Props.LOD_STILL_S, 1.0e-4, "fährt an: nach der Uhr der Ansicht")
+	var v13 := {"camera_z": 6.5, "time": 10.2 + 1.0 / 60.0}
+	c.update(v13, 1.0 / 60.0)
+	var s13 := c.lod_still()
+	assert_true(s13 < s12 - 0.01, "ein Bild weiter gefahren: weiter offen (%.3f)" % s13)
+	c.update(v13, 1.0 / 60.0)
+	c.update(v13, 1.0 / 60.0)
+	assert_near(c.lod_still(), s13, 1.0e-6, "dieselbe Ansicht noch zweimal: unverändert (trotz dt > 0)")
 	# the tag override of graphics.modern.props.lod0_m still works (a configuration may name a tag again)
 	b._lod0_override = {"tag:city": 42.0}
 	assert_near(b.lod0_override("props/city_dutch_canal"), 42.0, 1.0e-4, "Ersatz je Tag")

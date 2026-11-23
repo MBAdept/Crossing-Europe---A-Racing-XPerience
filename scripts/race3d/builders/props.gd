@@ -158,6 +158,7 @@ var _models_seen: Dictionary = {}   ## model id -> a set it was drawn for (quali
 ## FIX-R7c (QR7c-06): ce_lod_still – 1 while the camera stands (the start of a stage is a standing camera)
 var _still := 1.0
 var _still_z := -1.0e12             ## camera position of the last frame (-1e12: none yet)
+var _still_t := -1.0e12             ## view time of the last frame (-1e12: none yet)
 var _still_sent := -1.0             ## value of ce_lod_still last set (-1: never)
 
 
@@ -393,7 +394,7 @@ func fail_reason() -> String:
 
 func update(view: Dictionary, dt: float) -> void:
 	var cam_z := float(view.get("camera_z", 0.0))
-	_update_still(cam_z, dt)
+	_update_still(cam_z, dt, float(view["time"]) if view.has("time") else NAN)
 	if absf(cam_z - _far_z) >= LOD_STEP_M or _far_z < -1.0e11:
 		_far_z = cam_z
 		_update_far_landmarks(view, cam_z)
@@ -411,15 +412,22 @@ func update(view: Dictionary, dt: float) -> void:
 		i -= 1
 
 
-## FIX-R7c (QR7c-06): ce_lod_still from the camera's motion along the road (dt = 0 while the stage is prepared: no
-## change). Sets the global only when its value changes.
-func _update_still(cam_z: float, dt: float) -> void:
+## FIX-R7c (QR7c-06): ce_lod_still from the camera's motion along the road. The clock is the view's own "time" (Rule 10)
+## where the view has one – the same view drawn twice (render checks, a paused game) changes nothing, the picture stays
+## the same –, else dt (dt = 0 while the stage is prepared: no change). Sets the global only when its value changes.
+func _update_still(cam_z: float, dt: float, view_time: float = NAN) -> void:
+	var step := dt
+	if not is_nan(view_time):
+		step = view_time - _still_t if _still_t > -1.0e11 else 0.0
+		if step > 0.0 or _still_t < -1.0e11:
+			_still_t = view_time
+		step = maxf(0.0, step)
 	var speed := 0.0
-	if dt > 0.0 and _still_z > -1.0e11:
-		speed = absf(cam_z - _still_z) / dt
-	if dt > 0.0:
+	if step > 0.0 and _still_z > -1.0e11:
+		speed = absf(cam_z - _still_z) / step
+	if step > 0.0 or _still_z < -1.0e11:
 		_still_z = cam_z
-	_still = still_step(_still, speed, dt)
+	_still = still_step(_still, speed, step)
 	if _still != _still_sent:
 		_still_sent = _still
 		ModernMaterials.set_global("ce_lod_still", _still)
