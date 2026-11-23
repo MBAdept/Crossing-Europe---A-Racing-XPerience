@@ -266,7 +266,8 @@ func in_sight_envelope(z: float, x: float, reach: float = 0.0, half_len: float =
 ## envelope of the sight lines of a bend, measured across the road: moving the object this much farther away from the
 ## road clears it (plus a margin of the caller's choice). Negative when no part of it is inside (how far its nearest
 ## part stays outside, or -1.0 where no sight line leaves the road); a sample whose foot lies on the road or the
-## shoulder is not a corridor case. Worker-safe (snapshot arrays only). FIX-R7a (QR7a-01): what a builder
+## shoulder is not a corridor case. Along the road the footprint is sampled every half row; between two rows the
+## larger envelope of the two counts. Worker-safe (snapshot arrays only). FIX-R7a (QR7a-01): what a builder
 ## needs to push such an object out instead of leaving it out.
 func bend_intrusion(z: float, x: float, reach: float = 0.0, half_len: float = 0.0) -> float:
 	var si := 0 if x < 0.0 else 1
@@ -281,8 +282,11 @@ func bend_intrusion(z: float, x: float, reach: float = 0.0, half_len: float = 0.
 		var m := (-x - e.x if si == 0 else x - e.y)
 		if m <= 0.0:
 			continue
-		var c := envelope[i].lerp(envelope[i + 1], t)
-		var cw := c.x if si == 0 else c.y
+		# the larger of the two rows around the sample, not their mean: near the start and the end of a bend the
+		# envelope changes by up to 2 m from row to row, and nothing tells how it runs in between
+		var c0 := envelope[i]
+		var c1 := envelope[i + 1]
+		var cw := maxf(c0.x, c1.x) if si == 0 else maxf(c0.y, c1.y)
 		if cw > 0.0:
 			depth = maxf(depth, cw - (m - maxf(reach, 0.0)))
 	return depth if depth > -INF else -1.0
