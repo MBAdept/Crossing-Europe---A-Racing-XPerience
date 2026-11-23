@@ -19,6 +19,7 @@ extends RefCounted
 
 ## Every TrackSegment field that is copied into segs (tests/unit/race3d/test_chunk_streamer.gd checks the list
 ## against the class).
+const ENV_MARGIN := 8                   ## rows of the envelope snapshot beyond either end of the chunk (24 m)
 const SEG_FIELDS: Array[String] = ["index", "z", "km", "curve", "y", "lanes", "lane_count", "fuel_lane", "road", "scenery",
 	"country", "speed_limit", "tunnel", "city", "guardrail", "runout", "fuel_zone", "cover", "cover_front", "country_to",
 	"bridge", "bridge_i", "water", "water_depth", "water_level", "bank", "sprites"]
@@ -38,7 +39,11 @@ var ring_x := PackedFloat32Array()      ## terrain ring distances beyond the sho
 var ring_h := PackedFloat32Array()      ## terrain heights at those rings, relative to the road of the row
 var corridor := PackedVector2Array()    ## sight corridor beyond the shoulder per row (left, right), fairness rule F7 (A-17)
 var corridor_min := 5.5                 ## its width away from bends (TerrainProfile.corridor_min_m - shoulder)
-var envelope := PackedVector2Array()    ## the exact envelope of the sight lines beyond the shoulder per row (left, right; 0: none)
+## The exact envelope of the sight lines beyond the shoulder (left, right; 0: none leaves the road) for the rows
+## seg_a - ENV_MARGIN .. seg_b + ENV_MARGIN – a footprint near the end of the chunk reaches into its neighbours' rows –
+## and the outer shoulder edges of those rows (m from the centre, positive on both sides).
+var envelope := PackedVector2Array()
+var env_edge := PackedVector2Array()
 var origin := Vector3.ZERO              ## origin-relative position of row 0 when the snapshot was taken
 var seg_len := 3.0
 var lane_w := 3.75
@@ -91,7 +96,15 @@ func capture(chunk_index: int, a: int, b: int, p: RoadPath3D, t: TerrainProfile,
 	ring_x = tp["x"]
 	ring_h = tp["h"]
 	corridor = tp["corridor"]
-	envelope = tp["envelope"]
+	var ne := count + 2 * ENV_MARGIN
+	envelope.resize(ne)
+	env_edge.resize(ne)
+	for q in ne:
+		var k := a - ENV_MARGIN + q
+		var se := tr.get_segment(k)
+		var he := se.lanes * lane_w * 0.5
+		env_edge[q] = Vector2(he + shoulder_w, he + se.fuel_lane * lane_w + shoulder_w)
+		envelope[q] = Vector2(t.envelope_width(k, -1), t.envelope_width(k, 1))
 	corridor_min = maxf(0.0, t.corridor_min_m - shoulder_w)
 	var floors: PackedFloat64Array = tp["floor"]
 	floor_y.resize(count)
@@ -261,11 +274,11 @@ func bend_intrusion(z: float, x: float, reach: float = 0.0, half_len: float = 0.
 	var depth := -INF
 	for q in n + 1:
 		var zq := z if n == 0 else z - half_len + half_len * 2.0 * float(q) / float(n)
-		var f := zq / seg_len - float(seg_a)
-		var i := clampi(int(floor(f)), 0, rows_o.size() - 2)
+		var f := zq / seg_len - float(seg_a - ENV_MARGIN)
+		var i := clampi(int(floor(f)), 0, envelope.size() - 2)
 		var t := clampf(f - float(i), 0.0, 1.0)
-		var e := rows_edge[i].lerp(rows_edge[i + 1], t)
-		var m := (-x + e.x if si == 0 else x - e.y) - shoulder_w
+		var e := env_edge[i].lerp(env_edge[i + 1], t)
+		var m := (-x - e.x if si == 0 else x - e.y)
 		if m <= 0.0:
 			continue
 		var c := envelope[i].lerp(envelope[i + 1], t)

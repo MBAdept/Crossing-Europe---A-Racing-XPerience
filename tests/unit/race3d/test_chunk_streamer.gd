@@ -243,6 +243,24 @@ func test_context_snapshot() -> void:
 	assert_true(cz.in_bend_corridor(za, tps.edge(ra, 1) + envz + 1.0), "1 m jenseits der Hülle: im Korridor des Geländes …")
 	assert_false(cz.in_sight_envelope(za, tps.edge(ra, 1) + envz + 1.0), "… aber in keiner Sichtlinie")
 	assert_true(cz.in_sight_envelope(za, tps.edge(ra, 1) + envz * 0.5), "in der Hülle: nicht frei")
+	# a footprint at the end of a chunk reaches into the next chunk's rows: the snapshot holds ENV_MARGIN rows more,
+	# so an object near either end of its chunk gets the answer of a context around it – here where the envelope runs
+	# out, at a chunk boundary 4 rows before its end
+	var cl := ChunkContext.new()
+	cl.capture(11, ra - 36, ra - 4, ps, tps, ts)
+	var cr := ChunkContext.new()
+	cr.capture(12, ra - 4, ra + 28, ps, tps, ts)
+	var cw2 := ChunkContext.new()
+	cw2.capture(13, ra - 20, ra + 12, ps, tps, ts)
+	assert_true(tps.envelope_width(ra - 12, 1) > tps.envelope_width(ra - 4, 1) + 0.5, "die Hülle ändert sich an der Stückgrenze (%.2f / %.2f m)" % [
+		tps.envelope_width(ra - 12, 1), tps.envelope_width(ra - 4, 1)])
+	var xq := tps.edge(ra - 4, 1) + 2.5
+	for zq: float in [float(ra - 6) * 3.0, float(ra - 5) * 3.0 + 1.0, float(ra - 4) * 3.0 - 0.5, float(ra - 4) * 3.0, float(ra - 3) * 3.0,
+			float(ra - 2) * 3.0 + 2.0]:
+		var own := cl if zq < float(ra - 4) * 3.0 else cr
+		var d := own.bend_intrusion(zq, xq, 1.0, 14.0)
+		var ref := cw2.bend_intrusion(zq, xq, 1.0, 14.0)
+		assert_near(d, ref, 1.0e-4, "Stückgrenze, z %.1f: das eigene Stück wie ein Stück darum (%.3f / %.3f m)" % [zq, d, ref])
 	var zc := float(ra + 3) * 3.0
 	var xc := tps.edge(ra + 3, 1) + 0.5
 	assert_false(cz.in_sight_envelope(zc, xc), "9 m hinter dem Ende der Hülle: frei")
