@@ -21,7 +21,8 @@ extends RefCounted
 ##    path ahead – wherever such a line leaves the road (at least corridor_min_m from the paved edge plus BEND_FLOOR_M,
 ##    so that ChunkContext.in_bend_corridor() counts it as a bend's), elsewhere corridor_min_m from the paved edge.
 ##    Inside it the ground is never above the road: relief is only added to a ring whose inner neighbour already lies
-##    outside the corridor.
+##    outside the corridor. The envelope itself, without that floor (envelope_width(), rows()["envelope"]), is what
+##    ChunkContext.in_bend_corridor() tests: nothing taller than 0.5 m stands in it (FIX-R7a, finding QR7a-05).
 ## Everything is a pure function of the road around the row, so two chunks that share a row get the same numbers (the
 ## sight lines from cameras before the first row of the path are missing after a start in the middle of a stage).
 ## Config: graphics.modern.terrain (all keys optional, defaults below). Owner: race3d kernel.
@@ -68,6 +69,7 @@ var _ch := PackedFloat32Array()
 var _c_edge := Vector2.ZERO            ## outer shoulder edge from the centreline (left, right; both positive)
 var _c_limit := Vector2.ZERO           ## ribbon width beyond the shoulder
 var _c_corr := Vector2.ZERO            ## sight corridor beyond the shoulder
+var _c_env := Vector2.ZERO             ## the exact envelope of the sight lines beyond the shoulder (0: none leaves the road)
 
 
 func setup(p: RoadPath3D, t: Track, terrain_cfg: Dictionary, scenery: Dictionary) -> void:
@@ -171,6 +173,12 @@ func corridor_width(k: int, side: int) -> float:
 	return r[4] if side < 0 else r[5]
 
 
+## The exact envelope of the sight lines of row k beyond the shoulder (m; SightCorridor.width() without the floor of
+## corridor_width() at the ends of a bend): 0 where no sight line leaves the road there. Main thread.
+func envelope_width(k: int, side: int) -> float:
+	return maxf(0.0, sight.width(k, side))
+
+
 ## Ring distances of row k beyond the shoulder (clamped, strictly increasing).
 func ring_offsets(k: int, side: int) -> PackedFloat32Array:
 	var o := 6 + (0 if side < 0 else _n)
@@ -205,8 +213,9 @@ static func interp(xs: PackedFloat32Array, ox: int, hs: PackedFloat32Array, oh: 
 
 ## The rows a..b in one pass (chunk snapshots, scans): {"rings": n, "x": ring distances, "h": ring heights – both
 ## n values per row and side, index ((row - a) * 2 + (0 left | 1 right)) * n + ring –, "edge": shoulder edges,
-## "limit": ribbon widths, "corridor": sight corridors – Vector2(left, right) per row –, "floor": RoadPath3D.floor_y()
-## per row}.
+## "limit": ribbon widths, "corridor": sight corridors – Vector2(left, right) per row –, "envelope": the exact
+## envelopes of the sight lines (envelope_width()) – Vector2(left, right) per row –, "floor": RoadPath3D.floor_y() per
+## row}.
 func rows(a: int, b: int) -> Dictionary:
 	var count := maxi(0, b - a + 1)
 	var x := PackedFloat32Array()
@@ -214,11 +223,13 @@ func rows(a: int, b: int) -> Dictionary:
 	var edges := PackedVector2Array()
 	var limits := PackedVector2Array()
 	var corr := PackedVector2Array()
+	var env := PackedVector2Array()
 	x.resize(count * 2 * _n)
 	h.resize(count * 2 * _n)
 	edges.resize(count)
 	limits.resize(count)
 	corr.resize(count)
+	env.resize(count)
 	var floors := path.floor_rows(a, b)
 	var n2 := 2 * _n
 	for q in count:
@@ -230,7 +241,8 @@ func rows(a: int, b: int) -> Dictionary:
 		edges[q] = _c_edge
 		limits[q] = _c_limit
 		corr[q] = _c_corr
-	return {"rings": _n, "x": x, "h": h, "edge": edges, "limit": limits, "corridor": corr, "floor": floors}
+		env[q] = _c_env
+	return {"rings": _n, "x": x, "h": h, "edge": edges, "limit": limits, "corridor": corr, "envelope": env, "floor": floors}
 
 
 func _row(k: int) -> PackedFloat32Array:
@@ -298,14 +310,18 @@ func _compute(k: int, floor_abs: float) -> void:
 		lim = maxf(lim, min_width_m)
 		# sight corridor beyond the shoulder: the plain strip, or the envelope of the sight lines where one leaves the road
 		var corr := maxf(0.0, corridor_min_m - sh)
+		var envw := 0.0
 		if sight.width_near(k, -1 if si == 0 else 1) > 0.0:
-			corr = maxf(sight.width(k, -1 if si == 0 else 1), corr + BEND_FLOOR_M)
+			envw = maxf(0.0, sight.width(k, -1 if si == 0 else 1))
+			corr = maxf(envw, corr + BEND_FLOOR_M)
 		if si == 0:
 			_c_limit.x = lim
 			_c_corr.x = corr
+			_c_env.x = envw
 		else:
 			_c_limit.y = lim
 			_c_corr.y = corr
+			_c_env.y = envw
 		var o := si * _n
 		var prev_x := 0.0
 		for i in _n:

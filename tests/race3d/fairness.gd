@@ -1058,6 +1058,13 @@ static func scan_corridor(geo: Dictionary, terr: Dictionary, envelope: Dictionar
 	var env_short_m := 0.0
 	var env_flag := 0
 	var env_over := 0.0
+	# FIX-R7a (QR7a-05): the exact envelope (rows()["envelope"], what ChunkContext.in_sight_envelope() and the city's
+	# fences test) must reach every sight line of the reference too, and be > 0 there
+	var exact: PackedVector2Array = rows.get("envelope", PackedVector2Array())
+	var ex_short := 0
+	var ex_short_m := 0.0
+	var ex_flag := 0
+	var ex_over := 0.0
 	if not envelope.is_empty():
 		var path: RoadPath3D = geo["path"]
 		var track: Track = geo["track"]
@@ -1081,10 +1088,19 @@ static func scan_corridor(geo: Dictionary, terr: Dictionary, envelope: Dictionar
 					env_short_m = maxf(env_short_m, w - cw)
 				if cw <= strip + 0.5:
 					env_flag += 1
+				if r < exact.size():
+					var ew := exact[r].x if si == 0 else exact[r].y
+					ex_over += ew - w
+					if ew < w - 0.02:
+						ex_short += 1
+						ex_short_m = maxf(ex_short_m, w - ew)
+					if ew <= 0.0:
+						ex_flag += 1
 	return {"name": geo["name"], "rows": count, "sides": count * 2, "violations": violations, "worst_m": worst, "cut": cut,
 		"min_limit_m": min_limit, "max_corridor_m": max_corr, "max_height_m": max_h, "raised": raised,
 		"env_sides": env_sides, "env_short": env_short, "env_short_m": env_short_m, "env_flag": env_flag,
-		"env_over_m": env_over / maxf(1.0, float(env_sides))}
+		"env_over_m": env_over / maxf(1.0, float(env_sides)), "exact_rows": exact.size(), "exact_short": ex_short,
+		"exact_short_m": ex_short_m, "exact_flag": ex_flag, "exact_over_m": ex_over / maxf(1.0, float(env_sides))}
 
 
 # --- helpers ------------------------------------------------------------------------------------------------------

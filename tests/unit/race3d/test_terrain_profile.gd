@@ -245,6 +245,9 @@ func test_rows_and_shared_rows() -> void:
 			assert_near(l.x if si == 0 else l.y, tp.limit(k, side), 1.0e-6, "rows().limit")
 			var c: Vector2 = (a["corridor"] as PackedVector2Array)[q]
 			assert_near(c.x if si == 0 else c.y, tp.corridor_width(k, side), 1.0e-6, "rows().corridor")
+			var ev: Vector2 = (a["envelope"] as PackedVector2Array)[q]
+			assert_near(ev.x if si == 0 else ev.y, tp.envelope_width(k, side), 1.0e-6, "rows().envelope = envelope_width()")
+			assert_true((ev.x if si == 0 else ev.y) <= (c.x if si == 0 else c.y) + 1.0e-6, "die Hülle liegt im Korridor des Geländes")
 		assert_near((a["floor"] as PackedFloat64Array)[q], p.floor_y(k), 1.0e-9, "rows().floor = floor_y()")
 		assert_near(tp.ring_heights(k, 1)[6], p.floor_y(k) - p.height(k), 1.0e-4, "letzter Ring = Talsohle relativ zur Fahrbahn")
 	# the next chunk, taken later: the path was extended and trimmed like the streamer does in between
