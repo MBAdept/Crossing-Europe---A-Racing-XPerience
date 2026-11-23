@@ -262,7 +262,7 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 	arrays[Mesh.ARRAY_TEX_UV] = buf.uv
 	arrays[Mesh.ARRAY_TEX_UV2] = buf.uv2
 	arrays[Mesh.ARRAY_INDEX] = buf.idx
-	return {"arrays": arrays, "vertices": buf.v.size(), "triangles": buf.idx.size() / 3, "rail_left": rail_segments[0],
+	return {"arrays": arrays, "pieces": split_arrays(arrays, pieces_for(buf.v.size())), "vertices": buf.v.size(), "triangles": buf.idx.size() / 3, "rail_left": rail_segments[0],
 		"rail_right": rail_segments[1], "posts": posts, "delineators": delineators, "reflectors": reflectors,
 		"railing_segments": railing_segments}
 
@@ -377,12 +377,24 @@ func _delineator(buf: Buf, ctx: ChunkContext, z: float, x: float, right: bool, r
 
 ## Main thread: the mesh under the chunk node; the reflectors go to the lights layer.
 func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
+	for k in commit_steps(part):
+		commit_step(ctx, part, parent, k)
+
+
+## A-28 (RINT-M3): one piece of the mesh per commit step ("Roadside", then "Roadside_2" …); the reflectors hang on the
+## first piece (all pieces are chunk-local with the identity transform).
+func commit_steps(part: Dictionary) -> int:
+	return maxi(1, (part.get("pieces", []) as Array).size())
+
+
+func commit_step(ctx: ChunkContext, part: Dictionary, parent: Node3D, k: int) -> void:
 	if int(part.get("vertices", 0)) <= 0:
 		return
+	var pieces: Array = part.get("pieces", [])
 	var mesh := ArrayMesh.new()
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, part["arrays"])
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, pieces[k] if k < pieces.size() else part["arrays"])
 	var mi := MeshInstance3D.new()
-	mi.name = "Roadside"
+	mi.name = "Roadside" if k == 0 else "Roadside_%d" % (k + 1)
 	mi.mesh = mesh
 	var materials: Variant = ctx.services.get("materials")
 	if not (materials is ModernMaterials):
@@ -393,7 +405,7 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 	parent.add_child(mi)
 	var renderer: Variant = ctx.services.get("renderer")
 	var list: Array = part.get("reflectors", [])
-	if renderer != null and not list.is_empty():
+	if k == 0 and renderer != null and not list.is_empty():
 		var lights: Variant = (renderer as Object).call(&"layer", "lights")
 		if lights != null and (lights as Object).has_method(&"add_reflectors"):
 			(lights as Object).call(&"add_reflectors", mi, list)

@@ -2627,6 +2627,22 @@ zeichnet); `clear()` gibt alles sofort frei. Vierter Lauf: `trash` höchstens 57
 GDScript-Teil `path` 49,6 ms – auf der geteilten VM (Last 12) ist ein einzelner Stoß dieser Größe nicht mehr vom
 Rauschen zu trennen. Ob die Stöße auf dem Gerät weg sind, zeigt erst `spikes` des Leistungstests auf dem Deck.
 
+**Schritte innerhalb eines Bausteins (RINT-M3, A-28).** Die kleinste Einheit des Einhängens ist jetzt ein Schritt eines
+Bausteins: `ChunkBuilder.commit_steps(part)` und `commit_step(ctx, part, parent, k)` (Vorgabe: ein Schritt, der
+`commit()` ruft). `road`, `roadside` und `terrain` teilen ihr Netz in `build()` (Arbeitsfaden) mit
+`ChunkBuilder.split_arrays()` in Stücke gleicher Dreieckszahl, sobald es mehr als `PIECE_VERTICES` (2.000) Ecken hat
+(höchstens `PIECES_MAX` 4), und hängen je Schritt ein Stück ein („Road“, „Road_2“ …, alle mit demselben Material,
+dieselben Dreiecke in derselben Reihenfolge – dasselbe Bild); die Reflektoren hängen am ersten Stück. Der Streamer
+merkt sich Baustein und Schritt (`commit_i`, `commit_k`), schätzt einen Schritt mit der mittleren Schrittzeit des
+Bausteins, `commit_by` zählt Schritte. Gemessen (Sonde `commit_cost.gd`, Xvfb, Kiel – Hamburg, Last 2): ein Einhängen von
+`roadside` (≈ 2.850 Ecken) kostet im Median 0,21 ms, in zwei Stücken 0,10 ms je Schritt; `road` (≤ 900 Ecken) 0,02 ms
+und `terrain` (≤ 600 Ecken) 0,07 ms bleiben ganz. Die Höchstwerte von 4–6 ms, die NACH-RINT unter Last 9–10 maß, sind
+damit nicht die Arbeit der Bausteine selbst (gefolgert: Verdrängung des Fadens auf der geteilten VM). Das Vorwärmen des
+Sichtkorridors zählt als eigener Teil `warm` von `update_ms_max` (vorher in „commit“, NACH-R7a NR7a-03). Ein Stück, das
+beim Einhängen verworfen wird, gibt über `ModernRenderer.release_chunk()` frei, was seine Bausteine bei den Ebenen
+gemeldet haben (`release_under()` von `lights` und `flares`, NACH-RINT N-01); die Glanzpunkte überspringen
+freigegebene Knoten.
+
 ### 18.3 Weitere Änderungen
 
 - **Tankstelle nachts (F-05):** `builders/station.gd` legt Arcades Lichtschicht des Tankstellen-Sprites nach: ein

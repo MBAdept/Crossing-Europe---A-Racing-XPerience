@@ -354,8 +354,9 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 	arrays[Mesh.ARRAY_CUSTOM1] = buf.c1
 	arrays[Mesh.ARRAY_COLOR] = buf.col
 	arrays[Mesh.ARRAY_INDEX] = buf.idx
+	# A-28 (RINT-M3): a large mesh is committed in pieces (one per step; the chunk is visible when all hang)
 	return {"arrays": arrays, "vertices": buf.v.size(), "triangles": buf.idx.size() / 3, "segments": rows - 1, "flags": flags_all,
-		"lines_max": lines_max, "city_segments": city_segments}
+		"lines_max": lines_max, "city_segments": city_segments, "pieces": split_arrays(arrays, pieces_for(buf.v.size()))}
 
 
 ## Ground colour beside the road of a segment: the mean of the scenery's two grass bands (Modern has no stripes),
@@ -391,13 +392,24 @@ func _grass_of(ctx: ChunkContext, scen_id: String, cache: Dictionary) -> Color:
 
 
 ## Main thread: the mesh of the chunk under its node.
-func commit(_ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
+func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
+	for k in commit_steps(part):
+		commit_step(ctx, part, parent, k)
+
+
+## A-28 (RINT-M3): one piece of the road mesh per commit step ("Road", then "Road_2" …; one material for all).
+func commit_steps(part: Dictionary) -> int:
+	return maxi(1, (part.get("pieces", []) as Array).size())
+
+
+func commit_step(_ctx: ChunkContext, part: Dictionary, parent: Node3D, k: int) -> void:
 	if int(part.get("vertices", 0)) <= 0:
 		return
+	var pieces: Array = part.get("pieces", [])
 	var mesh := ArrayMesh.new()
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, part["arrays"], [], {}, MESH_FORMAT)
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, pieces[k] if k < pieces.size() else part["arrays"], [], {}, MESH_FORMAT)
 	var mi := MeshInstance3D.new()
-	mi.name = "Road"
+	mi.name = "Road" if k == 0 else "Road_%d" % (k + 1)
 	mi.mesh = mesh
 	mi.material_override = _material()
 	mi.layers = GROUND_LAYERS

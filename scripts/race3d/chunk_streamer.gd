@@ -72,6 +72,7 @@ class Chunk extends RefCounted:
 	var node: Node3D
 	var build_us := 0
 	var commit_i := 0          ## next builder to commit (COMMITTING)
+	var commit_k := 0          ## A-28 (RINT-M3): next step of that builder (ChunkBuilder.commit_steps())
 
 	func run(builders: Array) -> void:
 		var t0 := Time.get_ticks_usec()
@@ -268,6 +269,7 @@ func update(cam_z: float, visibility_m: float) -> void:
 		return
 	if not collected and not _commit_pending():
 		_warm_corridor(cam_seg)   # A-17: a frame with nothing to collect or commit computes some sight corridor ahead
+		tu = _part_us("warm", tu)  # A-28 (RINT-M3, NACH-R7a NR7a-03): booked as its own part, not as "commit"
 	if collected:
 		return   # one main-thread job per frame: a frame that collected a chunk commits none
 	# threaded mode: commit finished builds, nearest first – a chunk begun in an earlier frame first –, under the
@@ -657,8 +659,11 @@ func _commit(c: Chunk) -> void:
 		node.name = "Chunk%d" % c.index
 		node.position = path.point(c.ctx.seg_a)
 	for i in range(c.commit_i, _builders.size()):
-		_commit_builder(c, i, node)
+		var steps := _steps_of(c, i)
+		for k in range(c.commit_k if i == c.commit_i else 0, steps):
+			_commit_piece(c, i, k, node)
 	c.commit_i = _builders.size()
+	c.commit_k = 0
 	if node.get_parent() == null:
 		add_child(node)
 	c.node = node
@@ -670,7 +675,9 @@ func _commit(c: Chunk) -> void:
 
 
 ## B-01: commits builders of chunk c (BUILT or begun) while the frame's commit time since frame_t0 is below budget_us –
-## at least one per frame. The node enters the tree when the last builder is done.
+## at least one per frame. The node enters the tree when the last builder is done. A-28 (RINT-M3): the unit is one
+## commit step of a builder (ChunkBuilder.commit_steps(): road, terrain and roadside split a large mesh into pieces),
+## so a single large builder no longer takes the whole frame's budget at once.
 func _commit_step(c: Chunk, frame_t0: int, budget_us: int) -> void:
 	var t0 := Time.get_ticks_usec()
 	if c.node == null:
@@ -679,14 +686,19 @@ func _commit_step(c: Chunk, frame_t0: int, budget_us: int) -> void:
 		node.position = path.point(c.ctx.seg_a)
 		c.node = node
 		c.commit_i = 0
+		c.commit_k = 0
 		c.state = COMMITTING
-	var first := _frame_commit_us == 0     # at least one builder per frame
+	var first := _frame_commit_us == 0     # at least one step per frame
 	while c.commit_i < _builders.size():
-		# the next builder only when its mean commit time so far still fits (one builder may exceed the budget alone)
+		# the next step only when the mean commit time of a step of that builder so far still fits (one step may
+		# exceed the budget alone)
 		if not first and Time.get_ticks_usec() - frame_t0 + _commit_estimate(c.commit_i) > budget_us:
 			break
-		_commit_builder(c, c.commit_i, c.node)
-		c.commit_i += 1
+		_commit_piece(c, c.commit_i, c.commit_k, c.node)
+		c.commit_k += 1
+		if c.commit_k >= _steps_of(c, c.commit_i):
+			c.commit_i += 1
+			c.commit_k = 0
 		first = false
 	if c.commit_i >= _builders.size():
 		add_child(c.node)
@@ -698,7 +710,7 @@ func _commit_step(c: Chunk, frame_t0: int, budget_us: int) -> void:
 	_frame_commit_us += us
 
 
-## Mean commit() time of builder i so far in µs (0 before its first commit).
+## Mean time of one commit step of builder i so far in µs (0 before its first commit).
 func _commit_estimate(i: int) -> int:
 	var a: Variant = _commit_by.get((_builders[i] as ChunkBuilder).id())
 	if a is Array and int((a as Array)[2]) > 0:
@@ -706,10 +718,16 @@ func _commit_estimate(i: int) -> int:
 	return 0
 
 
-func _commit_builder(c: Chunk, i: int, node: Node3D) -> void:
+## A-28: the number of commit steps of builder i for chunk c (at least 1).
+func _steps_of(c: Chunk, i: int) -> int:
+	return maxi(1, (_builders[i] as ChunkBuilder).commit_steps(c.parts[i]))
+
+
+## One commit step k of builder i; commit_by counts steps (sum, max, number) per builder id.
+func _commit_piece(c: Chunk, i: int, k: int, node: Node3D) -> void:
 	var b0 := Time.get_ticks_usec()
 	var b := _builders[i] as ChunkBuilder
-	b.commit(c.ctx, c.parts[i], node)
+	b.commit_step(c.ctx, c.parts[i], node, k)
 	var us := Time.get_ticks_usec() - b0
 	var id := b.id()
 	var a: Array = _commit_by.get(id, [0, 0, 0])

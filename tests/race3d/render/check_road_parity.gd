@@ -136,7 +136,7 @@ func _hide_all_but_road(sc: Node, r: ModernRenderer) -> void:
 			(c as Node3D).visible = false             # what layers put into the world (vehicles, glints …)
 	for chunk: Node in r.streamer.get_children():
 		for part: Node in chunk.get_children():
-			if part is Node3D and String(part.name) != "Road":
+			if part is Node3D and String(part.name) != "Road" and not String(part.name).begins_with("Road_"):   # (A-28: pieces "Road_2" …)
 				(part as Node3D).visible = false      # guardrails, terrain, props, signs …
 
 

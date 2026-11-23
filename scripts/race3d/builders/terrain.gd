@@ -246,9 +246,14 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 		box = AABB(verts[0], Vector3.ZERO)
 		for v in verts:
 			box = box.expand(v)
-	return {"verts": verts, "normals": norms, "colors": cols, "uv": uvs, "uv2": uv2s, "custom": custom, "bands": bands,
+	var part := {"verts": verts, "normals": norms, "colors": cols, "uv": uvs, "uv2": uv2s, "custom": custom, "bands": bands,
 		"indices": idx, "aabb": box, "rings": n, "rows": rows, "quads": quads, "water_rows": water_rows, "bank_tris": bank_tris,
 		"bank_max_m": bank_top[0]}
+	# A-28 (RINT-M3): a large mesh is committed in pieces (one per step; the chunk is visible when all hang)
+	var np := pieces_for(verts.size())
+	if np > 1:
+		part["pieces"] = split_arrays(arrays_of(part), np)
+	return part
 
 
 ## R4: whether row i of a chunk may carry a snow bank (open road beside open ground).
@@ -367,13 +372,24 @@ static func band_tone(part: Dictionary, v: int) -> Color:
 	return Color(c.r + b[v * 4] * k, c.g + b[v * 4 + 1] * k, c.b + b[v * 4 + 2] * k, c.a)
 
 
-func commit(_ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
+func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
+	for k in commit_steps(part):
+		commit_step(ctx, part, parent, k)
+
+
+## A-28 (RINT-M3): one piece of the ground per commit step ("Terrain", then "Terrain_2" …).
+func commit_steps(part: Dictionary) -> int:
+	return maxi(1, (part.get("pieces", []) as Array).size())
+
+
+func commit_step(_ctx: ChunkContext, part: Dictionary, parent: Node3D, k: int) -> void:
 	var idx: PackedInt32Array = part.get("indices", PackedInt32Array())
 	if idx.is_empty():
 		return
+	var pieces: Array = part.get("pieces", [])
 	var mi := MeshInstance3D.new()
-	mi.name = "Terrain"
-	mi.mesh = mesh_of(part)
+	mi.name = "Terrain" if k == 0 else "Terrain_%d" % (k + 1)
+	mi.mesh = mesh_of(part) if k >= pieces.size() else _mesh_of_arrays(pieces[k])
 	mi.material_override = ground_material()
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if _cast else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	mi.layers = GROUND_LAYERS
@@ -382,6 +398,11 @@ func commit(_ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 
 ## The mesh of a built part (also for tests and top views).
 static func mesh_of(part: Dictionary) -> ArrayMesh:
+	return _mesh_of_arrays(arrays_of(part))
+
+
+## The Mesh.ARRAY_* arrays of a built part (pure, worker-safe).
+static func arrays_of(part: Dictionary) -> Array:
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = part["verts"]
@@ -392,6 +413,10 @@ static func mesh_of(part: Dictionary) -> ArrayMesh:
 	arrays[Mesh.ARRAY_CUSTOM0] = part["custom"]
 	arrays[Mesh.ARRAY_CUSTOM1] = part["bands"]
 	arrays[Mesh.ARRAY_INDEX] = part["indices"]
+	return arrays
+
+
+static func _mesh_of_arrays(arrays: Array) -> ArrayMesh:
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays, [], {},
 		(Mesh.ARRAY_CUSTOM_RGBA_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM0_SHIFT) | (Mesh.ARRAY_CUSTOM_RGBA_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM1_SHIFT))
