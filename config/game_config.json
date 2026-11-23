@@ -574,7 +574,7 @@
 			"props": {"bend_cover": ["props/cover_bush", "props/cover_grass"], "bend_cover_max_h_m": 0.5,
 				"lod_ref_m": 60.0, "lod1_ref_m": 200.0, "lod_fade": {"frac": 0.12, "min_m": 4.0, "max_m": 25.0},
 				"lod0_m": {"tag:city": 35.0, "props/city_german_old_fachwerk": 30.0, "props/city_german_old_fachwerk_b": 30.0, "props/city_paris_haussmann": 30.0, "props/city_paris_corner": 30.0},
-				"far_sun": {"building": 0.78, "tree": 0.8, "props/city_swiss_chalet": 0.35, "props/city_german_old_fachwerk": 0.85, "props/city_german_old_fachwerk_b": 0.85, "props/city_paris_haussmann": 0.72, "props/city_french_sud": 0.75, "props/house_med": 0.85}},
+				"far_sun": {"building": 0.78, "tree": 0.8, "props/city_swiss_chalet": 0.3, "props/city_german_old_fachwerk": 0.85, "props/city_german_old_fachwerk_b": 0.85, "props/city_paris_haussmann": 0.72, "props/city_french_sud": 0.75, "props/house_med": 0.85}},
 			"sky_update_s": 2.0,
 			"prewarm": true,
 			"prepare_timeout_s": 120.0

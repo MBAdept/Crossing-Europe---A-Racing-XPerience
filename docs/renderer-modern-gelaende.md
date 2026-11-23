@@ -408,7 +408,7 @@ einem Stadthaus 8–32 % seiner Pixel in einem Bild (AS5aR1, AS5aR2). Jetzt:
 Jenseits der Reichweite der Echtzeitschatten (Hoch 200 m, Mittel 120 m; Ausblenden ab 85 %) fiel die Sonne voll auf
 Laibungen, Arkaden und Traufen: Fernfassaden wurden 4–29 % heller (AS5aR2 K2). Jetzt nimmt ein Modell, das bei der
 Schattenstufe selbst wirft, dort seinen mittleren beschatteten Sonnenanteil `far_sun` (`graphics.modern.props.far_sun`:
-Gebäude 0,78, Bäume 0,8, Chalet 0,35, Fachwerk und house_med 0,85, Haussmann 0,72, Südhaus 0,75), eingeblendet mit
+Gebäude 0,78, Bäume 0,8, Chalet 0,3, Fachwerk und house_med 0,85, Haussmann 0,72, Südhaus 0,75), eingeblendet mit
 dem Ausblenden der Engine (`shadow_far`, Ansichtstiefe). Der `baked`-Shader hat dafür ein `light()` mit dem
 Beleuchtungsmodell der Engine (Lambert + Schlick-GGX, f0 = 0,16 × 0,35²) – in der Nähe gleich (bei 60 m dieselben
 Werte wie vorher, gemessen), `vpbr_static` und `leaves` nehmen dieselbe Abschwächung.
