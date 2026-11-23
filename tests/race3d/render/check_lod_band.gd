@@ -9,7 +9,7 @@ extends SceneTree
 ##                     builders/props.gd gives them) stands still in front of a still camera; the end of lod0 is
 ##                     moved through the house's distance in 0.5-m steps (the same as driving towards it, without the
 ##                     motion of the picture). With the band of the props builder (±12 %, at least 4 m) the largest
-##                     change between two steps must stay below 35 % of the hard swap's (band 0.01 m) and the house
+##                     change between two steps must stay below 15 % of the hard swap's (band 0.01 m) and the house
 ##                     must never lose more than 3 % of its pixels (no hole while the two levels share them) – the
 ##                     hard swap at 60 m changed 8–32 % of a house's pixels in one frame (AS5aR1, AS5aR2).
 ##   lod_baum          the same for a card tree, lod1 -> impostor (the billboard).
@@ -25,7 +25,9 @@ extends SceneTree
 const Props := preload("res://scripts/race3d/builders/props.gd")
 const BACKGROUND := Color(0.42, 0.56, 0.74)
 const STEP_M := 0.5
-const MAX_SOFT_SHARE := 0.35          ## largest step change with the band / that of the hard swap
+const MAX_SOFT_SHARE := 0.15          ## largest step change with the band / that of the hard swap (FIX-R7c: 0.35 before;
+## the band gives 0.6 / 7.1 % at the Barockhaus, a shadow pass that dithers like the main pass – two levels casting
+## half each, QA-R7c mutation R2 – 1.2 %: 15 % keeps that apart)
 const MAX_COVER_LOSS := 0.03          ## share of the house's pixels it may lose inside the band
 const MAX_STAND_DIFF := 0.01          ## standing camera: share of the model's pixels that may differ from the hard swap
 const FAR_MODEL := "props/city_paris_haussmann"
