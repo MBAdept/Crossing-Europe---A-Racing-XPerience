@@ -463,8 +463,20 @@ gegen R7a 1.711 zurück (Bäume, Pflanzen, Felsen: die genaue Hülle statt der M
 6 m wären es 191 bzw. 794 (548 Stadthäuser) – u. a. das Eckhaus an C1. Kein Teil einer Requisite über 0,5 m mehr in der
 Hülle. Verdeckungssonde: C1 bei 270 m in zwei von drei Spuren wieder sichtbar (6/16/18 px; R7a 6/0/0), T3/T4 wie R7a.
 Netzprüfung `tests/race3d/props_footprint.gd` (`--full`: alle 128 Richtungen): 0 Requisiten über 0,5 m mit dem
-Abdruck in der Hülle mit der Änderung, 5.728 ohne – sie ist noch keine Gate-Datei (ihr Name beginnt nicht mit
-`check_`) und wird nach dem Einbau der Änderung in `check_props_footprint.gd` umbenannt.
+Abdruck in der Hülle mit der Änderung, 5.728 ohne.
+
+**Eingebaut in RINT-M3 (A-24, das ganze Objekt):** Der Abdruck ist nicht mehr die halbe Bibliotheksbreite, sondern das
+Modell selbst: `Props.footprint()` nimmt die AABB der Vereinigung aller Varianten eines Sets (`PropLibrary` „aabb“
+aus dem Manifest), skaliert, gespiegelt und mit dem Gierwinkel gedreht, mit dem `_place()` das Modell stellt
+(`place_yaw()`: Bäume, Pflanzen, Felsen zufällig, `face_road` ±20°); an der Kante ausgerichtete Häuser reichen quer
+mindestens bis Arcades Vorderkante (max(Ausdehnung, AABB-Seite)), längs zählt die AABB. `push_out()` und
+`drop_reason()` rechnen mit demselben Abdruck, angehängte Requisiten (`attach`) ebenso. `props/city_french_sud` reicht
+mit den Obergeschossen (2,6–7,6 m hoch) 2,08 m über seine Ausdehnung `extent_m.left` hinaus – die Ausrichtung an
+Arcades Kante bleibt (die Ausdehnung ist Arcades Kante), der Abdruck nimmt die AABB. Die Netzprüfung heißt jetzt
+`tests/race3d/check_props_footprint.gd` (Gate von `run_tests.sh`, sechs Richtungen; `--full` 128) und rechnet das
+Modell unabhängig aus dem Manifest (Gierwinkel als neuntes Element der Listeneinträge), über `list` und
+`attach_list`. Gemessen: `--full` 0 von 218.090 gemessenen Requisiten (218.105 gezeichnet); Mutationen (sechs
+Richtungen): nur der Fuß 474, das Breitenmodell von FIX-R7a 391 Requisiten in der Hülle.
 
 ### 5.4 Konfiguration `graphics.modern.terrain`
 
@@ -2673,6 +2685,13 @@ Zielstadt wie Arcade. Vorlage ist in beiden Fällen Arcades eingefrorener Code (
   am Anker – in Kurven zeigten sie ihre Seitenwand (Belgrad ≈ 85 px neben Arcade, breiter). Die Drehung bringt keine
   Ecke des Grundrisses näher an die Straße als die Aufstellung längs der Straße (`near_shift`: sonst rückt das
   Wahrzeichen um den Unterschied nach außen).
+- **Verschiebung des gezeichneten Knotens** (RINT-M3, A-25, NACH-R7b N-1): Diese Verschiebung trifft den Knoten, nicht
+  den Anker – „an Arcades Anker“ oben gilt für den Anker davor. Netzweit (66 Modelle und Formen der 143 Wahrzeichen)
+  ist der Knoten bis **11,89 m** von Arcades Anker verschoben (die Kirche vor Bremen auf Bremen – Amsterdam km 36,3,
+  um −10,6° gedreht); auf dem Bildschirm etwa 14 px bei 600 m (gefolgert). Die Grenze des Vertrags ist 12 m
+  (`MAX_NODE_SHIFT_M`); `test_landmarks` „drawn_node_stays_near_arcades_anchor_network_wide“ rechnet den Knoten mit
+  derselben Funktion, mit der `_place()` zeichnet (`place_model()`, Grundriss `parts_box()` bzw. der prozeduralen
+  Form), und prüft ihn gegen den Anker (Mutation „Verschiebung × 1,1“: rot).
 - `builders/props.gd` lässt alle Wahrzeichen-Einträge diesem Builder, sobald es ihn gibt (seine Ente-Typ-Weiche
   `_skip_landmarks = renderer.builder("landmarks") != null`, Zeilen 88, 122, 329, 539, 741 – sie stand schon im Code;
   R7b hat `props.gd` nicht geändert).

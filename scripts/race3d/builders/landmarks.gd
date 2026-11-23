@@ -41,6 +41,10 @@ const BLEND_FROM := 0.70            ## share of the range L from which the trans
 const KEEP_BEHIND_M := 320.0        ## a passed landmark stays this long behind the camera (its body reaches ahead of its anchor)
 const APPROACH_M := 600.0           ## FIX-R7b (B-05): a model or shape faces the road point this far before its anchor …
 const MAX_TURN := 0.6981317         ## … turned at most this far (40°) from the road's heading at the anchor
+## A-25 (RINT-M3, NACH-R7b N-1): the node that is drawn stays within this many metres (horizontally) of Arcade's anchor –
+## the turn to the approach moves it away from the road by near_shift(); measured network-wide at most 11.89 m (a church
+## of Bremen – Amsterdam, turned 10.6°), checked by test_landmarks "test_anchor_and_mirror_like_arcade_network_wide"
+const MAX_NODE_SHIFT_M := 12.0
 const PROC_KINDS: Array[String] = ["domed_church", "tv_tower", "lighthouse", "skyscrapers"]
 ## Arcade's procedural reference heights (RoadRenderer._lm_*: s = px per m × height / reference)
 const PROC_REF := {"domed_church": 80.0, "tv_tower": 368.0, "lighthouse": 51.0, "skyscrapers": 259.0}
@@ -386,6 +390,7 @@ func _make(li: int, p: Dictionary, world: Node3D) -> Variant:
 				node.free()
 				return null
 			var parts := _lib().mesh_parts(str(p["model"]), str(reps[0]))
+			box = parts_box(parts)
 			for pv: Variant in parts:
 				var part: Dictionary = pv
 				if bool(part.get("shadow", false)) or bool(part.get("billboard", false)):
@@ -394,7 +399,6 @@ func _make(li: int, p: Dictionary, world: Node3D) -> Variant:
 				var mi := MeshInstance3D.new()
 				mi.mesh = mesh
 				mi.transform = part.get("transform", Transform3D.IDENTITY)
-				box = mi.transform * mesh.get_aabb() if box.size == Vector3.ZERO else box.merge(mi.transform * mesh.get_aabb())
 				node.add_child(mi)
 				for si in mesh.get_surface_count():
 					var cls := surface_class(mesh, si)
@@ -466,15 +470,36 @@ func _place(p: Dictionary, rep: int, box: AABB) -> Transform3D:
 	var path: Variant = _renderer.get("path")
 	if rep == PICTURE or not (path is RoadPath3D):
 		return Transform3D(Basis.from_scale(Vector3(mx if rep != PICTURE else sc, sc, sc)), origin)
-	var rp := path as RoadPath3D
+	var pm := place_model(path as RoadPath3D, z, origin, side, sc, bool(p.get("mirror", false)), box)
+	p["turn_deg"] = rad_to_deg(float(pm["turn"]))
+	p["shift_m"] = float(pm["shift"])
+	return pm["transform"]
+
+
+## The node of a model or shape at road z with its anchor at `origin` (origin-relative world, on the ground): turned to
+## its approach (face_heading()), mirrored in x when `mirror`, moved away from the road by near_shift() so that no
+## corner of its footprint `box` comes nearer the road – {"transform": Transform3D, "turn": rad, "shift": m}. Pure:
+## _place() draws with it, the network test of A-25 checks the node it gives (≤ MAX_NODE_SHIFT_M from the anchor).
+static func place_model(rp: RoadPath3D, z: float, origin: Vector3, side: int, sc: float, mirror: bool, box: AABB) -> Dictionary:
+	var mx := -sc if mirror else sc
 	var a := rp.heading_at(z)
 	var from := rp.world(maxf(z - APPROACH_M, rp.z_min()), 0.0, 0.0)
 	var t := face_heading(a, from, origin)
 	var basis := heading_basis(t, Vector3(mx, sc, sc))
 	var shift := near_shift(heading_basis(a, Vector3(mx, sc, sc)), basis, box, a, side)
-	p["turn_deg"] = rad_to_deg(t - a)
-	p["shift_m"] = shift
-	return Transform3D(basis, origin + RoadPath3D.right_of(a) * float(side) * shift)
+	return {"transform": Transform3D(basis, origin + RoadPath3D.right_of(a) * float(side) * shift), "turn": t - a, "shift": shift}
+
+
+## Footprint of a model in its own space: the box of its drawn parts (not the shadow caster, not a billboard).
+static func parts_box(parts: Array) -> AABB:
+	var box := AABB()
+	for pv: Variant in parts:
+		var part: Dictionary = pv
+		if bool(part.get("shadow", false)) or bool(part.get("billboard", false)):
+			continue
+		var mb: AABB = (part.get("transform", Transform3D.IDENTITY) as Transform3D) * (part["mesh"] as Mesh).get_aabb()
+		box = mb if box.size == Vector3.ZERO else box.merge(mb)
+	return box
 
 
 ## Heading (RoadPath3D convention: fwd = (sin t, 0, -cos t)) of a landmark at `origin` that faces the road point

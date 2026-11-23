@@ -175,6 +175,73 @@ func test_anchor_and_mirror_like_arcade_network_wide() -> void:
 	_cleanup()
 
 
+## A-25 (RINT-M3, NACH-R7b N-1): the NODE that is drawn – the model or shape turned to its approach and moved away from
+## the road by near_shift() (Landmarks.place_model(), the function _place() draws with) – stays within
+## MAX_NODE_SHIFT_M (12 m) of Arcade's anchor, horizontally, network-wide; the resolved anchor alone (the test above)
+## says nothing about it. The path starts 800 m before each landmark (the turn reads the road 600 m before it; relative
+## geometry is the same as from the stage start).
+func test_drawn_node_stays_near_arcades_anchor_network_wide() -> void:
+	var cfg := ConfigLoader.load_merged()
+	var r1 := float(ConfigLoader.lookup(cfg, "road.curve_radius_at_1_m", 120.0))
+	var net := Fair.load_network()
+	var rows: Array = []
+	var want: Array = []
+	for dir: Dictionary in Fair.directions(net):
+		var plan := StagePlan.build(dir["stage"], str(dir["from"]), net["cities"], net["countries"], cfg, net["city_db"])
+		var t := Track.new()
+		t.setup(plan, cfg, net["scenery"])
+		rows.append([str(dir["name"]), plan])
+		for s: String in Landmarks.wanted_sets(t):
+			if not want.has(s):
+				want.append(s)
+	var lib := PropLibrary.new()
+	lib.request(want, self)
+	var guard := 0
+	while lib.pending() > 0 and guard < 60000:
+		OS.delay_msec(1)
+		guard += 1
+	var boxes := {}
+	var n := 0
+	var worst := 0.0
+	var worst_what := ""
+	for row: Array in rows:
+		var t := Track.new()
+		t.setup(row[1], cfg, net["scenery"])
+		var pfb := Landmarks.plan_fallbacks(t)
+		for it: Dictionary in t.landmarks:
+			var p: Dictionary = Landmarks.resolve_item(it, lib.sets, pfb)
+			var rep := int(p["rep"])
+			if rep != Landmarks.MODEL and rep != Landmarks.PROC:
+				continue
+			var box := AABB()
+			if rep == Landmarks.PROC:
+				box = ((Landmarks.proc_mesh(p["item"]) as Dictionary)["mesh"] as Mesh).get_aabb()
+			else:
+				var mid := str(p["model"])
+				if not boxes.has(mid):
+					var reps: Array = (lib.models.get(mid, {}) as Dictionary).get("reps", [])
+					boxes[mid] = Landmarks.parts_box(lib.mesh_parts(mid, str(reps[0]))) if not reps.is_empty() else AABB()
+				box = boxes[mid]
+			var z := float(p["z"])
+			var path := RoadPath3D.new()
+			path.setup(t, maxi(0, int(floor((z - 800.0) / t.seg_len))), r1)
+			path.ensure(int(ceil(z / t.seg_len)) + 2)
+			var origin := path.world(z, float(p["x"]), 0.0)
+			var pm := Landmarks.place_model(path, z, origin, int(p["side"]), float(p["scale"]), bool(p.get("mirror", false)), box)
+			var o: Vector3 = (pm["transform"] as Transform3D).origin
+			var d := Vector2(o.x - origin.x, o.z - origin.z).length()
+			var what := "%s km %.1f %s" % [str(row[0]), z / 1000.0, str(p["set"])]
+			n += 1
+			if d > worst:
+				worst = d
+				worst_what = "%s (gedreht %.1f°)" % [what, rad_to_deg(float(pm["turn"]))]
+			assert_true(d <= Landmarks.MAX_NODE_SHIFT_M, "%s: gezeichneter Knoten %.2f m von Arcades Anker (höchstens %.0f m)" % [what, d, Landmarks.MAX_NODE_SHIFT_M])
+	assert_true(n >= 40, "Modelle und Formen des Netzes geprüft (%d)" % n)
+	print("    gezeichneter Knoten: %d Modelle/Formen, größte Verschiebung %.2f m – %s" % [n, worst, worst_what])
+	lib.clear(self)
+	_cleanup()
+
+
 ## FIX-R7b (B-05): a model or shape faces its approach – the bearing from the road point before it, at most MAX_TURN
 ## from the road's heading – and the turn never brings a corner of its footprint nearer the road than standing along
 ## the road would.
