@@ -456,14 +456,15 @@ Basis 974) – das strenge Lesen von A-17 hält so nicht. Der Kern bietet dafür
 
 Der Aufruf gehört dem Besitzer von `builders/props.gd` (R7c); FIX-R7a übergibt ihn als Änderung (Bericht FIX-R7a,
 `notes_for_next`): `drop_reason()` prüft den Abdruck gegen die genaue Hülle, und vorher schiebt `push_out()` eine
-Requisite, deren Fuß draußen steht und deren Abdruck hineinreicht, um die Tiefe + 0,3 m hinaus (höchstens 6 m; tiefer
-oder dann jenseits des Bands: weggelassen). Gemessen an echten Bauten (128 Richtungen, Kopie mit der Änderung): 217.517
-Requisiten gezeichnet; gegen die Basis 23.540 zurück und 191 neu weg (180 Stadthäuser, die tiefer als 6 m hineinragen),
-gegen R7a 1.708 zurück (Bäume, Pflanzen, Felsen: die genaue Hülle statt der Mindestbreite) und 794 weg (548
-Stadthäuser); kein Baum, keine Pflanze, kein Fels mehr mit dem Abdruck in der Hülle. Netzprüfung
-`tests/race3d/props_footprint.gd` (`--full`: alle 128 Richtungen): 0 Requisiten über 0,5 m mit dem Abdruck in der
-Hülle mit der Änderung, 5.6xx ohne – sie ist noch keine Gate-Datei (ihr Name beginnt nicht mit `check_`) und wird nach
-dem Einbau der Änderung in `check_props_footprint.gd` umbenannt.
+Requisite, deren Fuß draußen steht und deren Abdruck hineinreicht, um die Tiefe + 0,3 m hinaus (höchstens 12 m; tiefer
+oder dann jenseits des Bands: weggelassen). Gemessen an echten Bauten (128 Richtungen, Kopie mit der Änderung): 218.103
+Requisiten gezeichnet; gegen die Basis 23.943 zurück und 8 neu weg (Stadthäuser, die tiefer als 12 m hineinragen),
+gegen R7a 1.711 zurück (Bäume, Pflanzen, Felsen: die genaue Hülle statt der Mindestbreite) und 211 weg; mit höchstens
+6 m wären es 191 bzw. 794 (548 Stadthäuser) – u. a. das Eckhaus an C1. Kein Teil einer Requisite über 0,5 m mehr in der
+Hülle. Verdeckungssonde: C1 bei 270 m in zwei von drei Spuren wieder sichtbar (6/16/18 px; R7a 6/0/0), T3/T4 wie R7a.
+Netzprüfung `tests/race3d/props_footprint.gd` (`--full`: alle 128 Richtungen): 0 Requisiten über 0,5 m mit dem
+Abdruck in der Hülle mit der Änderung, 5.728 ohne – sie ist noch keine Gate-Datei (ihr Name beginnt nicht mit
+`check_`) und wird nach dem Einbau der Änderung in `check_props_footprint.gd` umbenannt.
 
 ### 5.4 Konfiguration `graphics.modern.terrain`
 
