@@ -246,22 +246,30 @@ static func resolve_item(it: Dictionary, sets: Dictionary, plan_fb: Dictionary) 
 		p["model"] = str(variants[0]) if not variants.is_empty() else ""
 	# a plain prop standing as a landmark (props/church as a cathedral …): Arcade floodlights its facade at night
 	p["flood"] = not str(p["set"]).begins_with("landmarks/")
+	# FIX-R7b (B-04): mirrored where Arcade mirrors the picture (RoadRenderer.prop_flipped in _draw_landmark: a set
+	# built for the right roadside – tag mirror_left – on the left side; props/church as a cathedral). No landmarks/*
+	# set carries the tag: a real landmark is never mirrored (D24, the AS6 models).
+	p["mirror"] = RoadRenderer.prop_flipped(side, bool(it.get("mirror", false)), bool(e.get("mirror_left", false)))
 	if it.has("align") and side != 0:
-		p["x"] = PropsBuilderMath.edge_anchor_x(float(p["x"]), side, float(e.get("extent_l", 0.5)), float(e.get("extent_r", 0.5)), sc)
+		p["x"] = PropsBuilderMath.edge_anchor_x(float(p["x"]), side, bool(p["mirror"]), float(e.get("extent_l", 0.5)),
+			float(e.get("extent_r", 0.5)), sc)
 	return p
 
 
-## Key of a procedural shape: kind, size and colours of the entry.
+## Key of a procedural shape: kind, height and colours of the entry – what proc_mesh() builds the mesh from. The
+## placement scale is not part of it: the node carries it (_place). FIX-R7b (B-07): the key used height_m × scale, so
+## two entries of the same kind with an equal product but a different scale would have shared a wrongly sized mesh.
 static func proc_key(it: Dictionary) -> String:
-	return "%s|%.2f|%s|%s|%s" % [str(it.get("proc", "")), float(it.get("height_m", 40.0)) * float(it.get("scale", 1.0)),
+	return "%s|%.2f|%s|%s|%s" % [str(it.get("proc", "")), float(it.get("height_m", 40.0)),
 		str(it.get("wall", "")), str(it.get("dome", "")), str(it.get("cross", true))]
 
 
-## The anchor arithmetic of builders/props.gd (edge_anchor_x for an unmirrored prop – landmarks are never mirrored),
-## kept here so that this builder never names another builder of the same wave (A-1).
+## The anchor arithmetic of builders/props.gd and Arcade (RoadRenderer.edge_anchor_x): x is the near edge; a mirrored
+## picture or model measures it with the other extent. Kept here so that this builder never names another builder of
+## the same wave (A-1).
 class PropsBuilderMath:
-	static func edge_anchor_x(x: float, side: int, extent_l: float, extent_r: float, scale: float) -> float:
-		return x + float(side) * (extent_l if side > 0 else extent_r) * scale
+	static func edge_anchor_x(x: float, side: int, flipped: bool, extent_l: float, extent_r: float, scale: float) -> float:
+		return x + float(side) * (extent_l if (side > 0 or flipped) else extent_r) * scale
 
 
 # --- every frame -----------------------------------------------------------------------------------------------------
@@ -703,10 +711,11 @@ static func _tv_tower(kit: ShapeKit) -> void:
 		var h0 := 252.0 + float(i) * 11.6
 		kit.set_paint(Color("c8402e") if i % 2 == 0 else Color("eeeeea"), 0.6, 0.1, -1, 0.0)
 		kit.cylinder(c, h0, h0 + 11.6, lerpf(1.9, 0.6, float(i) / 10.0), lerpf(1.9, 0.6, float(i + 1) / 10.0), 8, i == 9)
+	# Arcade's _lm_glow: radius max(2.5 px, 6 m), alpha 0.85 (FIX-R7b, B-02: the size now holds – see CE_GLOW)
 	var red := Color(1.0, 0.12, 0.08)
-	kit.glow(c + Vector3(0.0, 252.0, 0.0), red, 0.6, 5.0, 2.5, Vector4(0.0, 0.0, 0.0, 0.0))
-	kit.glow(c + Vector3(0.0, 300.0, 0.0), red, 0.6, 5.0, 2.5, Vector4(1.0, 1.5, 0.75, 0.0))
-	kit.glow(c + Vector3(0.0, 368.0, 0.0), red, 0.6, 5.0, 2.5, Vector4(1.0, 1.5, 0.75, 0.0))
+	kit.glow(c + Vector3(0.0, 252.0, 0.0), red, 0.85, 6.0, 2.5, Vector4(0.0, 0.0, 0.0, 0.0))
+	kit.glow(c + Vector3(0.0, 300.0, 0.0), red, 0.85, 6.0, 2.5, Vector4(1.0, 1.5, 0.75, 0.0))
+	kit.glow(c + Vector3(0.0, 368.0, 0.0), red, 0.85, 6.0, 2.5, Vector4(1.0, 1.5, 0.75, 0.0))
 
 
 ## Lighthouse (RoadRenderer._lm_lighthouse, reference height 51 m – Calais): white tapered tower with small windows on
@@ -730,7 +739,8 @@ static func _lighthouse(kit: ShapeKit) -> void:
 	kit.set_paint(Color("2b2d30"), 0.5, 0.4, -1, 0.0)
 	kit.dome(c, 47.0, 2.6, 3.0, 12, 5)
 	kit.box(c + Vector3(-0.2, 50.0, -0.2), c + Vector3(0.2, 51.0, 0.2))
-	kit.glow(c + Vector3(0.0, 44.2, 0.0), Color(1.0, 0.95, 0.8), 1.0, 3.0, 4.0, Vector4(2.0, 15.0, 0.0, 0.0))
+	# Arcade's lamp: radius max(2.5 px, 3.5 m … 25.5 m with the flash), alpha 0.5 … 1 (the shader's mode 2)
+	kit.glow(c + Vector3(0.0, 44.2, 0.0), Color(1.0, 0.95, 0.75), 1.0, 3.5, 2.5, Vector4(2.0, 15.0, 0.0, 0.0))
 	# Arcade's four beams (RoadRenderer.LIGHTHOUSE_BEAM_M 240 m, one revolution in LIGHTHOUSE_PERIOD_S 15 s)
 	for i in 4:
 		kit.beam(c + Vector3(0.0, 44.2, 0.0), Color(1.0, 0.96, 0.82), 0.22, 240.0 / kit.k, 15.0, float(i) * PI * 0.5)
@@ -762,7 +772,7 @@ static func _skyscrapers(kit: ShapeKit) -> void:
 				kit.set_paint(base.darkened(0.1), 0.5, 0.2, -1, 0.0)
 				kit.pyramid(Vector3(xo - hw, top, zc - hw), Vector3(xo + hw, top, zc + hw), 24.0)
 				top += 24.0
-		kit.glow(Vector3(xo, top, zc), Color(1.0, 0.12, 0.08), 0.6, 3.0, 2.5, Vector4(1.0, 1.6, 0.8, absf(xo) * 0.01))
+		kit.glow(Vector3(xo, top, zc), Color(1.0, 0.12, 0.08), 0.85, 3.0, 2.5, Vector4(1.0, 1.6, 0.8, absf(xo) * 0.01))
 		i += 1
 
 

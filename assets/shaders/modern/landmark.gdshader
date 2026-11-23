@@ -173,25 +173,31 @@ void vertex() {
 		v_on = mix(0.45, 1.0, 0.5 + 0.5 * dot(dir, normalize(cam_m - VERTEX)));
 		v_beam = 1.0;
 	} else {
-	// a camera-facing quad round the point, at least UV2.y pixels across, pulled towards the camera so that the
-	// lamp's own geometry does not cut it
+	// a camera-facing disc round the point (Arcade's _lm_glow: radius max(UV2.y px, UV2.x m)), pulled towards the
+	// camera so that the lamp's own geometry does not cut it
 	vec4 c = MODELVIEW_MATRIX * vec4(VERTEX, 1.0);
 	float depth = max(-c.z, 0.1);
-	// pixels per metre at this depth (viewport_h from the builder: VIEWPORT_SIZE reads 0 in the vertex stage of the
-	// Compatibility renderer – the quads covered the whole sky); never more than a few per cent of the depth
-	float px_per_m = PROJECTION_MATRIX[1][1] * viewport_h * 0.5 / depth;
-	float r = min(max(UV2.x, UV2.y / max(px_per_m, 1.0e-4)), depth * 0.03);
-	c.xyz += normalize(-c.xyz) * min(r * 1.5, depth * 0.5);
-	c.xy += UV * r;
-	POSITION = PROJECTION_MATRIX * c;
 	float on = 1.0;
+	float size_m = UV2.x;
 	if (CUSTOM0.x > 0.5 && CUSTOM0.x < 1.5) {
 		on = mod(ce_time + CUSTOM0.w, max(CUSTOM0.y, 0.01)) < CUSTOM0.z ? 1.0 : 0.0;
 	} else if (CUSTOM0.x > 1.5) {
-		// four beams turning once in CUSTOM0.y seconds: a flash whenever one points at the camera (Arcade's lighthouse)
+		// four beams turning once in CUSTOM0.y seconds: a flash whenever one points at the camera – Arcade's
+		// lighthouse lamp grows from 3.5 to 25.5 m and from alpha 0.5 to 1 with it
 		float turn = mod(ce_time * 6.2831853 / max(CUSTOM0.y, 0.01) + CUSTOM0.w, 1.5707963);
-		on = 0.35 + 0.65 * pow(max(cos(turn - 0.785398), 0.0), 24.0);
+		float flash = pow(max(cos(turn - 0.785398), 0.0), 24.0);
+		size_m *= 1.0 + flash * 22.0 / 3.5;
+		on = 0.5 + 0.5 * flash;
 	}
+	// pixels per metre at this depth (viewport_h from the builder: VIEWPORT_SIZE reads 0 in the vertex stage of the
+	// Compatibility renderer). FIX-R7b (B-02): the projection's y scale is NEGATIVE there (the scene is drawn upside
+	// down into its buffer) – without abs() every glow got the safety cap instead of its size (the aviation light
+	// of the Florianturm was 17 × 19 px against Arcade's 4 × 4 px).
+	float px_per_m = abs(PROJECTION_MATRIX[1][1]) * viewport_h * 0.5 / depth;
+	float r = min(max(size_m, UV2.y / max(px_per_m, 1.0e-4)), depth * 0.25);
+	c.xyz += normalize(-c.xyz) * min(r * 1.5, depth * 0.5);
+	c.xy += UV * r;
+	POSITION = PROJECTION_MATRIX * c;
 	v_on = on;
 	}
 #endif
@@ -227,11 +233,13 @@ void fragment() {
 	vec3 d = base * (show(g * ce_ambient.rgb) + show(g * ce_sun_color.rgb * v_sun)) / REF_GREY;
 	// Arcade floods a plain prop that stands as a landmark at night: picture x the floodlight colour
 	d = mix(d, base * flood_color, flood);
-	vec3 x = pow((min(d, vec3(1.0)) + 0.055) / 1.055, vec3(2.4)) + to_lin(base) * headlight_color * v_head;
-	vec3 lit = pow((min(l.rgb, vec3(1.0)) + 0.055) / 1.055, vec3(2.4));
-	// the light layer over the picture ("over" compositing), the picture's share hazed, the light not
+	// the light layer over the picture ("over" compositing), the picture's share hazed, the light not. FIX-R7b (B-01):
+	// mixed in DISPLAY values as Arcade's canvas lays the light layer over the sprite (and billboard.gdshader does) –
+	// mixed linearly, a pixel half dark facade, half lit window showed brighter than in Arcade (Elbphilharmonie at
+	// 22:00: +28 % luminance of the facade). The headlight adds linear light on the picture's share only.
 	float wl = la / max(a_out, 1.0e-4);
-	vec3 col = mix(x, lit, wl);
+	vec3 disp = mix(min(d, vec3(1.0)), min(l.rgb, vec3(1.0)), wl);
+	vec3 col = pow((disp + 0.055) / 1.055, vec3(2.4)) + to_lin(base) * headlight_color * v_head * (1.0 - wl);
 	ALBEDO = albedo_for(col);
 	float hz = haze * (1.0 - wl) * (1.0 - flood);
 	FOG = vec4(ce_fog_unshow(min(t.rgb * tint * ce_fog_color.rgb * 1.15, vec3(1.0))), hz);
@@ -336,18 +344,23 @@ void fragment() {
 	EMISSION = pow(max(emis, vec3(0.0)), vec3(1.0));
 	FOG = vec4(ce_fog_unshow(min(COLOR.rgb * tint * ce_fog_color.rgb * 1.15, vec3(1.0))), haze * (1.0 - la) * (1.0 - fl_keep));
 #elif defined(CE_GLOW)
-	float fall;
 	if (v_beam > 0.5) {
 		float t = clamp(UV.x, 0.0, 1.0);
-		fall = pow(1.0 - t, 1.6) * (1.0 - UV.y * UV.y) * smoothstep(0.0, 0.04, t);
+		float fall = pow(1.0 - t, 1.6) * (1.0 - UV.y * UV.y) * smoothstep(0.0, 0.04, t);
+		ALBEDO = COLOR.rgb * (COLOR.a * fall * v_on * lights);
 	} else {
-		float r2 = dot(UV, UV);
-		if (r2 > 1.0) {
+		// Arcade's _lm_glow (FIX-R7b, B-02): a soft disc of the colour at alpha 0.8 a, falling linearly to its rim,
+		// under a core of a third of its radius in the colour lightened by half at alpha 1.2 a – as display values
+		// over the dark sky (added: the sky behind a light is dark)
+		float dd = length(UV);
+		if (dd > 1.0) {
 			discard;
 		}
-		fall = exp(-r2 * 4.0) + 0.6 * exp(-r2 * 40.0);
+		float a = COLOR.a * v_on * lights;
+		float a_o = min(1.0, 0.8 * a) * (1.0 - dd);
+		float a_c = min(1.0, 1.2 * a) * max(1.0 - dd / 0.35, 0.0);
+		ALBEDO = COLOR.rgb * a_o * (1.0 - a_c) + mix(COLOR.rgb, vec3(1.0), 0.5) * a_c;
 	}
-	ALBEDO = COLOR.rgb * (COLOR.a * fall * v_on * lights);
 	FOG = vec4(0.0);
 #endif
 }
