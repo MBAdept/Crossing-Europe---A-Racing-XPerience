@@ -330,7 +330,7 @@ diesem Bauabschnitt dem Renderer-Kern):
 | `tests/race3d/check_terrain_plan.gd` (headless) | `terrain_plan_overlap`: in den zwölf härtesten Etappenrichtungen (je drei engste Kurven) und an T1–T4 überlappen sich die Geländestreifen verschiedener Straßenteile in der Draufsicht nicht; `terrain_plan_tips`: Bandspitzen derselben Kurveninnenseite (siehe 8); `terrain_plan_budget`: ≤ 1.100 Dreiecke je Stück. `-- --dump=<Ordner>` schreibt die Daten der Draufsichten |
 | `tests/race3d/render/check_terrain_cover.gd` | Geländesperre (§4.9.2): an T1–T4, S1, C1, K1 mit `--gfx-debug=cover,far` höchstens 0,2 % magenta Bildpunkte unter der Horizontzeile; meldet die Anteile von Fernboden und Kragen. K1 (Köhlbrandbrücke, Kiel – Hamburg km 78,1, FIX-WASSER-R) prüft zusätzlich höchstens 2 % Fernboden: die Scheibe darf die Elbe nicht verdecken (gemessen 0,38 %; mit dem `far_ground.gd` vor FIX-WASSER 31,96 % – rot) |
 | `tests/race3d/render/check_props_render.gd` | `props_spiegel`: beidseitig gleiche Requisiten (Bauernhaus, Laterne, Birke, Strohballen) aus der Straßenmitte, Sonne im Zenit – das Bild ist sein eigenes Spiegelbild |
-| `tests/race3d/render/check_lod_band.gd` | R7c/FIX-R7c (§9): `lod_ueberblenden` / `lod_baum` – das Ende einer Stufe in 0,5-m-Schritten durch ein Haus (Barock) bzw. einen Baum (Eiche) geschoben: größter Schritt mit Band ≤ 15 % des harten Wechsels, keine Löcher; `…_stand` – mit `ce_lod_still` = 1 jeder Schritt wie der harte Wechsel am Bandende; `fernlicht` – Haussmann lod1 mit Schatten bis 120 m: 140 / 250 m in ±5 % von 60 m, ohne Fernlicht nicht |
+| `tests/race3d/render/check_lod_band.gd` | R7c/FIX-R7c (§9): `lod_ueberblenden` / `lod_baum` – das Ende einer Stufe in 0,5-m-Schritten durch ein Haus (Barock) bzw. einen Baum (Eiche) geschoben: größter Schritt mit Band ≤ 15 % des harten Wechsels, keine Löcher; `…_stand` – mit `ce_lod_band_m` = 0 (stehende Kamera) jeder Schritt wie der harte Wechsel am Bandende; `fernlicht` – Haussmann lod1 mit Schatten bis 120 m: 140 / 250 m in ±5 % von 60 m, ohne Fernlicht nicht |
 | `test_props.gd` (R7c/FIX-R7c) | Bänder je Modell, Fernlicht auf den Materialien, Shaderregeln ohne Kommentare, Phasen, `ground_sink`/`ground_align` am Hang, Anbauten (Spiegelung, Korridor, Stückgrenze), stehende Kamera, Schwellen der Stücke, Farb-Mip-Bias je Modell |
 | `tests/sim/modern_sight.gd` | F7 mit dem ausgelieferten Relief (gehört dem Kern; das Netz ist dessen Profil) |
 
@@ -356,9 +356,13 @@ abgeleitet).
 - **Bandspitzen in Kurven**: erledigt mit der Zusammenführung – `TerrainProfile` kürzt jede Reihe auch nach der
   stärksten Krümmung ihrer Seite im Korridorfenster; `check_terrain_plan` ist streng (`STRICT`, 0 Paare an 40
   Kamerapositionen), `modern_sight.gd --full` grün.
-- **Kurveninnenseiten**: F7 nimmt dort Bäume und schmückende Requisiten weg (an T2 38 von 135, an T4 der große
-  Felsen, den Arcade zeigt); weggelassene Pflanzen werden seit der Zusammenführung Bodendecker (4.1). Felsen und
-  Häuser bleiben weg, bis die Projektleitung mit den Bergbildern von Zwischenstand 2 entscheidet.
+- **Kurveninnenseiten**: Seit A-17 (R7a) ist der Kurvenkorridor die Hülle der wirklichen Sichtlinien
+  (renderer-modern.md 5.3): was darin stünde, lässt der Requisiten-Builder weg (Pflanzen werden Bodendecker); Felsen
+  und Häuser außerhalb stehen wie in Arcade, und was nur mit Krone oder Vorderkante hineinragt, schiebt er bis 12 m
+  hinaus (FIX-R7a). Seit RINT-M3 (A-24) zählt dabei das ganze Modell – die AABB seiner größten Variante, so gedreht
+  und gespiegelt, wie es steht (`footprint()`), bei an der Kante ausgerichteten Häusern mindestens bis Arcades
+  Vorderkante; angehängte Requisiten ebenso. Die Netzprüfung `tests/race3d/check_props_footprint.gd` (Gate von
+  `run_tests.sh`, `--full` über alle 128 Etappenrichtungen) misst das Modell unabhängig aus dem Manifest.
 - **Vertretungen**: Bis die Umgebungsmodelle kommen, sind 83 der 86 Requisiten-Sets und 32 der 33 Wahrzeichen
   Billboards der Arcade-Sprites – sie bestimmen, wie Kiel – Hamburg aussieht. Aus der Nähe sind sie flach, und sie
   drehen sich mit der Kamera.
@@ -410,14 +414,19 @@ einem Stadthaus 8–32 % seiner Pixel in einem Bild (AS5aR1, AS5aR2). Jetzt:
   Kinder läuft das Stück nur, wenn seine Spanne eine seiner Schwellen kreuzt (Bandanfänge und -enden ± 2 m, Reichweite
   der Schattenwerfer; FIX-R7c, QR7c-03 – vorher bei jedem Blick, der Haken kostete das 2,5–3-fache mit Spitzen bis
   4,4 ms bei „Steam Deck“).
-- **Stehende Kamera** (FIX-R7c, QR7c-06). Das Band hängt am Abstand; steht die Kamera (Countdown, Stau, Polizei),
-  bliebe eine Instanz im Band im Raster zweier Stufen stehen (eine Baumkrone wirkt körnig). Das globale
-  `ce_lod_still` (0..1) setzt `props.gd` aus der Kamerageschwindigkeit: unter 1,5 m/s wächst es in 0,4 s auf 1 (wie
-  das `xfade` der Fahrzeuge, A-16), beim Anfahren fällt es ebenso schnell auf 0. Der Shader zieht jedes Band zu seinem
-  fernen Ende zusammen (bei 1 auf 1 mm: harter Wechsel am Bandende – im ganzen Band steht die feinere Stufe, beim
-  Countdown also dieselbe Krone wie vor dem Band, nicht die gröbere); das Zusammenziehen über die Zeit ist selbst ein
-  Überblenden durch dasselbe Raster. Ohne `props.gd` (Ausstellungsraum, Prüfszenen) bleibt es 0 (Band wie bisher).
-  Render-Prüfung `check_lod_band` „…_stand“: mit `ce_lod_still` = 1 sieht jeder Schritt aus wie der harte Wechsel.
+- **Bandbreite nach der Geschwindigkeit** (A-26, RINT-M3; ersetzt FIX-R7cs `ce_lod_still`). Das Band hängt am
+  Abstand; steht oder kriecht die Kamera (Countdown, Stau, Polizei), bliebe eine Instanz im Band sekundenlang im Raster
+  zweier Stufen (NACH-R7c NR7c-01: Körnung 4,15 % beim Anfahren gegen 0,67 % im Stand). Das globale `ce_lod_band_m`
+  (Meter) setzt `props.gd` aus der Kamerageschwindigkeit: Geschwindigkeit × 0,4 s (`LOD_BAND_S`), sofort, wenn es
+  breiter wird, beim Anhalten höchstens 50 m je 0,4 s schmaler (`band_step()`). Der Shader zieht jedes Band zu seinem
+  fernen Ende auf höchstens diese Breite zusammen (`w' = min(w, ce_lod_band_m)`, mindestens 1 mm): im Stand ein harter
+  Wechsel am Bandende – im ganzen Band steht die feinere Stufe, beim Countdown also dieselbe Krone wie vor dem Band –,
+  beim Anfahren und im Kriechgang nur 0,4 s Fahrt breit (kein Raster über Sekunden, kein Hin und Her der Stufen), und
+  eine Instanz, die das ferne Ende kreuzt, blendet bei jeder Geschwindigkeit in etwa 0,4 s über (das `xfade` der
+  Fahrzeuge, A-16) – ohne Zustand je Instanz. Ohne `props.gd` (Ausstellungsraum, Prüfszenen) gilt der Vorgabewert
+  1e4 m (das volle Band). Render-Prüfung `check_lod_band` „…_stand“: mit `ce_lod_band_m` = 0 sieht jeder Schritt aus
+  wie der harte Wechsel; `test_props` „standing_camera…“ prüft die Breite und dass `props.gd` das Globale wirklich setzt
+  (`ModernMaterials.global_value()`).
 - `quality_lowered(levels)` (Wächter) setzt die Bänder sofort neu.
 
 ### 9.2 Fernlicht

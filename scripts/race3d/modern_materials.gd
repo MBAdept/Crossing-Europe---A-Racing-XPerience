@@ -53,9 +53,10 @@ const GLOBALS: Array = [
 	# mirrors (road.gdshader); set by the environment rig
 	["ce_sky_top", RenderingServer.GLOBAL_VAR_TYPE_COLOR, Color(0.11, 0.36, 0.79)],
 	["ce_sky_horizon", RenderingServer.GLOBAL_VAR_TYPE_COLOR, Color(0.73, 0.87, 0.96)],
-	# FIX-R7c (QR7c-06): 1 = the camera stands – the level bands of the props narrow to a hard swap (inc/lod_band.gdshaderinc);
-	# set by builders/props.gd from the camera's speed; 0 = the dither band (every scene without that builder)
-	["ce_lod_still", RenderingServer.GLOBAL_VAR_TYPE_FLOAT, 0.0],
+	# A-26 (RINT-M3): the width (m) the level bands of the props narrow to towards their far end
+	# (inc/lod_band.gdshaderinc) – camera speed × 0.4 s, set by builders/props.gd; 0 = a hard swap (a standing camera);
+	# the default is wider than any band: the full band (every scene without that builder)
+	["ce_lod_band_m", RenderingServer.GLOBAL_VAR_TYPE_FLOAT, 1.0e4],
 ]
 
 ## The vehicle LOOK in one place (A-13): the class parameters a scene puts on the shared vehicle materials – [class,
@@ -127,6 +128,7 @@ const STUDIO_LOOK: Array = [["vpbr", "env_energy", 0.0], ["vpbr", "paint_base", 
 	["vpbr", "eye_lamp_spec", 1.0], ["glass", "eye_lamp_spec", 1.0]]
 
 static var _globals_added := false
+static var _globals_set := {}          ## name -> value set_global() last gave it (global_value(), tests)
 static var _shared: ModernMaterials = null
 
 var _shaders: Dictionary = {}        ## shader key -> Shader
@@ -196,7 +198,14 @@ static func ensure_globals() -> void:
 ## Registers the globals first if nobody has yet (setting an unknown global is an engine error).
 static func set_global(name: String, value: Variant) -> void:
 	ensure_globals()
+	_globals_set[name] = value
 	RenderingServer.global_shader_parameter_set(StringName(name), value)
+
+
+## The value set_global() last gave `name` in this process (null: never) – tests (NACH-R7c NR7c-02 a: a test can see that
+## a builder really sets its global, not only computes it).
+static func global_value(name: String) -> Variant:
+	return _globals_set.get(name)
 
 
 ## Value of ce_sun_color / ce_ambient for a light colour (as picked: sRGB) and its energy: the linear

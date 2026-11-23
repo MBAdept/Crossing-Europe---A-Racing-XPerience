@@ -13,16 +13,17 @@
 // Also here: the far light (lead decision 2 of R7c) – beyond the reach of the real-time shadows the directional light
 // on a model is lowered to its mean shadowed share far_sun (set per model by props.gd; 1 = unchanged), fading in with
 // the engine's own shadow fade (shadow_far = (fade start, end) of the view depth, metres; y <= 0: off).
-// FIX-R7c (QR7c-06): the band hangs on the distance, so an instance inside it would stay in the dither of two levels
-// while the camera stands (countdown, traffic jam, police stop). ce_lod_still (0..1, builders/props.gd from the camera's
-// speed, ramped over 0.4 s) narrows every band towards its FAR end: a standing camera sees one level per instance, hard –
-// the finer one through the whole band (the look of the level before the band, not a coarser one) – and the narrowing
-// over time is itself a cross-fade (the threshold sweeps through the same ordered dither). 0 = the band.
+// A-26 (RINT-M3, NACH-R7c NR7c-01; replaces FIX-R7c's binary ce_lod_still): the band hangs on the distance, so an
+// instance inside it would stay in the dither of two levels while the camera stands or crawls. ce_lod_band_m (metres,
+// builders/props.gd: camera speed × 0.4 s) narrows every band towards its FAR end to at most that width: a standing
+// camera (0) sees one level per instance, hard – the finer one through the whole band (the look of the level before the
+// band, not a coarser one); an instance crossing the far end fades over in about 0.4 s at any speed; a narrowing over
+// time is itself a cross-fade (the threshold sweeps through the same ordered dither). Wider than the band: the band.
 
 uniform vec4 lod_band = vec4(-2.0, -1.0, 1.0e9, 2.0e9);
 uniform vec2 shadow_far = vec2(0.0, 0.0);
 uniform float far_sun = 1.0;
-global uniform float ce_lod_still;
+global uniform float ce_lod_band_m;
 
 varying float v_lod_d;      // distance of the instance from the main camera (vertex)
 varying float v_lod_depth;  // view depth of the vertex (m): the far light
@@ -50,15 +51,13 @@ float ce_lod_shadow_pass(vec3 cam, mat4 main_inv_view) {
 // recessed windows and doors of the finer level while the two share the pixels (render check check_lod_band: the
 // middle of the band changed 9.3 % of a house's pixels at once, more than the hard swap's 7.1 %)
 bool ce_lod_discard(float d, float shadow, vec2 frag) {
-	// the band narrowed towards its far end by ce_lod_still (both neighbours narrow the same shared band: still
-	// complementary); the shadow pass follows the narrowed band, so a standing camera's caster is the level it shows
-	// (at least 1 mm wide: the two shares stay complementary – a narrower band than the 0.001 below would leave a hole)
+	// the band narrowed towards its far end to at most ce_lod_band_m (both neighbours narrow the same shared band:
+	// still complementary); the shadow pass follows the narrowed band, so a standing camera's caster is the level it
+	// shows (at least 1 mm wide: the two shares stay complementary – a narrower band than the 0.001 below would leave a
+	// hole)
 	vec4 b = lod_band;
-	float still = clamp(ce_lod_still, 0.0, 1.0);
-	if (still > 0.0) {
-		vec2 w = max(vec2(b.y - b.x, b.w - b.z) * (1.0 - still), vec2(0.001));
-		b = vec4(b.y - w.x, b.y, b.w - w.y, b.w);
-	}
+	vec2 w = max(min(vec2(b.y - b.x, b.w - b.z), vec2(max(ce_lod_band_m, 0.0))), vec2(0.001));
+	b = vec4(b.y - w.x, b.y, b.w - w.y, b.w);
 	float fin = clamp((d - b.x) / max(b.y - b.x, 0.001), 0.0, 1.0);
 	float fout = clamp((b.w - d) / max(b.w - b.z, 0.001), 0.0, 1.0);
 	if (fin >= 1.0 && fout >= 1.0) {

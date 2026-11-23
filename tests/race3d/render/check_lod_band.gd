@@ -13,7 +13,7 @@ extends SceneTree
 ##                     must never lose more than 3 % of its pixels (no hole while the two levels share them) – the
 ##                     hard swap at 60 m changed 8–32 % of a house's pixels in one frame (AS5aR1, AS5aR2).
 ##   lod_baum          the same for a card tree, lod1 -> impostor (the billboard).
-##   lod_*_stand       FIX-R7c (QR7c-06): the same sweep with ce_lod_still = 1 (a standing camera, the band narrowed to
+##   lod_*_stand       FIX-R7c (QR7c-06), A-26: the same sweep with ce_lod_band_m = 0 (a standing camera, the band narrowed to
 ##                     its far end): every step must look like the hard swap at that end (no dither of two levels at a
 ##                     standstill: countdown, traffic jam, police stop).
 ##   fernlicht         FIX-R7c (QR7c-02 f, lead decision 2 of R7c): the Haussmann house (lod1, the level the game shows
@@ -136,8 +136,9 @@ func _check(check: String, model_id: String, a: String, b: String, d: float, spa
 	var stand_worst := 0.0
 	for mode: String in ["hart", "band", "stand"]:
 		var fade := Vector3(0.0, 0.005, 0.005) if mode == "hart" else Props.LOD_FADE
-		# FIX-R7c (QR7c-06): "stand" = the band of the props builder with a standing camera (ce_lod_still = 1)
-		ModernMaterials.set_global("ce_lod_still", 1.0 if mode == "stand" else 0.0)
+		# FIX-R7c (QR7c-06), A-26: "stand" = the band of the props builder with a standing camera (ce_lod_band_m = 0);
+		# else wider than any band (the full band – a camera at speed, wider than 2 × 25 m)
+		ModernMaterials.set_global("ce_lod_band_m", 0.0 if mode == "stand" else 1.0e4)
 		var prev: Image = null
 		var worst := 0.0
 		var covers: Array[float] = []
@@ -172,11 +173,11 @@ func _check(check: String, model_id: String, a: String, b: String, d: float, spa
 		for c: float in covers:
 			low = minf(low, c)
 		res[mode] = {"worst": worst, "loss": 1.0 - low / maxf(1.0, ref), "cover": ref}
-	ModernMaterials.set_global("ce_lod_still", 0.0)
+	ModernMaterials.set_global("ce_lod_band_m", 1.0e4)
 	var ps: Array[String] = []
 	if stand_worst > MAX_STAND_DIFF:
 		ps.append("stehende Kamera: %.1f %% der Pixel anders als beim harten Wechsel (Raster zweier Stufen)" % (100.0 * stand_worst))
-	_report(check + "_stand", ps, "%s, ce_lod_still = 1: größte Abweichung vom harten Wechsel %.2f %% (höchstens %.0f %%)" % [
+	_report(check + "_stand", ps, "%s, ce_lod_band_m = 0: größte Abweichung vom harten Wechsel %.2f %% (höchstens %.0f %%)" % [
 		model_id.get_file(), 100.0 * stand_worst, 100.0 * MAX_STAND_DIFF])
 	var hard: Dictionary = res["hart"]
 	var soft: Dictionary = res["band"]

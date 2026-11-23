@@ -78,11 +78,15 @@ const LOD_HYSTERESIS_M := 6.0      ## a chunk leaves a level this much later tha
 ## band begins and off this much after it ends (FIX-R7c, QR7c-05: between two looks an instance may enter a band while
 ## the node of its finer level is still off – the coarser one fading out would leave dither holes)
 const LOD_STEP_M := 2.0
-## FIX-R7c (QR7c-06): below this camera speed (m/s) the camera "stands": ce_lod_still goes to 1 over LOD_STILL_S seconds
-## (the vehicles' xfade is 0.3–0.5 s, A-16) and every band narrows to a hard swap at its middle – no dithered tree or
-## house in the countdown, a traffic jam or a police stop; driving off widens the bands again over the same time
-const LOD_STILL_SPEED := 1.5
-const LOD_STILL_S := 0.4
+## A-26 (RINT-M3, NACH-R7c NR7c-01; replaces FIX-R7c's binary ce_lod_still): the cross-fade band of every level follows
+## the camera's speed – at most speed × LOD_BAND_S metres wide (one global, ce_lod_band_m; inc/lod_band.gdshaderinc
+## narrows each band towards its FAR end to that width). A standing camera swaps hard at the far end of a band
+## (countdown, traffic jam, police stop); driving off or crawling never leaves an instance in the ordered dither for
+## seconds (the band is only as wide as 0.4 s of driving); an instance crossing the far end fades over in about
+## LOD_BAND_S at any speed – A-16's 0.3–0.5 s, without state per instance. The width grows with the speed at once and
+## shrinks at most LOD_BAND_MAX_M per LOD_BAND_S (a stop sweeps the band's instances through the same dither).
+const LOD_BAND_S := 0.4
+const LOD_BAND_MAX_M := 50.0       ## no band is wider (LOD_FADE: at most 2 × 25 m); also the cap after a jump
 const COVER_PER_TREE := 3          ## pieces of ground cover for a tree dropped in a bend corridor (one for a bush)
 const COVER_SPREAD_M := 2.5        ## … scattered at most this far around its foot
 const COVER_MIN_BEYOND_M := 0.8    ## … and never closer than this to the paved edge
@@ -162,11 +166,11 @@ var _albedo_bias: Dictionary = {}   ## "default" or model id -> [mip bias of the
 var _banded: Dictionary = {}        ## model id -> true: its materials carry the bands of the current levels
 var _bands: Dictionary = {}         ## model id -> {rep: Vector4}
 var _models_seen: Dictionary = {}   ## model id -> a set it was drawn for (quality_lowered)
-## FIX-R7c (QR7c-06): ce_lod_still – 1 while the camera stands (the start of a stage is a standing camera)
-var _still := 1.0
+## A-26: ce_lod_band_m – 0 while the camera stands (the start of a stage is a standing camera)
+var _band_m := 0.0                  ## ce_lod_band_m of this builder (0 = standing: the start of a stage)
 var _still_z := -1.0e12             ## camera position of the last frame (-1e12: none yet)
 var _still_t := -1.0e12             ## view time of the last frame (-1e12: none yet)
-var _still_sent := -1.0             ## value of ce_lod_still last set (-1: never)
+var _band_sent := -1.0              ## value of ce_lod_band_m last set (-1: never)
 
 
 func id() -> String:
@@ -419,9 +423,9 @@ func update(view: Dictionary, dt: float) -> void:
 		i -= 1
 
 
-## FIX-R7c (QR7c-06): ce_lod_still from the camera's motion along the road. The clock is the view's own "time" (Rule 10)
-## where the view has one – the same view drawn twice (render checks, a paused game) changes nothing, the picture stays
-## the same –, else dt (dt = 0 while the stage is prepared: no change). Sets the global only when its value changes.
+## A-26: ce_lod_band_m from the camera's motion along the road. The clock is the view's own "time" (Rule 10) where the
+## view has one – the same view drawn twice (render checks, a paused game) changes nothing, the picture stays the same –,
+## else dt (dt = 0 while the stage is prepared: no change). Sets the global only when its value changes.
 func _update_still(cam_z: float, dt: float, view_time: float = NAN) -> void:
 	var step := dt
 	if not is_nan(view_time):
@@ -434,23 +438,26 @@ func _update_still(cam_z: float, dt: float, view_time: float = NAN) -> void:
 		speed = absf(cam_z - _still_z) / step
 	if step > 0.0 or _still_z < -1.0e11:
 		_still_z = cam_z
-	_still = still_step(_still, speed, step)
-	if _still != _still_sent:
-		_still_sent = _still
-		ModernMaterials.set_global("ce_lod_still", _still)
+	_band_m = band_step(_band_m, speed, step)
+	if _band_m != _band_sent:
+		_band_sent = _band_m
+		ModernMaterials.set_global("ce_lod_band_m", _band_m)
 
 
-## The next value of ce_lod_still: towards 1 while the camera moves slower than LOD_STILL_SPEED (m/s), towards 0
-## otherwise, LOD_STILL_S seconds for the whole way.
-static func still_step(still: float, speed: float, dt: float) -> float:
+## The next value of ce_lod_band_m (m) at camera speed `speed` (m/s) after dt seconds: speed × LOD_BAND_S (at most
+## LOD_BAND_MAX_M) – reached at once when it is wider, at most LOD_BAND_MAX_M per LOD_BAND_S narrower.
+static func band_step(band: float, speed: float, dt: float) -> float:
 	if dt <= 0.0:
-		return still
-	return move_toward(still, 1.0 if speed < LOD_STILL_SPEED else 0.0, dt / LOD_STILL_S)
+		return band
+	var target := clampf(speed * LOD_BAND_S, 0.0, LOD_BAND_MAX_M)
+	if target >= band:
+		return target
+	return move_toward(band, target, dt * LOD_BAND_MAX_M / LOD_BAND_S)
 
 
-## The current ce_lod_still of this builder (tests, debug).
-func lod_still() -> float:
-	return _still
+## The current ce_lod_band_m of this builder (tests, debug).
+func lod_band_m() -> float:
+	return _band_m
 
 
 ## Position of the main camera (origin-relative world), or null without a renderer camera in the tree (tests).
@@ -1410,18 +1417,21 @@ func _thresholds(holder: Node) -> void:
 func _span(holder: Node, cam_z: float, eye: Variant) -> Vector2:
 	var box: AABB = holder.get_meta(&"box", AABB())
 	if eye is Vector3 and holder is Node3D and (holder as Node3D).is_inside_tree():
-		var wb: AABB = (holder as Node3D).global_transform * box
-		var p: Vector3 = eye
-		var near := p.clamp(wb.position, wb.end).distance_to(p)
-		# the farthest corner: per axis the end farther from the eye
-		var far := (p - wb.position).abs().max((wb.end - p).abs()).length()
-		return Vector2(near, far)
+		return box_span(eye, (holder as Node3D).global_transform * box)
 	var z0 := float(holder.get_meta(&"iz0", holder.get_meta(&"z0", 0.0)))
 	var z1 := float(holder.get_meta(&"iz1", holder.get_meta(&"z1", 0.0)))
 	var lat := float(holder.get_meta(&"lat", 0.0))
 	var dn := maxf(0.0, maxf(z0 - cam_z, cam_z - z1))
 	var df := maxf(absf(z1 - cam_z), absf(cam_z - z0))
 	return Vector2(dn, sqrt(df * df + lat * lat))
+
+
+## (nearest, farthest) distance of a box from point p (pure; RINT-M3, NR7c-02 d: tested against the eight corners).
+static func box_span(p: Vector3, wb: AABB) -> Vector2:
+	var near := p.clamp(wb.position, wb.end).distance_to(p)
+	# the farthest corner: per axis the end farther from the eye
+	var far := (p - wb.position).abs().max((wb.end - p).abs()).length()
+	return Vector2(near, far)
 
 
 ## Chunk LOD level 0 / 1 / 2 for a path distance, with a little hysteresis against the level it has (old; -1 = none).

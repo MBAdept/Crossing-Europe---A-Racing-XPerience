@@ -1163,8 +1163,16 @@ func test_quality_lowered_moves_the_bands() -> void:
 	b.apply_quality({"prop_lod0_m": 60.0, "prop_lod1_m": 200.0, "shadow_casters": 2, "shadow_distance_m": 120.0, "deco_density": 1.0})
 	var parent := Node3D.new()
 	b.commit(ctx, b.build(ctx, b.collect(ctx)), parent)
+	var holder := parent.get_child(0)
+	b.update({"camera_z": 198.0 * 3.0 - 300.0}, 0.0)       # the thresholds of the first bands exist
+	var old_lo: PackedFloat32Array = holder.get_meta(&"thr_lo")
 	b.quality_lowered({"prop_lod0_m": 40.0, "prop_lod1_m": 120.0, "shadow_casters": 0, "shadow_distance_m": 0.0, "deco_density": 0.6})
 	var want: Dictionary = b.model_bands("props/tree_oak")
+	# RINT-M3 (NR7c-02 b): the thresholds follow the new bands at once – stale ones switched the level nodes at the old
+	# distances (between the old and the new band start the node of the coarser level stayed off: holes)
+	var new_lo: PackedFloat32Array = holder.get_meta(&"thr_lo")
+	assert_true(new_lo.has((want["lod1"] as Vector4).x - Props.LOD_STEP_M) and new_lo != old_lo,
+		"neue Schwellen nach quality_lowered (%s statt %s)" % [str(new_lo), str(old_lo)])
 	assert_near(((want["lod0"] as Vector4).z + (want["lod0"] as Vector4).w) * 0.5, 40.0, 1.0e-3, "neues Band: lod0 bis 40 m")
 	var seen := 0
 	for c: Node in parent.get_child(0).get_children():
@@ -1240,8 +1248,8 @@ func test_shader_rules_of_the_far_lod() -> void:
 	var band := _shader_code(FileAccess.get_file_as_string("res://assets/shaders/modern/inc/lod_band.gdshaderinc"))
 	var rx_far := RegEx.create_from_string("float\\s+ce_far_attenuation\\s*\\([^)]*\\)\\s*\\{\\s*if\\s*\\([^)]*\\)\\s*\\{\\s*return\\s+att;\\s*\\}\\s*return\\s+mix\\(\\s*att\\s*,\\s*min\\(\\s*att\\s*,\\s*far_sun\\s*\\)\\s*,\\s*smoothstep\\(\\s*shadow_far\\.x\\s*,\\s*shadow_far\\.y\\s*,\\s*depth\\s*\\)\\s*\\)\\s*;\\s*\\}")
 	assert_true(rx_far.search(band) != null, "Fernlicht: gerichtetes Licht jenseits der Schatten auf far_sun (ce_far_attenuation)")
-	assert_true(band.contains("global uniform float ce_lod_still;") and band.contains("float still = clamp(ce_lod_still, 0.0, 1.0);") and band.contains("b = vec4(b.y - w.x, b.y, b.w - w.y, b.w);"),
-		"stehende Kamera: das Band zieht sich zusammen (ce_lod_still)")
+	assert_true(band.contains("global uniform float ce_lod_band_m;") and band.contains("vec2 w = max(min(vec2(b.y - b.x, b.w - b.z), vec2(max(ce_lod_band_m, 0.0))), vec2(0.001));") and band.contains("b = vec4(b.y - w.x, b.y, b.w - w.y, b.w);"),
+		"das Band zieht sich zum fernen Ende auf höchstens ce_lod_band_m zusammen (A-26)")
 	var baked := _shader_code(mats.shader("baked").code)
 	assert_true(baked.contains("float att = ce_far_attenuation(ATTENUATION, LIGHT_IS_DIRECTIONAL, v_lod_depth);"), "baked: light() nimmt das Fernlicht")
 	assert_true(baked.contains("DIFFUSE_LIGHT += LIGHT_COLOR * att * ndl"), "baked: diffuses Licht mit dem Fernlicht")
@@ -1424,48 +1432,86 @@ func test_attachments_respect_the_corridor_and_the_chunk() -> void:
 	_cleanup()
 
 
-## QR7c-06: the standing camera – ce_lod_still goes to 1 within LOD_STILL_S below LOD_STILL_SPEED and back to 0 when the
-## camera drives off; the builder follows the camera's motion along the road (no change while dt is 0: the stage is
-## prepared). The lod0_m override still works per tag (none in the shipped configuration since QR7c-01).
+## A-26 (RINT-M3, NACH-R7c NR7c-01): the band width follows the camera – ce_lod_band_m = speed × LOD_BAND_S, at once when
+## wider, at most LOD_BAND_MAX_M per LOD_BAND_S narrower; 0 while the camera stands (a hard swap at the far end), no change
+## while dt is 0 (the stage is prepared). NR7c-02 (a): the builder really SETS the global (ModernMaterials.global_value()),
+## standing 0 and at 30 m/s 12 m. The lod0_m override still works per tag (none in the shipped configuration since QR7c-01).
 func test_standing_camera_narrows_the_bands() -> void:
-	var s := 0.0
-	for i in 12:
-		s = Props.still_step(s, 0.0, 1.0 / 60.0)
-	assert_near(s, 12.0 / 60.0 / Props.LOD_STILL_S, 1.0e-4, "steigt mit der Zeit (0,2 s)")
-	for i in 60:
-		s = Props.still_step(s, 0.5, 1.0 / 60.0)
-	assert_near(s, 1.0, 1.0e-6, "steht: 1 nach LOD_STILL_S")
-	assert_near(Props.still_step(s, 20.0, 0.0), 1.0, 1.0e-6, "dt 0 (Vorbereitung): unverändert")
-	s = Props.still_step(s, 20.0, 0.1)
-	assert_near(s, 1.0 - 0.1 / Props.LOD_STILL_S, 1.0e-4, "fährt an: das Band öffnet sich über die Zeit")
+	assert_near(Props.band_step(0.0, 30.0, 1.0 / 60.0), 12.0, 1.0e-4, "30 m/s: 12 m (0,4 s Fahrt) sofort")
+	assert_near(Props.band_step(0.0, 1.0, 1.0 / 60.0), 0.4, 1.0e-4, "Kriechgang 1 m/s: 0,4 m – kein Raster über Sekunden")
+	assert_near(Props.band_step(12.0, 0.0, 0.0), 12.0, 1.0e-6, "dt 0 (Vorbereitung): unverändert")
+	var w := 12.0
+	for i in 3:
+		w = Props.band_step(w, 0.0, 1.0 / 60.0)
+	assert_near(w, 12.0 - 3.0 / 60.0 * Props.LOD_BAND_MAX_M / Props.LOD_BAND_S, 1.0e-3, "hält an: das Band zieht sich über die Zeit zusammen")
+	for i in 30:
+		w = Props.band_step(w, 0.0, 1.0 / 60.0)
+	assert_near(w, 0.0, 1.0e-6, "steht: 0 (harter Wechsel am fernen Ende) nach höchstens LOD_BAND_S")
+	assert_near(Props.band_step(0.0, 5000.0, 1.0 / 60.0), Props.LOD_BAND_MAX_M, 1.0e-6, "Sprung der Kamera: höchstens LOD_BAND_MAX_M")
 	var b := Props.new()
-	assert_near(b.lod_still(), 1.0, 1.0e-6, "Start einer Etappe: stehende Kamera")
+	assert_near(b.lod_band_m(), 0.0, 1.0e-6, "Start einer Etappe: stehende Kamera")
 	b.update({"camera_z": 100.0}, 1.0 / 60.0)
 	for i in 30:
 		b.update({"camera_z": 100.0 + float(i + 1) * 0.5}, 1.0 / 60.0)    # 30 m/s
-	assert_near(b.lod_still(), 0.0, 1.0e-6, "fährt mit 30 m/s: Band offen")
+	assert_near(b.lod_band_m(), 12.0, 1.0e-3, "fährt mit 30 m/s: 12 m")
+	assert_near(float(ModernMaterials.global_value("ce_lod_band_m")), 12.0, 1.0e-3, "… und setzt das globale ce_lod_band_m (NR7c-02 a)")
 	for i in 30:
 		b.update({"camera_z": 115.0}, 1.0 / 60.0)
-	assert_near(b.lod_still(), 1.0, 1.0e-6, "steht 0,5 s: hart")
+	assert_near(b.lod_band_m(), 0.0, 1.0e-6, "steht 0,5 s: hart")
+	assert_near(float(ModernMaterials.global_value("ce_lod_band_m")), 0.0, 1.0e-6, "… global 0")
 	# with the view's own clock (Rule 10): the same view drawn twice changes nothing (check_weather draws a view twice
-	# and wants the same picture); the clock, not dt, drives the ramp
+	# and wants the same picture); the clock, not dt, drives the width
 	var c := Props.new()
 	c.update({"camera_z": 0.0, "time": 10.0}, 1.0 / 60.0)
 	for i in 12:
-		c.update({"camera_z": float(i + 1) * 0.5, "time": 10.0 + float(i + 1) / 60.0}, 1.0 / 60.0)
-	var s12 := c.lod_still()
-	assert_near(s12, 1.0 - 12.0 / 60.0 / Props.LOD_STILL_S, 1.0e-4, "fährt an: nach der Uhr der Ansicht")
-	var v13 := {"camera_z": 6.5, "time": 10.2 + 1.0 / 60.0}
+		c.update({"camera_z": float(i + 1) * 0.05, "time": 10.0 + float(i + 1) / 60.0}, 1.0 / 60.0)    # 3 m/s
+	assert_near(c.lod_band_m(), 3.0 * Props.LOD_BAND_S, 1.0e-3, "fährt an mit 3 m/s: 1,2 m nach der Uhr der Ansicht")
+	var v13 := {"camera_z": 0.6 + 0.5, "time": 10.2 + 1.0 / 60.0}     # 30 m/s for one frame
 	c.update(v13, 1.0 / 60.0)
-	var s13 := c.lod_still()
-	assert_true(s13 < s12 - 0.01, "ein Bild weiter gefahren: weiter offen (%.3f)" % s13)
+	var s13 := c.lod_band_m()
+	assert_near(s13, 12.0, 1.0e-3, "ein Bild mit 30 m/s: 12 m")
 	c.update(v13, 1.0 / 60.0)
 	c.update(v13, 1.0 / 60.0)
-	assert_near(c.lod_still(), s13, 1.0e-6, "dieselbe Ansicht noch zweimal: unverändert (trotz dt > 0)")
+	assert_near(c.lod_band_m(), s13, 1.0e-6, "dieselbe Ansicht noch zweimal: unverändert (trotz dt > 0)")
 	# the tag override of graphics.modern.props.lod0_m still works (a configuration may name a tag again)
 	b._lod0_override = {"tag:city": 42.0}
 	assert_near(b.lod0_override("props/city_dutch_canal"), 42.0, 1.0e-4, "Ersatz je Tag")
 	assert_near(b.lod0_override("props/farmhouse"), 0.0, 1.0e-4, "ohne Tag: kein Ersatz")
+
+
+## RINT-M3 (NR7c-02 c, d): the reach of the shadow casters is a threshold of its own – a chunk just inside it casts, just
+## beyond it not (without the threshold the chunk kept its old state); box_span() gives the nearest point and the
+## farthest corner of a box as a loop over the eight corners does.
+func test_caster_threshold_and_box_span() -> void:
+	var t := _track()
+	_put(t, 198, {"kind": "prop", "set": "props/tree_oak", "side": 1, "x": _x(t, 1, 12.0), "scale": 1.0})
+	var ctx := _ctx(t, 6)
+	var b := Props.new()
+	b.apply_quality({"prop_lod0_m": 60.0, "prop_lod1_m": 200.0, "shadow_casters": 2, "shadow_distance_m": 120.0, "deco_density": 1.0})
+	var parent := Node3D.new()
+	b.commit(ctx, b.build(ctx, b.collect(ctx)), parent)
+	var holder := parent.get_child(0)
+	var reach := 120.0 + Props.SHADOW_KEEP_M
+	var zi := float(holder.get_meta(&"iz0"))
+	b.update({"camera_z": zi - (reach - 2.5)}, 0.0)
+	assert_true(bool(holder.get_meta(&"cast")), "innerhalb der Schattenreichweite: wirft Schatten")
+	assert_true((holder.get_meta(&"thr_hi") as PackedFloat32Array).has(reach), "Schwelle der Schattenwerfer %.0f m" % reach)
+	b.update({"camera_z": zi - (reach + 2.5)}, 0.0)
+	assert_false(bool(holder.get_meta(&"cast")), "jenseits der Schattenreichweite: keiner")
+	parent.free()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	for i in 40:
+		var box := AABB(Vector3(rng.randf_range(-50, 50), rng.randf_range(-5, 5), rng.randf_range(-50, 50)),
+			Vector3(rng.randf_range(1, 40), rng.randf_range(1, 20), rng.randf_range(1, 40)))
+		var p := Vector3(rng.randf_range(-80, 80), rng.randf_range(-10, 30), rng.randf_range(-80, 80))
+		var far := 0.0
+		for k in 8:
+			far = maxf(far, box.get_endpoint(k).distance_to(p))
+		var span := Props.box_span(p, box)
+		assert_near(span.y, far, 1.0e-3, "fernste Ecke wie die Schleife über acht Ecken (%d)" % i)
+		assert_true(span.x <= far and span.x >= 0.0, "nächster Punkt nicht ferner")
+	_cleanup()
 
 
 ## QR7c-03 / QR7c-05: the chunk walks its level nodes only when the span of its instances crosses a threshold (not at every

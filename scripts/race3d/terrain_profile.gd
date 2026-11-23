@@ -22,7 +22,9 @@ extends RefCounted
 ##    so that ChunkContext.in_bend_corridor() counts it as a bend's), elsewhere corridor_min_m from the paved edge.
 ##    Inside it the ground is never above the road: relief is only added to a ring whose inner neighbour already lies
 ##    outside the corridor. The envelope itself, without that floor (envelope_width(), rows()["envelope"]), is what
-##    ChunkContext.in_bend_corridor() tests: nothing taller than 0.5 m stands in it (FIX-R7a, finding QR7a-05).
+##    ChunkContext.in_sight_envelope() / bend_intrusion() test: nothing taller than 0.5 m stands in it – the whole
+##    object, its model's AABB as placed (FIX-R7a, findings QR7a-05, NR7a-04; contract A-24, builders/props.gd
+##    footprint()). ChunkContext.in_bend_corridor() reads the corridor with its floor (ground cover, station roofs).
 ## Everything is a pure function of the road around the row, so two chunks that share a row get the same numbers (the
 ## sight lines from cameras before the first row of the path are missing after a start in the middle of a stage).
 ## Config: graphics.modern.terrain (all keys optional, defaults below). Owner: race3d kernel.
