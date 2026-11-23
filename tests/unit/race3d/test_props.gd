@@ -1195,7 +1195,7 @@ func test_shader_rules_of_the_far_lod() -> void:
 	var band := _shader_code(FileAccess.get_file_as_string("res://assets/shaders/modern/inc/lod_band.gdshaderinc"))
 	var rx_far := RegEx.create_from_string("float\\s+ce_far_attenuation\\s*\\([^)]*\\)\\s*\\{\\s*if\\s*\\([^)]*\\)\\s*\\{\\s*return\\s+att;\\s*\\}\\s*return\\s+mix\\(\\s*att\\s*,\\s*min\\(\\s*att\\s*,\\s*far_sun\\s*\\)\\s*,\\s*smoothstep\\(\\s*shadow_far\\.x\\s*,\\s*shadow_far\\.y\\s*,\\s*depth\\s*\\)\\s*\\)\\s*;\\s*\\}")
 	assert_true(rx_far.search(band) != null, "Fernlicht: gerichtetes Licht jenseits der Schatten auf far_sun (ce_far_attenuation)")
-	assert_true(band.contains("global uniform float ce_lod_still;") and band.contains("1.0 - clamp(ce_lod_still, 0.0, 1.0)"),
+	assert_true(band.contains("global uniform float ce_lod_still;") and band.contains("float still = clamp(ce_lod_still, 0.0, 1.0);") and band.contains("* 0.5 * (1.0 - still)"),
 		"stehende Kamera: das Band zieht sich zusammen (ce_lod_still)")
 	var baked := _shader_code(mats.shader("baked").code)
 	assert_true(baked.contains("float att = ce_far_attenuation(ATTENUATION, LIGHT_IS_DIRECTIONAL, v_lod_depth);"), "baked: light() nimmt das Fernlicht")
@@ -1440,5 +1440,33 @@ func test_chunk_lod_walks_only_at_thresholds() -> void:
 		if c.has_meta(&"band") and str(c.get_meta(&"rep")) == "lod0":
 			on0 = (c as Node3D).visible
 	assert_true(on0, "lod0 schon 1 m vor seinem Band an (Spielraum LOD_STEP_M, %.1f m seitlich)" % lat)
+	parent.free()
+	_cleanup()
+
+
+## QR7c-04: the far mip bias of the colour per model – the half-timbered houses keep it against their painted beams, the
+## other models stay as sharp as near the camera (the white window frames of far facades turned grey with R7c's 1.25 on
+## every model).
+func test_albedo_bias_per_model() -> void:
+	var b := Props.new()
+	b._read_config(cfg())
+	assert_near(b.albedo_bias_of("props/city_german_old_fachwerk"), 1.25, 1.0e-4, "Fachwerk: Farb-Mip-Bias 1,25")
+	assert_near(b.albedo_bias_of("props/city_german_old_fachwerk_b"), 1.25, 1.0e-4, "Fachwerk B: Farb-Mip-Bias 1,25")
+	for mid: String in ["props/city_german_old_barock", "props/city_hanse_kontor", "props/farmhouse", "props/tree_oak"]:
+		assert_near(b.albedo_bias_of(mid), 0.0, 1.0e-4, "%s: scharf (kein Farb-Mip-Bias)" % mid.get_file())
+	var t := _track()
+	_put(t, 198, {"kind": "prop", "set": "props/city_german_old_fachwerk", "side": 1, "x": _x(t, 1, 12.0), "scale": 1.0})
+	_put(t, 204, {"kind": "prop", "set": "props/city_german_old_barock", "side": 1, "x": _x(t, 1, 12.0), "scale": 1.0})
+	var ctx := _ctx(t, 6)
+	var parent := Node3D.new()
+	b.commit(ctx, b.build(ctx, b.collect(ctx)), parent)
+	for row: Array in [["props/city_german_old_fachwerk", 1.25], ["props/city_german_old_barock", 0.0]]:
+		var mid := str((b.library.sets[str(row[0])] as Dictionary)["variants"][0])
+		var n := 0
+		for mat: ShaderMaterial in b.library.rep_materials(mid, "lod1"):
+			if mat.shader != null and mat.shader.code.contains("albedo_bias"):
+				assert_near(float(mat.get_shader_parameter("albedo_bias")), float(row[1]), 1.0e-4, "%s lod1: albedo_bias auf dem Material" % mid.get_file())
+				n += 1
+		assert_true(n >= 1, "%s: baked-Material geprüft" % mid.get_file())
 	parent.free()
 	_cleanup()

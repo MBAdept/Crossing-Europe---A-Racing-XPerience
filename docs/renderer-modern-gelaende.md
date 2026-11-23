@@ -394,13 +394,27 @@ einem Stadthaus 8–32 % seiner Pixel in einem Bild (AS5aR1, AS5aR2). Jetzt:
 - **Entfernungen.** Stufe 0 eines Modells gilt bis `prop_lod0_m` („Details“: 40 / 60 / 120 m) × `max_dist_m` der
   Stufe 0 aus `model.json` / `lod_ref_m` (60 = der Standard des Exporters, also die Entfernung bei „Mittel“);
   Stufe 1 entsprechend mit `prop_lod1_m` und `lod1_ref_m` (200). `graphics.modern.props.lod0_m` ersetzt den Wert
-  je Modell oder je Tag (`tag:city`), solange `model.json` ihn nicht selbst trägt: Stadthäuser 35 m, Fachwerk und
-  Pariser Häuser 30 m (gegen ihr Flimmern, 9.3). Bandbreite: ±12 % der Entfernung, mindestens 4 m, höchstens 25 m
+  je Modell oder je Tag (`tag:<tag>`), solange `model.json` ihn nicht selbst trägt: Fachwerk und Pariser Häuser 30 m
+  (gegen ihr Flimmern, 9.3); alle anderen Stadthäuser behalten ihr eigenes `max_dist_m` (60 m bei „Mittel“) – FIX-R7c
+  (QR7c-01): mit dem früheren `tag:city` 35 m zeigte der Hamburger Speicher bei „Steam Deck“ ab 35 m seine Stufe 1 mit
+  flachen Ladetüren (Sprite-Niveau). Bandbreite: ±12 % der Entfernung, mindestens 4 m, höchstens 25 m
   (`lod_fade`) – bei 50 km/h dauert ein Wechsel bei 35 m etwa 0,6 s, bei 130 km/h ein Baumwechsel bei 60 m etwa
   0,4 s (wie das `xfade` der Fahrzeuge).
 - **Stücke.** `update()` rechnet alle 2 m Fahrt die Spanne der Abstände aus dem Kasten der Instanz-Ursprünge des
-  Stücks (gerade Linie, wie der Shader) und schaltet einen Stufenknoten nur ab, wenn keine Instanz in sein Band fällt.
-  Während Instanzen eines Stücks ein Band kreuzen, zeichnet ein Set zwei Stufen (Zeichenaufrufe je Stufe ≤ 2).
+  Stücks (gerade Linie, wie der Shader) und schaltet einen Stufenknoten nur ab, wenn keine Instanz in sein Band fällt –
+  mit 2 m Spielraum vor und hinter dem Band (FIX-R7c, QR7c-05: zwischen zwei Blicken kann eine Instanz in das Band
+  einer feineren Stufe kommen; ohne Spielraum fehlte deren Knoten, während die gröbere schon ausblendet). Während
+  Instanzen eines Stücks ein Band kreuzen, zeichnet ein Set zwei Stufen (Zeichenaufrufe je Stufe ≤ 2). Über die
+  Kinder läuft das Stück nur, wenn seine Spanne eine seiner Schwellen kreuzt (Bandanfänge und -enden ± 2 m, Reichweite
+  der Schattenwerfer; FIX-R7c, QR7c-03 – vorher bei jedem Blick, der Haken kostete das 2,5–3-fache mit Spitzen bis
+  4,4 ms bei „Steam Deck“).
+- **Stehende Kamera** (FIX-R7c, QR7c-06). Das Band hängt am Abstand; steht die Kamera (Countdown, Stau, Polizei),
+  bliebe eine Instanz im Band im Raster zweier Stufen stehen (eine Baumkrone wirkt körnig). Das globale
+  `ce_lod_still` (0..1) setzt `props.gd` aus der Kamerageschwindigkeit: unter 1,5 m/s wächst es in 0,4 s auf 1 (wie
+  das `xfade` der Fahrzeuge, A-16), beim Anfahren fällt es ebenso schnell auf 0. Der Shader zieht jedes Band um seine
+  Mitte zusammen (bei 1 auf ±0,5 mm: harter Wechsel in der Bandmitte); das Zusammenziehen über die Zeit ist selbst ein
+  Überblenden durch dasselbe Raster. Ohne `props.gd` (Ausstellungsraum, Prüfszenen) bleibt es 0 (Band wie bisher).
+  Render-Prüfung `check_lod_band` „…_stand“: mit `ce_lod_still` = 1 sieht jeder Schritt aus wie der harte Wechsel.
 - `quality_lowered(levels)` (Wächter) setzt die Bänder sofort neu.
 
 ### 9.2 Fernlicht
@@ -411,18 +425,22 @@ Schattenstufe selbst wirft, dort seinen mittleren beschatteten Sonnenanteil `far
 Gebäude 0,78, Bäume 0,8, Chalet 0,3, Fachwerk und house_med 0,85, Haussmann 0,72, Südhaus 0,75), eingeblendet mit
 dem Ausblenden der Engine (`shadow_far`, Ansichtstiefe). Der `baked`-Shader hat dafür ein `light()` mit dem
 Beleuchtungsmodell der Engine (Lambert + Schlick-GGX, f0 = 0,16 × 0,35²) – in der Nähe gleich (bei 60 m dieselben
-Werte wie vorher, gemessen), `vpbr_static` und `leaves` nehmen dieselbe Abschwächung.
+Werte wie vorher, gemessen), `vpbr_static` und `leaves` nehmen dieselbe Abschwächung. Wachen (FIX-R7c, QR7c-02):
+`test_far_light_reaches_the_materials` (der Wert der Konfiguration steht auf den Materialien eines werfenden Gebäudes)
+und die Render-Prüfung `check_lod_band` „fernlicht“ (Haussmann lod1, Schatten bis 120 m: 140 und 250 m in ±5 % von
+60 m, ohne Fernlicht nachweislich nicht – gemessen +3,5 / +3,7 % gegen +11,7 / +11,9 %).
 
 ### 9.3 Flimmern
 
 - Der Alphatest von `baked_cutout` liest die Deckung aus einer zwei Stufen gröberen Mip (`cutout_bias` 2; der Bake
   hält die Deckung jeder Mip-Stufe, A-22), die Schwelle bleibt 0,5.
-- Die Farbe der Atlanten bekommt ab 30 m einen wachsenden Mip-Bias (bis 1,25 bei 120 m, `albedo_bias`,
-  `albedo_bias_m`) – in der Nähe bleibt sie so scharf wie vorher.
-- lod0 der Stadthäuser endet bei „Mittel“ bei 35 m, die der Fachwerk- und Pariser Häuser bei 30 m (9.1): ihre Stufe 1
-  flimmert wie das Sprite.
-- `cutout_bias`, `albedo_bias`, `window_ramp` und `window_cover` (9.4) setzt `props.gd` nur auf die Materialien seiner
-  Modelle (`PROP_LOOK`); die Vorgaben des Shaders lassen das Bild wie vorher – die Tafeln der Tore, Tankstellen und
+- Die Farbe der Atlanten bekommt je Modell ab 30 m einen wachsenden Mip-Bias (bis zum Wert bei 120 m, `albedo_bias`,
+  `albedo_bias_m`; `graphics.modern.props.albedo_bias`: Fachwerkzeilen 1,25, sonst `default` 0) – in der Nähe bleibt sie
+  so scharf wie vorher. FIX-R7c (QR7c-04): R7c setzte 1,25 auf alle Modelle; die weißen Fensterrahmen ferner Fassaden
+  wurden grau (Nürnberg, ~100 m), gemessen war der Gewinn nur an den gemalten Balken des Fachwerks.
+- lod0 der Fachwerk- und Pariser Häuser endet bei „Mittel“ bei 30 m (9.1): ihre Stufe 1 flimmert wie das Sprite.
+- `cutout_bias`, `window_ramp` und `window_cover` (9.4, `PROP_LOOK`) und `albedo_bias` (je Modell) setzt `props.gd`
+  nur auf die Materialien seiner Modelle; die Vorgaben des Shaders lassen das Bild wie vorher – die Tafeln der Tore, Tankstellen und
   Grenzen (`baked` mit Schrift aus dem Schilderatlas) bleiben scharf (Render-Prüfung `zieltor`).
 
 ### 9.4 Fenster in der Dämmerung
@@ -441,6 +459,10 @@ Sprite-Lichts (`relief_night` 0,75 × `ce_night` in Richtung der Mittelfarbe des
 - **Anbauten** (Leitentscheid zu A-22): `model.json` darf `"attach": [{"prop": "props/tree_beech", "offset": [x, y, z],
   "scale": s}]` nennen; `props.gd` stellt sie als gewöhnliche Instanzen ihrer Sets dazu (eigene Detailstufen, eigene
   Auslassungen, links gespiegelt). Kein ausgeliefertes Modell nutzt es bisher (geprüft mit einem Test-Manifest).
+  Höchstens 8 je Modell; ein Anbau, der jenseits des eigenen Stücks stünde, wird nicht gestellt (FIX-R7c, QR7c-08:
+  Boden und Kurvenkorridor wären dort die der Randreihe, und das Nachbarstück sieht das Haus nicht) – Versätze von
+  wenigen Metern verlieren ihn nur am Ende eines Stücks. Ein angebauter Baum im Kurvenkorridor fällt weg wie jeder
+  Baum (Test `test_attachments_respect_the_corridor_and_the_chunk`).
 - **Tags** (A-16): `ground_align` neigt Pflanzen und Bodendecker zur Geländenormalen (höchstens 30°), `ground_sink`
   setzt Felsen und Klippen auf den tiefsten Punkt ihrer Grundfläche, `face_road` dreht höchstens ±20° aus der
   Straßenrichtung.

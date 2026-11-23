@@ -110,10 +110,12 @@ const ATTACH_MAX := 8              ## attachments per model at most (item number
 ## "zieltor"):
 ##   cutout_bias 2        the alpha test of baked_cutout two mip levels coarser (railings, leaf cards flicker less,
 ##                        lead decision 3; the bake keeps the coverage of every level, A-22)
-##   albedo_bias 1.25     the colour up to 1.25 levels coarser, growing from 30 to 120 m (painted beams and bars)
 ##   window_ramp 0.6      the night atlas at its full light from ce_night 0.6 (Arcade's light layer: lights 0.65 at 19:30)
 ##   window_cover 1       a lit window replaces the facade's lit colour (lead decision 4)
-const PROP_LOOK: Array = [["cutout_bias", 2.0], ["albedo_bias", 1.25], ["window_ramp", 0.6], ["window_cover", 1.0]]
+## and albedo_bias per model (albedo_bias_of(): graphics.modern.props.albedo_bias) – the colour up to that many levels
+## coarser, growing from 30 to 120 m. FIX-R7c (QR7c-04): R7c put 1.25 on every model, which turned the white window frames
+## of far facades grey (Nürnberg, ~100 m) for a gain measured only on the painted beams of the half-timbered houses.
+const PROP_LOOK: Array = [["cutout_bias", 2.0], ["window_ramp", 0.6], ["window_cover", 1.0]]
 
 var library: PropLibrary
 
@@ -147,6 +149,7 @@ var _lod_ref := Vector2(LOD_REF_M, LOD1_REF_M)
 var _lod_fade := LOD_FADE
 var _lod0_override: Dictionary = {} ## model id -> lod0 distance (m at "Mittel"), graphics.modern.props.lod0_m
 var _far_sun: Dictionary = {}       ## class ("building", "tree", …) or model id -> mean shadowed share of the sun
+var _albedo_bias: Dictionary = {}   ## "default" or model id -> mip bias of the colour far away (QR7c-04)
 var _banded: Dictionary = {}        ## model id -> true: its materials carry the bands of the current levels
 var _bands: Dictionary = {}         ## model id -> {rep: Vector4}
 var _models_seen: Dictionary = {}   ## model id -> a set it was drawn for (quality_lowered)
@@ -200,6 +203,9 @@ func _read_config(cfg: Dictionary) -> void:
 		var fs: Variant = pd.get("far_sun", {})
 		_far_sun = (fs as Dictionary).duplicate() if fs is Dictionary else {}
 		_far_sun.erase("_doc")
+		var ab: Variant = pd.get("albedo_bias", {})
+		_albedo_bias = (ab as Dictionary).duplicate() if ab is Dictionary else {}
+		_albedo_bias.erase("_doc")
 	_banded.clear()
 
 
@@ -296,6 +302,12 @@ func far_sun_of(model_id: String, cls: String) -> float:
 	return clampf(float(_far_sun.get(model_id, _far_sun.get(cls, 1.0))), 0.0, 1.0)
 
 
+## FIX-R7c (QR7c-04): the far mip bias of a model's colour (baked.gdshader albedo_bias): its own entry of
+## graphics.modern.props.albedo_bias, else "default" (0 = the atlas as sharp as near the camera).
+func albedo_bias_of(model_id: String) -> float:
+	return maxf(0.0, float(_albedo_bias.get(model_id, _albedo_bias.get("default", 0.0))))
+
+
 ## Puts the bands and the far light of a model on the materials of its representations (main thread). set_id: a set
 ## the model is drawn for (its class and whether it casts at the current shadow level).
 func _ensure_bands(model_id: String, set_id: String) -> void:
@@ -317,6 +329,7 @@ func _ensure_bands(model_id: String, set_id: String) -> void:
 			m.set_shader_parameter("far_sun", fs)
 			for l: Array in PROP_LOOK:
 				m.set_shader_parameter(str(l[0]), l[1])
+			m.set_shader_parameter("albedo_bias", albedo_bias_of(model_id))
 
 
 ## ctx.sets = every sprite set id the stage can show: the prop and landmark sets are resolved and loaded here.

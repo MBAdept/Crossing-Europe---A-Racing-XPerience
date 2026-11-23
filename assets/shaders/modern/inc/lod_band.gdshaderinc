@@ -51,9 +51,14 @@ float ce_lod_shadow_pass(vec3 cam, mat4 main_inv_view) {
 bool ce_lod_discard(float d, float shadow, vec2 frag) {
 	// the band narrowed towards its middle by ce_lod_still (both neighbours narrow the same shared band: still
 	// complementary); the shadow pass follows the narrowed band, so a standing camera's caster is the level it shows
-	float k = 1.0 - clamp(ce_lod_still, 0.0, 1.0);
-	vec2 mid = vec2(lod_band.x + lod_band.y, lod_band.z + lod_band.w) * 0.5;
-	vec4 b = vec4(mid.xx, mid.yy) + (lod_band - vec4(mid.xx, mid.yy)) * k;
+	// (at least ±0.5 mm wide: the two shares stay complementary – a narrower band than the 0.001 below would leave a hole)
+	vec4 b = lod_band;
+	float still = clamp(ce_lod_still, 0.0, 1.0);
+	if (still > 0.0) {
+		vec2 mid = vec2(b.x + b.y, b.z + b.w) * 0.5;
+		vec2 hw = max(vec2(b.y - b.x, b.w - b.z) * 0.5 * (1.0 - still), vec2(0.0005));
+		b = vec4(mid.x - hw.x, mid.x + hw.x, mid.y - hw.y, mid.y + hw.y);
+	}
 	float fin = clamp((d - b.x) / max(b.y - b.x, 0.001), 0.0, 1.0);
 	float fout = clamp((b.w - d) / max(b.w - b.z, 0.001), 0.0, 1.0);
 	if (fin >= 1.0 && fout >= 1.0) {
