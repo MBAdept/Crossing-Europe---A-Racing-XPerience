@@ -19,7 +19,7 @@ extends SceneTree
 ##   flugfeuer           Bremen – Dortmund km 225, 22:00: the Florianturm (3D shape of Arcade's TV tower) shows its red
 ##                       aviation lights as small glows – some red pixels, at most 3 × Arcade's red pixels of the same
 ##                       state (FIX-R7b, B-02), and the landmark changes only a small part of the picture
-##   anstrahlung         (FIX-R7b, B-03) Hamburg – Bremen km 114.4 and Montpellier – Lyon km 299.4, 22:00: a plain prop
+##   anstrahlung         (FIX-R7b, B-03) Hamburg – Bremen km 114.4 and Montpellier – Lyon km 300.4, 22:00: a plain prop
 ##                       standing as a landmark (the Bremer Dom as a model, the Basilika Fourvière as Arcade's picture)
 ##                       is visibly floodlit (≥ 1.25 × the same frame with its floodlight share at 0) and 0.8 … 1.25 ×
 ##                       as bright as in Arcade
@@ -419,7 +419,7 @@ func _check_nacht_hell() -> void:
 func _check_anstrahlung() -> void:
 	var cases := [["Bremer Dom (Modell)", {"stage_id": "hamburg_bremen", "from_city": "hamburg", "start_km": 114.4,
 		"start_world_minutes": 22.0 * 60.0}, "props/church"],
-		["Fourvière Lyon (Bild)", {"stage_id": "montpellier_lyon", "from_city": "montpellier", "start_km": 299.4,
+		["Fourvière Lyon (Bild)", {"stage_id": "montpellier_lyon", "from_city": "montpellier", "start_km": 300.4,
 		"start_world_minutes": 22.0 * 60.0}, "props/city_vienna_kirche"]]
 	for c: Array in cases:
 		var p: Array[String] = []

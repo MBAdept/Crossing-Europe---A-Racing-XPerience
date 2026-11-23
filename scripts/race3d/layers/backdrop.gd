@@ -43,6 +43,7 @@ const REDRAW_S_DAY := 0.09         ## seconds of view time between redraws for t
 const REDRAW_S_NIGHT := 0.05       ## … and for the twinkling stars
 const LIFT_MAX := 120.0            ## Arcade's crest rule: the silhouettes rise at most this many rows above the horizon
 const LIFT_STEP := 0.25            ## the canvas is redrawn when the base row moved by this many rows
+const SKY_ALPHA_STEP := 0.05       ## a skyline silhouette fades in steps of this alpha (FIX-R7b, B-06)
 
 
 ## The canvas item the backdrop is drawn on.
@@ -372,6 +373,9 @@ func skyline(view: Dictionary, heading: float) -> Array:
 		if prop_km >= 0.0:
 			dz = track.km_to_z(prop_km) - cam_z
 			a = smoothstep(l, l * 1.15, dz) if dz > 0.0 else 0.0
+		# FIX-R7b (QA-R7b B-06): the fade in steps of SKY_ALPHA_STEP – the step drawn is the step of the signature, so a
+		# fade alone redraws the canvas 20 times, not 67 (a redraw with silhouettes costs +0.1 … 0.3 ms, measured)
+		a = snappedf(a, SKY_ALPHA_STEP)
 		if a <= 0.01:
 			continue
 		if not _sky_anchor.has(i):
@@ -379,7 +383,7 @@ func skyline(view: Dictionary, heading: float) -> Array:
 		out.append({"entry": e, "angle": float(_sky_anchor[i]), "alpha": a, "s": sky_proj.focal / _sky_dist})
 		_sky_list.append({"set": str(e.get("set", "")), "angle": snappedf(float(_sky_anchor[i]), 0.0001), "alpha": snappedf(a, 0.001),
 			"x": snappedf(sky_proj.screen.x * 0.5 - MARGIN + RaceBackdrop.wrap_angle(float(_sky_anchor[i]) - heading) * sky_proj.focal, 0.1)})
-		_sky_sig.append(snappedf(a, 0.015))
+		_sky_sig.append(a)
 		_sky_sig.append(i)
 	return out
 
