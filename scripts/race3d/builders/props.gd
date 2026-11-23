@@ -112,9 +112,11 @@ const ATTACH_MAX := 8              ## attachments per model at most (item number
 ##                        lead decision 3; the bake keeps the coverage of every level, A-22)
 ##   window_ramp 0.6      the night atlas at its full light from ce_night 0.6 (Arcade's light layer: lights 0.65 at 19:30)
 ##   window_cover 1       a lit window replaces the facade's lit colour (lead decision 4)
-## and albedo_bias per model (albedo_bias_of(): graphics.modern.props.albedo_bias) – the colour up to that many levels
-## coarser, growing from 30 to 120 m. FIX-R7c (QR7c-04): R7c put 1.25 on every model, which turned the white window frames
-## of far facades grey (Nürnberg, ~100 m) for a gain measured only on the painted beams of the half-timbered houses.
+## and albedo_bias / albedo_bias_m per model (albedo_bias_of(): graphics.modern.props.albedo_bias) – the colour up to that
+## many levels coarser, growing between the two distances. FIX-R7c (QR7c-04): R7c put 1.25 from 30 to 120 m on every
+## model, which turned the white window frames of far facades grey (Nürnberg, ~100 m: 1.09 levels there). Measured
+## (sparkcam, lod1, "Mittel"): without the bias the Barockhaus flickers 2.5 x its sprite at 150 m and the Grachtenhaus B
+## 2.25 x – so the bias stays, but from 60 to 150 m (0.52 levels at 100 m); the half-timbered rows keep 30 to 120 m.
 const PROP_LOOK: Array = [["cutout_bias", 2.0], ["window_ramp", 0.6], ["window_cover", 1.0]]
 
 var library: PropLibrary
@@ -149,7 +151,7 @@ var _lod_ref := Vector2(LOD_REF_M, LOD1_REF_M)
 var _lod_fade := LOD_FADE
 var _lod0_override: Dictionary = {} ## model id -> lod0 distance (m at "Mittel"), graphics.modern.props.lod0_m
 var _far_sun: Dictionary = {}       ## class ("building", "tree", …) or model id -> mean shadowed share of the sun
-var _albedo_bias: Dictionary = {}   ## "default" or model id -> mip bias of the colour far away (QR7c-04)
+var _albedo_bias: Dictionary = {}   ## "default" or model id -> [mip bias of the colour far away, from m, to m] (QR7c-04)
 var _banded: Dictionary = {}        ## model id -> true: its materials carry the bands of the current levels
 var _bands: Dictionary = {}         ## model id -> {rep: Vector4}
 var _models_seen: Dictionary = {}   ## model id -> a set it was drawn for (quality_lowered)
@@ -302,10 +304,15 @@ func far_sun_of(model_id: String, cls: String) -> float:
 	return clampf(float(_far_sun.get(model_id, _far_sun.get(cls, 1.0))), 0.0, 1.0)
 
 
-## FIX-R7c (QR7c-04): the far mip bias of a model's colour (baked.gdshader albedo_bias): its own entry of
-## graphics.modern.props.albedo_bias, else "default" (0 = the atlas as sharp as near the camera).
-func albedo_bias_of(model_id: String) -> float:
-	return maxf(0.0, float(_albedo_bias.get(model_id, _albedo_bias.get("default", 0.0))))
+## FIX-R7c (QR7c-04): the far mip bias of a model's colour (baked.gdshader albedo_bias, albedo_bias_m) as
+## Vector3(levels, from m, to m): its own entry of graphics.modern.props.albedo_bias, else "default"; an entry is
+## [levels, from, to] or a plain number (from 30 to 120 m). (0, …) = the atlas as sharp as near the camera.
+func albedo_bias_of(model_id: String) -> Vector3:
+	var v: Variant = _albedo_bias.get(model_id, _albedo_bias.get("default", 0.0))
+	if v is Array and (v as Array).size() >= 3:
+		var a: Array = v
+		return Vector3(maxf(0.0, float(a[0])), float(a[1]), maxf(float(a[1]) + 1.0, float(a[2])))
+	return Vector3(maxf(0.0, float(v)), 30.0, 120.0)
 
 
 ## Puts the bands and the far light of a model on the materials of its representations (main thread). set_id: a set
@@ -329,7 +336,9 @@ func _ensure_bands(model_id: String, set_id: String) -> void:
 			m.set_shader_parameter("far_sun", fs)
 			for l: Array in PROP_LOOK:
 				m.set_shader_parameter(str(l[0]), l[1])
-			m.set_shader_parameter("albedo_bias", albedo_bias_of(model_id))
+			var ab := albedo_bias_of(model_id)
+			m.set_shader_parameter("albedo_bias", ab.x)
+			m.set_shader_parameter("albedo_bias_m", Vector2(ab.y, ab.z))
 
 
 ## ctx.sets = every sprite set id the stage can show: the prop and landmark sets are resolved and loaded here.

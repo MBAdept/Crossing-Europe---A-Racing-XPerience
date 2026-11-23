@@ -434,10 +434,14 @@ und die Render-Prüfung `check_lod_band` „fernlicht“ (Haussmann lod1, Schatt
 
 - Der Alphatest von `baked_cutout` liest die Deckung aus einer zwei Stufen gröberen Mip (`cutout_bias` 2; der Bake
   hält die Deckung jeder Mip-Stufe, A-22), die Schwelle bleibt 0,5.
-- Die Farbe der Atlanten bekommt je Modell ab 30 m einen wachsenden Mip-Bias (bis zum Wert bei 120 m, `albedo_bias`,
-  `albedo_bias_m`; `graphics.modern.props.albedo_bias`: Fachwerkzeilen 1,25, sonst `default` 0) – in der Nähe bleibt sie
-  so scharf wie vorher. FIX-R7c (QR7c-04): R7c setzte 1,25 auf alle Modelle; die weißen Fensterrahmen ferner Fassaden
-  wurden grau (Nürnberg, ~100 m), gemessen war der Gewinn nur an den gemalten Balken des Fachwerks.
+- Die Farbe der Atlanten bekommt je Modell einen mit der Entfernung wachsenden Mip-Bias (`albedo_bias`,
+  `albedo_bias_m`; `graphics.modern.props.albedo_bias` = [Stufen, von, bis]): Fachwerkzeilen 1,25 von 30 bis 120 m,
+  alle anderen (`default`) 1,25 erst von 60 bis 150 m – in der Nähe bleibt die Farbe so scharf wie vorher. FIX-R7c
+  (QR7c-04): mit R7cs 1,25 ab 30 m für alle wurden die weißen Fensterrahmen ferner Fassaden grau (Nürnberg, ~100 m:
+  1,09 Stufen, jetzt 0,52). Ganz ohne Bias flimmert das Barockhaus bei 150 m 2,5 × sein Sprite und das Grachtenhaus B
+  2,25 × (gemessen, `sparkcam`, lod1, „Mittel“); mit 60 → 150 m: Barock 0,3 / 0,4 % bei 100 / 150 m (Sprite 0,3 / 0,4),
+  Grachtenhaus B 0,4 / 0,5 % (Sprite 0,2 / 0,4), Speicher 0,2 / 0,3 % (0,2 / 0,2). Das Kontor flimmert mit und ohne Bias
+  0,5 / 0,9 % (Sprite 0,1 / 0,2) – Kanten der Geometrie, nicht die Farbe (Asset-Paket).
 - lod0 der Fachwerk- und Pariser Häuser endet bei „Mittel“ bei 30 m (9.1): ihre Stufe 1 flimmert wie das Sprite.
 - `cutout_bias`, `window_ramp` und `window_cover` (9.4, `PROP_LOOK`) und `albedo_bias` (je Modell) setzt `props.gd`
   nur auf die Materialien seiner Modelle; die Vorgaben des Shaders lassen das Bild wie vorher – die Tafeln der Tore, Tankstellen und
