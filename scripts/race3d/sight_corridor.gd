@@ -71,6 +71,7 @@ var usec := 0
 var sync_us_max := 0                   ## longest ensure() that had to compute (a reader ahead of warm(): main thread)
 var sync_us_sum := 0
 var sync_calls := 0
+var _fan_us := 60.0                    ## running mean of a fan's cost (µs): warm() stops before a fan that would not fit
 
 
 ## p may still be empty (the streamer sets it up later); nothing is computed before the first row is asked for.
@@ -194,9 +195,15 @@ func ensure(k: int) -> void:
 			sync_calls += 1
 
 
-## Computes the cameras up to row k, until the clock (Time.get_ticks_usec()) passes deadline_us (< 0: no limit).
-## Returns true when the rows up to k are final. The streamer calls it every frame for the rows ahead of the chunks it
-## will collect, so that a chunk finds its rows ready.
+## Computes the cameras up to row k, until the clock (Time.get_ticks_usec()) would pass deadline_us (< 0: no
+## limit). Returns true when the rows up to k are final. The streamer calls it every frame for the rows ahead of the
+## chunks it will collect, so that a chunk finds its rows ready. With a deadline it works in steps and stops before
+## the step that would overrun it (FIX-R7a, QR7a-03: it checked only after a whole camera, a block of geometry and
+## of the F2 need included, and so took up to 0.6 ms at p99 for a 0.25 ms budget): a block of geometry (about
+## 0.25 ms per BLOCK cameras) and a block of the F2 need (about 0.16 ms per 64 rows) are steps of their own and only
+## ever the first step of a call; a fan (0.03–0.06 ms on average) is begun only while the running mean of a fan still
+## fits.
+## At least one step per call, so that the corridor always moves on.
 func warm(k: int, deadline_us: int) -> bool:
 	if path == null or not path.is_ready():
 		return false
@@ -206,13 +213,40 @@ func warm(k: int, deadline_us: int) -> bool:
 	if _cam_next > k or _cam_next > end:
 		return true
 	var t0 := Time.get_ticks_usec()
+	var first := true
 	while _cam_next <= k and _cam_next <= end:
+		if deadline_us >= 0:
+			if _block_due(_cam_next, end):
+				if not first:
+					break
+				if _cam_next < _g0 or mini(_cam_next + _nb + 1, end) > _g1:
+					_geometry(_cam_next)
+				else:
+					_ensure_need(_cam_next + _cam_rows)
+				first = false
+				continue
+			if not first and Time.get_ticks_usec() + int(_fan_us) > deadline_us:
+				break
+		var tc := Time.get_ticks_usec()
 		_camera(_cam_next)
+		_fan_us = lerpf(_fan_us, float(Time.get_ticks_usec() - tc), 0.1)
 		_cam_next += cam_step
-		if deadline_us >= 0 and Time.get_ticks_usec() >= deadline_us:
-			break
+		first = false
 	usec += Time.get_ticks_usec() - t0
 	return _cam_next > k or _cam_next > end
+
+
+## True when the camera at row c needs a new block of geometry or of the F2 need first.
+func _block_due(c: int, end: int) -> bool:
+	return c < _g0 or mini(c + _nb + 1, end) > _g1 or c + _cam_rows > _n_hi
+
+
+## Clears the counters of the computations a reader forced on the main thread (sync_us_max, _sum, sync_calls), e.g.
+## after loading, so that they show the drive (ChunkStreamer.reset_stats()).
+func reset_sync_stats() -> void:
+	sync_us_max = 0
+	sync_us_sum = 0
+	sync_calls = 0
 
 
 ## The next row whose cameras are not computed yet.

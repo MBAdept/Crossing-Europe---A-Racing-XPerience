@@ -231,6 +231,8 @@ func update(cam_z: float, visibility_m: float) -> void:
 		_loaded = true
 		terrain.warm(_warm_front(cam_seg, maxf(load_path_m, landmark_path_m)), -1)
 		return
+	if not collected and not _commit_pending():
+		_warm_corridor(cam_seg)   # A-17: a frame with nothing to collect or commit computes some sight corridor ahead
 	if collected:
 		return   # one main-thread job per frame: a frame that collected a chunk commits none
 	# threaded mode: commit finished builds, nearest first
@@ -252,37 +254,6 @@ func update(cam_z: float, visibility_m: float) -> void:
 			break
 		_commit(best)
 		done += 1
-	if done == 0:
-		_warm_corridor(cam_seg)
-
-
-## A frame without a collect and without a commit computes a little of the sight corridor (TerrainProfile.warm(),
-## A-17) of the rows the next chunks and the far landmarks will read, so that nobody waits for them on the main
-## thread: up to two chunks beyond landmark_path_m, at most WARM_US (and at least one camera row) per frame –
-## WARM_CATCHUP_US while the corridor does not yet reach two chunks beyond the farthest chunk that can be wanted.
-func _warm_corridor(cam_seg: int) -> void:
-	var far := _warm_front(cam_seg, maxf(load_path_m, landmark_path_m))
-	var need := _warm_front(cam_seg, load_path_m)
-	var sight: Variant = terrain.get("sight")
-	var behind: bool = sight != null and int(sight.call(&"front")) < need
-	var t0 := Time.get_ticks_usec()
-	terrain.warm(far, t0 + (WARM_CATCHUP_US if behind else WARM_US))
-	var us := Time.get_ticks_usec() - t0
-	_warm_us_max = maxi(_warm_us_max, us)
-	_warm_us_sum += us
-	_warm_calls += 1
-
-
-## A counter of the sight corridor (SightCorridor: sync_us_max, sync_us_sum, sync_calls), 0 without one.
-func _sight_stat(key: String) -> float:
-	var sight: Variant = terrain.get("sight") if terrain != null else null
-	return float(sight.get(key)) if sight != null else 0.0
-
-
-## The row two chunks beyond the chunk that holds the point reach_m ahead of camera row cam_seg (+ 4 rows).
-func _warm_front(cam_seg: int, reach_m: float) -> int:
-	var n := chunk_segments
-	return (int(floor((float(cam_seg) * track.seg_len + reach_m) / (float(n) * track.seg_len))) + 2) * n + 4
 
 
 ## Builds and commits everything that is collected, now (load, sync mode, tests).
@@ -329,17 +300,13 @@ func snapshot() -> Dictionary:
 
 ## Timing and counters for perf_stats(): chunks, pending, builds, build_ms_avg / _max (ChunkBuilder.build of all
 ## builders per chunk), collect_ms_avg / _max (snapshot on the main thread), commit_ms_avg / _max, commits, rebases,
-## restarts, corridor_warm_ms_avg / _max (_warm_corridor() per frame that ran it).
+## restarts, corridor (_corridor_stats(): the sight corridor's main-thread time).
 func stats() -> Dictionary:
-	return {"chunks": _chunks.size(), "pending": pending_count(), "builds": _builds,
+	return {"chunks": _chunks.size(), "pending": pending_count(), "builds": _builds, "corridor": _corridor_stats(),
 		"build_ms_avg": float(_build_us_sum) / maxf(1.0, float(_builds)) / 1000.0, "build_ms_max": float(_build_us_max) / 1000.0,
 		"collect_ms_avg": float(_collect_us_sum) / maxf(1.0, float(_collects)) / 1000.0, "collect_ms_max": float(_collect_us_max) / 1000.0,
 		"commit_ms_avg": float(_commit_us_sum) / maxf(1.0, float(_commits)) / 1000.0, "commit_ms_max": float(_commit_us_max) / 1000.0,
-		"commits": _commits, "rebases": _rebases, "restarts": _restarts, "collect_by": _collect_by_ms(),
-		"corridor_warm_ms_avg": float(_warm_us_sum) / maxf(1.0, float(_warm_calls)) / 1000.0,
-		"corridor_warm_ms_max": float(_warm_us_max) / 1000.0,
-		"corridor_sync_ms_max": _sight_stat("sync_us_max") / 1000.0,
-		"corridor_sync_ms_sum": _sight_stat("sync_us_sum") / 1000.0, "corridor_sync_calls": int(_sight_stat("sync_calls"))}
+		"commits": _commits, "rebases": _rebases, "restarts": _restarts, "collect_by": _collect_by_ms()}
 
 
 ## collect() per builder: id -> {"avg_ms", "max_ms", "n"} (RINT-M2, A-18).
@@ -354,6 +321,7 @@ func _collect_by_ms() -> Dictionary:
 
 ## Forgets the timing maxima (after the load, so that perf_stats() shows the drive).
 func reset_stats() -> void:
+	_reset_corridor_stats()
 	_builds = 0
 	_build_us_sum = 0
 	_build_us_max = 0
@@ -364,9 +332,6 @@ func reset_stats() -> void:
 	_commit_us_max = 0
 	_commit_us_sum = 0
 	_commits = 0
-	_warm_us_max = 0
-	_warm_us_sum = 0
-	_warm_calls = 0
 
 
 ## The chunk node of a chunk index (null when it is not committed).
@@ -386,6 +351,66 @@ func wanted_for(cam_z: float, visibility_m: float) -> Array[int]:
 ## is collected plus what clearance() looks at beyond it – at least landmark_path_m.
 func _ahead_m() -> float:
 	return maxf(landmark_path_m, load_path_m + float(chunk_segments) * track.seg_len + path.clear_reach_m)
+
+
+## A frame without a collect and without a commit computes a little of the sight corridor (TerrainProfile.warm(),
+## A-17) of the rows the next chunks and the far landmarks will read, so that nobody waits for them on the main
+## thread: up to two chunks beyond landmark_path_m, at most WARM_US per frame (SightCorridor.warm() stops before the
+## step that would overrun it, one step at least) – WARM_CATCHUP_US while the corridor does not yet reach two chunks
+## beyond the farthest chunk that can be wanted. update() calls it before its commit loop when _commit_pending() says
+## that loop has nothing to do (FIX-R7a, QR7a-02: so it never adds to a frame that commits, also when commits run in
+## budgeted steps over several frames).
+func _warm_corridor(cam_seg: int) -> void:
+	var far := _warm_front(cam_seg, maxf(load_path_m, landmark_path_m))
+	var need := _warm_front(cam_seg, load_path_m)
+	var sight: Variant = terrain.get("sight")
+	var behind: bool = sight != null and int(sight.call(&"front")) < need
+	var t0 := Time.get_ticks_usec()
+	terrain.warm(far, t0 + (WARM_CATCHUP_US if behind else WARM_US))
+	var us := Time.get_ticks_usec() - t0
+	_warm_us_max = maxi(_warm_us_max, us)
+	_warm_us_sum += us
+	_warm_calls += 1
+
+
+## True when the commit loop of update() has work in this frame: a chunk is collected for a build on the main
+## thread, built, its build task finished, or it is half committed (it has a node but is not committed yet – a commit
+## that runs in steps over several frames). A task that finishes between this test and the loop is the only case
+## in which a frame both warms and commits.
+func _commit_pending() -> bool:
+	for c: Chunk in _chunks.values():
+		if c.state == COLLECTED or c.state == BUILT or (c.node != null and c.state != COMMITTED):
+			return true
+		if c.state == BUILDING and c.task >= 0 and WorkerThreadPool.is_task_completed(c.task):
+			return true
+	return false
+
+
+## The row two chunks beyond the chunk that holds the point reach_m ahead of camera row cam_seg (+ 4 rows).
+func _warm_front(cam_seg: int, reach_m: float) -> int:
+	var n := chunk_segments
+	return (int(floor((float(cam_seg) * track.seg_len + reach_m) / (float(n) * track.seg_len))) + 2) * n + 4
+
+
+## stats()["corridor"]: warm_ms_avg / _max (_warm_corridor() per frame that ran it), warm_calls; sync_ms_max / _sum,
+## sync_calls (rows a reader needed before warm() had them – computed at once on the main thread: SightCorridor
+## sync_us_*). Reset with the other numbers (reset_stats()), so that perf_stats() of a drive does not show the load.
+func _corridor_stats() -> Dictionary:
+	var sight: Variant = terrain.get("sight") if terrain != null else null
+	var sync_max := float(sight.get("sync_us_max")) if sight != null else 0.0
+	var sync_sum := float(sight.get("sync_us_sum")) if sight != null else 0.0
+	var sync_calls := int(sight.get("sync_calls")) if sight != null else 0
+	return {"warm_ms_avg": float(_warm_us_sum) / maxf(1.0, float(_warm_calls)) / 1000.0, "warm_ms_max": float(_warm_us_max) / 1000.0,
+		"warm_calls": _warm_calls, "sync_ms_max": sync_max / 1000.0, "sync_ms_sum": sync_sum / 1000.0, "sync_calls": sync_calls}
+
+
+func _reset_corridor_stats() -> void:
+	_warm_us_max = 0
+	_warm_us_sum = 0
+	_warm_calls = 0
+	var sight: Variant = terrain.get("sight") if terrain != null else null
+	if sight != null and sight.has_method(&"reset_sync_stats"):
+		sight.call(&"reset_sync_stats")
 
 
 # --- internals ------------------------------------------------------------------------------------------------
