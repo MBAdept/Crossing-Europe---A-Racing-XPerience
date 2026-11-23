@@ -724,6 +724,12 @@ func _drop(c: Chunk) -> void:
 		WorkerThreadPool.wait_for_task_completion(c.task)
 		c.task = -1
 	if c.node != null:
+		if c.state == COMMITTING:
+			# A-28 (RINT-M3, NACH-RINT N-01): the node never entered the tree – what its committed builders registered
+			# with a layer (reflectors, lamps, flares) would never hear tree_exiting: released now
+			var r: Variant = services.get("renderer")
+			if r is Object and is_instance_valid(r) and (r as Object).has_method(&"release_chunk"):
+				(r as Object).call(&"release_chunk", c.node)
 		if c.node.get_parent() != null:
 			c.node.get_parent().remove_child(c.node)
 		_trash.append(c.node)          # F-08: freed in pieces by _free_trash()

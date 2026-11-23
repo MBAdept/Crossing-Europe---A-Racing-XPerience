@@ -222,7 +222,9 @@ func add_static(parent: Node3D, lamps: Array) -> void:
 	_statics.append([parent, entries])
 	_static_count += entries.size()
 	_rank_seg = -1
-	parent.tree_exiting.connect(_forget.bind(_statics, parent), CONNECT_ONE_SHOT)
+	var cb := _forget_statics.bind(parent)
+	if not parent.tree_exiting.is_connected(cb):
+		parent.tree_exiting.connect(cb, CONNECT_ONE_SHOT)
 
 
 ## Energy of a static lamp entry this frame: the builder's dictionary ("src") may change it per frame (the radar flash);
@@ -240,12 +242,47 @@ func add_reflectors(parent: Node3D, list: Array) -> void:
 		return
 	_reflectors.append([parent, list])
 	_reflector_count += list.size()
-	parent.tree_exiting.connect(_forget.bind(_reflectors, parent), CONNECT_ONE_SHOT)
+	var cb := _forget_reflectors.bind(parent)
+	if not parent.tree_exiting.is_connected(cb):
+		parent.tree_exiting.connect(cb, CONNECT_ONE_SHOT)
+
+
+## tree_exiting of a parent: its entries are forgotten. One method per store (RINT-M3: two bound copies of one method
+## count as the same callable – a node with lamps AND reflectors could not connect the second and kept it forever).
+func _forget_statics(parent: Node3D) -> void:
+	_forget(_statics, parent)
+
+
+func _forget_reflectors(parent: Node3D) -> void:
+	_forget(_reflectors, parent)
 
 
 func _forget(store: Array, parent: Node3D) -> void:
-	for i in store.size():
-		if (store[i] as Array)[0] == parent:
+	var i := 0
+	while i < store.size():
+		if (store[i] as Array)[0] != parent:
+			i += 1
+			continue
+		var n := ((store[i] as Array)[1] as Array).size()
+		if is_same(store, _statics):
+			_static_count -= n
+			_rank_seg = -1
+		else:
+			_reflector_count -= n
+		store.remove_at(i)
+
+
+## A-28 (RINT-M3, NACH-RINT N-01): a chunk dropped while it was still being committed never entered the tree, so its
+## parts never send tree_exiting – the streamer calls this (through ModernRenderer.release_chunk()) before it frees
+## the chunk's node: every static lamp and reflector registered under `root` (or on a node that is gone) is forgotten.
+func release_under(root: Node) -> void:
+	for store: Array in [_statics, _reflectors]:
+		var i := 0
+		while i < store.size():
+			var p: Variant = (store[i] as Array)[0]
+			if is_instance_valid(p) and root != null and p != root and not root.is_ancestor_of(p):
+				i += 1
+				continue
 			var n := ((store[i] as Array)[1] as Array).size()
 			if is_same(store, _statics):
 				_static_count -= n
@@ -253,7 +290,6 @@ func _forget(store: Array, parent: Node3D) -> void:
 			else:
 				_reflector_count -= n
 			store.remove_at(i)
-			return
 
 
 func update(view: Dictionary, _dt: float) -> void:
@@ -559,7 +595,16 @@ func _update_glints() -> void:
 			_glints.visible = false
 		return
 	var n := 0
-	for pair: Array in _reflectors:
+	var k := 0
+	while k < _reflectors.size():
+		var pair: Array = _reflectors[k]
+		# A-28 (NACH-RINT N-01): an entry whose node is gone (a chunk dropped while committing, freed without ever
+		# entering the tree) is forgotten here – before, the typed read raised a SCRIPT ERROR every frame and froze the glints
+		if not is_instance_valid(pair[0]):
+			_reflector_count -= (pair[1] as Array).size()
+			_reflectors.remove_at(k)
+			continue
+		k += 1
 		var parent: Node3D = pair[0]
 		if not parent.is_inside_tree():
 			continue

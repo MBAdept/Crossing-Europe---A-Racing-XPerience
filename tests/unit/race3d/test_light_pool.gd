@@ -88,6 +88,65 @@ func test_headlight_cone() -> void:
 		"in der Ferne schwächer")
 
 
+## A-28 (RINT-M3, NACH-RINT N-01): a reflector registered on a node that never entered the tree (a chunk dropped while
+## it was being committed) and that is then freed: the glints of the low beam skip and forget it – no SCRIPT ERROR,
+## no frozen glints, the count back to 0. release_under() forgets what lies under a dropped chunk's node at once.
+func test_reflectors_of_a_freed_node_are_forgotten() -> void:
+	var l: Node3D = Lights.new()
+	l.call("setup", null)
+	l.call("_build_lights")      # (setup() without a renderer builds nothing; the glints are needed here)
+	var part := Node3D.new()
+	var refl := [{"pos": Vector3(0.0, 0.5, -10.0), "dir": Vector3(0.0, 0.0, 1.0), "color": Color.WHITE, "size": 0.1}]
+	l.call("add_reflectors", part, refl)
+	assert_eq(int(l.get("_reflector_count")), 1, "ein Reflektor gemeldet")
+	part.free()
+	l.set("_beam", 1.0)
+	l.set("_beam_pos", Vector3(0.0, 0.66, 0.0))
+	l.set("_beam_dir", Vector3(0.0, 0.0, -1.0))
+	for i in 3:
+		l.call("_update_glints")
+	assert_eq(int(l.get("_reflector_count")), 0, "der freigegebene Knoten ist vergessen")
+	assert_eq((l.get("_reflectors") as Array).size(), 0, "kein Eintrag bleibt")
+	assert_eq(int(l.get("_glint_count")), 0, "kein Glanzpunkt")
+	# release_under(): a chunk node (not in the tree) with a part below it; another chunk's part stays
+	var chunk := Node3D.new()
+	var below := Node3D.new()
+	chunk.add_child(below)
+	var other := Node3D.new()
+	l.call("add_reflectors", below, refl)
+	l.call("add_reflectors", other, refl)
+	l.call("add_static", below, [{"pos": Vector3(0.0, 8.0, 0.0), "dir": Vector3.DOWN, "range": 9.0}])
+	assert_eq(int(l.get("_static_count")), 1, "eine Lampe gemeldet")
+	l.call("release_under", chunk)
+	assert_eq(int(l.get("_reflector_count")), 1, "release_under(): nur der Reflektor unter dem Stück ist vergessen")
+	assert_eq(int(l.get("_static_count")), 0, "… und seine Lampe")
+	chunk.free()
+	other.free()
+	l.call("_update_glints")
+	assert_eq(int(l.get("_reflector_count")), 0, "danach auch der andere freigegebene")
+	l.free()
+
+
+## A-28: the flare layer forgets the static lamps under a dropped chunk's node at once (release_under()).
+func test_flares_release_the_lamps_of_a_dropped_chunk() -> void:
+	var f: Node = (load("res://scripts/race3d/layers/flares.gd") as GDScript).new()
+	var chunk := Node3D.new()
+	var below := Node3D.new()
+	chunk.add_child(below)
+	var other := Node3D.new()
+	var lamp := [{"pos": Vector3(0.0, 8.0, 0.0), "dir": Vector3.DOWN, "role": "street", "color": Color.WHITE, "size": 0.6}]
+	f.call("add_static", below, lamp)
+	f.call("add_static", other, lamp)
+	assert_eq(int(f.get("_static_count")), 2, "zwei Lampen gemeldet")
+	f.call("release_under", chunk)
+	assert_eq(int(f.get("_static_count")), 1, "die Lampe unter dem Stück ist vergessen, die andere bleibt")
+	chunk.free()
+	other.free()
+	f.call("release_under", null)
+	assert_eq(int(f.get("_static_count")), 0, "freigegebene Knoten werden ebenfalls vergessen")
+	f.free()
+
+
 func test_beam_at() -> void:
 	var l: Node3D = Lights.new()
 	l.call("setup", null)

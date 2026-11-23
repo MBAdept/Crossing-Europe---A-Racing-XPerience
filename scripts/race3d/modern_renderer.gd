@@ -258,6 +258,18 @@ func add_lamps(parent: Node3D, lamps: Array) -> void:
 			l.call(&"add_static", parent, lamps)
 
 
+## A-28 (RINT-M3, NACH-RINT N-01): the streamer drops chunk node `root` while it is still being committed – it never
+## entered the tree, so nothing it registered with a layer hears tree_exiting. Every layer with release_under(root)
+## (duck typing: "lights", "flares") forgets the entries under it before the node is freed.
+func release_chunk(root: Node) -> void:
+	if root == null:
+		return
+	for id: String in _layers:
+		var l: Node = _layers[id]
+		if l != null and is_instance_valid(l) and l.has_method(&"release_under"):
+			l.call(&"release_under", root)
+
+
 ## Registers a material whose shader includes assets/shaders/modern/inc/pools.gdshaderinc: the layer "lights" sets
 ## pool_pos_r, pool_col and pool_count on every registered material once per frame.
 func add_pool_material(mat: ShaderMaterial) -> void:

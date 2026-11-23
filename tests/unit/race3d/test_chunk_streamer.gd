@@ -514,6 +514,77 @@ func test_commit_is_spread_over_frames() -> void:
 	root.free()
 
 
+## A builder that registers a reflector with the lights layer in commit() (as builders/roadside.gd does).
+class ReflectorCommit extends SlowCommit:
+	func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
+		super.commit(ctx, part, parent)
+		var r: Variant = ctx.services.get("renderer")
+		if r is Object:
+			var n: Node3D = parent.get_child(parent.get_child_count() - 1)
+			(r as Object).call("layer", "lights").call("add_reflectors", n,
+				[{"pos": Vector3.ZERO, "dir": Vector3.BACK, "color": Color.WHITE, "size": 0.1}])
+
+
+## The part of ModernRenderer the streamer talks to here: the layer "lights" and release_chunk() (A-7, A-28).
+class FakeRenderer extends Node:
+	var lights: Node3D
+	var released := 0
+
+	func layer(id: String) -> Node:
+		return lights if id == "lights" else null
+
+	func release_chunk(root: Node) -> void:
+		released += 1
+		lights.call("release_under", root)
+
+
+## A-28 (RINT-M3, NACH-RINT N-01): a chunk dropped while it is still being committed releases what its committed
+## builders registered with a layer – its node never entered the tree and never sends tree_exiting. Afterwards the
+## glints of the low beam run without a SCRIPT ERROR and count no reflector of it.
+func test_dropped_committing_chunk_releases_its_reflectors() -> void:
+	var t := _syn_track(3000)
+	var builders: Array = []
+	for k in 4:
+		var b := ReflectorCommit.new()
+		b.tag = "refl%d" % k
+		builders.append(b)
+	var m := _streamer(t, builders, false)
+	var st: ChunkStreamer = m[0]
+	var fake := FakeRenderer.new()
+	fake.lights = (load("res://scripts/race3d/layers/lights.gd") as GDScript).new()
+	fake.lights.call("setup", null)
+	fake.lights.call("_build_lights")       # the glints (setup() without a renderer builds nothing)
+	st.services = {"renderer": fake}
+	var root := Node3D.new()
+	root.add_child(st)
+	var cam_z := 20.0
+	st.update(cam_z, 900.0)
+	var half := false
+	while cam_z < 2400.0 and not half:
+		cam_z += 9.0
+		st.update(cam_z, 900.0)
+		for c: Variant in st.get("_chunks").values():
+			if int(c.state) == ChunkStreamer.COMMITTING and int(c.commit_i) > 0:
+				half = true
+	assert_true(half, "ein Stück ist halb eingehängt")
+	var in_tree := 0
+	for c: Variant in st.get("_chunks").values():
+		if int(c.state) == ChunkStreamer.COMMITTED:
+			in_tree += 4      # one reflector per builder
+	st.clear()                # drops and frees every chunk – the half committed one never had a parent
+	assert_true(fake.released >= 1, "release_chunk() für das halb eingehängte Stück (%d)" % fake.released)
+	# (a unit test runs outside the scene tree: the committed chunks send no tree_exiting either – their entries stay
+	# until the glints find the nodes freed; the half committed chunk's entries are gone at once)
+	assert_eq(int(fake.lights.get("_reflector_count")), in_tree, "die Reflektoren des halb eingehängten Stücks sind vergessen")
+	fake.lights.set("_beam", 1.0)
+	fake.lights.call("_update_glints")
+	assert_eq(int(fake.lights.get("_reflector_count")), 0, "nach den Glanzpunkten: kein Reflektor eines freigegebenen Knotens bleibt")
+	assert_eq(int(fake.lights.get("_glint_count")), 0, "Glanzpunkte laufen ohne Fehler, keiner übrig")
+	root.free()
+	fake.lights.free()
+	fake.free()
+
+
 ## Commits of all builders so far (the streamer's commit_by counts).
 static func _builder_commits(st: ChunkStreamer) -> int:
 	var n := 0

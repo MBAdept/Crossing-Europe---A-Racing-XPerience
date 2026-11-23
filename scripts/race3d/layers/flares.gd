@@ -193,6 +193,20 @@ func add_static(parent: Node3D, lamps: Array) -> void:
 	_static_count += list.size()
 
 
+## A-28 (RINT-M3, NACH-RINT N-01): the streamer drops a chunk that is still being committed (its node never entered the
+## tree) – through ModernRenderer.release_chunk() every static lamp registered under `root` (or on a node that is gone)
+## is forgotten now, not only when update() next finds the node freed.
+func release_under(root: Node) -> void:
+	var i := 0
+	while i < _static.size():
+		var pv: Variant = (_static[i] as Array)[0]
+		if is_instance_valid(pv) and root != null and pv != root and not root.is_ancestor_of(pv):
+			i += 1
+			continue
+		_static_count -= ((_static[i] as Array)[1] as Array).size()
+		_static.remove_at(i)
+
+
 func update(view: Dictionary, _dt: float) -> void:
 	var t0 := Time.get_ticks_usec()
 	_n = 0
