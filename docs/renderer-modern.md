@@ -2638,3 +2638,162 @@ Rauschen zu trennen. Ob die Stöße auf dem Gerät weg sind, zeigt erst `spikes`
   bisher höchsten Wert erreicht, und meldet die obere Schranke Ebene + übrige.
 - **Tönungswächter (B-02):** `test_props` verlangt für `baked`, `leaves` und `billboard` die Multiplikation mit der
   Tönung im Code ohne Kommentare.
+
+## 19. Wahrzeichen und Skyline (Bauabschnitt R7b)
+
+Seit R7b gehören die Wahrzeichen einem eigenen Builder: `scripts/race3d/builders/landmarks.gd` mit dem Shader
+`assets/shaders/modern/landmark.gdshader`. Der Hintergrund (`layers/backdrop.gd`) zeichnet zusätzlich die Skyline der
+Zielstadt wie Arcade. Vorlage ist in beiden Fällen Arcades eingefrorener Code (`RoadRenderer.landmark_fade`,
+`_draw_far_landmarks`, `_draw_landmark`, `_skyline_silhouettes`, `_draw_skyline_landmark`, `_draw_landmark_proc`).
+
+### 19.1 Wo ein Wahrzeichen steht
+
+- Quelle ist `Track.landmarks` (ein Eintrag je Wahrzeichen des Etappenplans, aus `Track._build_landmark`). Ein
+  Wahrzeichen ist **kein Teil eines Stücks**: es steht als ein Knoten unter `renderer.world` auf dem Pfad, sobald es
+  in Arcades Reichweite kommt, und wird freigegeben, wenn die Kamera es um `KEEP_BEHIND_M` (320 m) hinter sich
+  gelassen hat. Reichweite = Arcades Wahrzeichenreichweite L = clamp(Sicht × `render.landmark_range_factor`,
+  min(Sicht, 600), max(`render.landmark_far_m`, Sicht)), nachts (Palette `lights` > 0,05) mindestens
+  `render.landmark_far_m` (1.900 m) – dort zeichnet Arcade noch die Beleuchtung. Der Pfad ist dafür weit genug
+  integriert (`graphics.modern.landmark_path_m`, A-3: 3.438 m voraus).
+- Stelle wie Arcade: Bild und Modell mit Arcades Kantenregel (`edge_anchor_x` mit den Ausdehnungen der Seite, die
+  Arcade zeigt), eine prozedurale Form in der Mitte, die Arcades Zeichnung hat (x + Seite × `width_m` / 2 ×
+  `scale`). Höhe: das Gelände an dieser Stelle (`TerrainProfile.height`). Ein Bild dreht sein Shader zum Bildschirm.
+- **Gespiegelt wie Arcade** (FIX-R7b, Befund B-04): Arcade spiegelt das Bild eines Wahrzeichens nach
+  `RoadRenderer.prop_flipped` – eine gewöhnliche Requisite, die für die rechte Seite gebaut ist (Tag `mirror_left`,
+  `props/church` als Dom), steht links gespiegelt; kein `landmarks/*`-Set trägt das Tag, ein echtes Wahrzeichen (und
+  jedes AS6-Modell) wird also nie gespiegelt. Modern macht dasselbe: das Modell steht unter einem Knoten mit negativer
+  x-Skalierung (ein einzelnes `MeshInstance3D` zeichnet gespiegelt richtig), das Bild klappt sein Shader um den Anker
+  (`mirror` = −1), und der Anker misst die Kante mit der Ausdehnung der gespiegelten Seite. Vorher stand der Turm des
+  Magdeburger Doms 37,8 m näher an der Straße (44,7 px bei 600 m); jetzt steht jedes der 143 Wahrzeichen des Netzes
+  an Arcades Anker (`test_landmarks` „anchor_and_mirror…“: größter Unterschied 0,15 m – Modell- gegen
+  Sprite-Ausdehnung, A-4), 23 davon gespiegelt.
+- **Zur Anfahrt gedreht** (FIX-R7b, Befund B-05): Arcade zeigt ein Wahrzeichen immer von vorn. Modell und Form
+  stehen deshalb mit ihrer Vorderseite (+Z) zum Straßenpunkt 600 m vor dem Anker (`APPROACH_M`; höchstens 40°,
+  `MAX_TURN`, gegen die Straßenrichtung am Anker), einmal beim Entstehen des Knotens. R7b drehte sie mit der Straße
+  am Anker – in Kurven zeigten sie ihre Seitenwand (Belgrad ≈ 85 px neben Arcade, breiter). Die Drehung bringt keine
+  Ecke des Grundrisses näher an die Straße als die Aufstellung längs der Straße (`near_shift`: sonst rückt das
+  Wahrzeichen um den Unterschied nach außen).
+- `builders/props.gd` lässt alle Wahrzeichen-Einträge diesem Builder, sobald es ihn gibt (seine Ente-Typ-Weiche
+  `_skip_landmarks = renderer.builder("landmarks") != null`, Zeilen 88, 122, 329, 539, 741 – sie stand schon im Code;
+  R7b hat `props.gd` nicht geändert).
+- Gemessen (`tests/race3d/check_landmarks.gd` „position“): auf den drei Anfahrten des Netzes, die 640 m gerade
+  verlaufen (Burgos; die Kirche vor Slavonski Brod aus beiden Richtungen), steht der Anker 600 m voraus 0,0 px neben
+  Arcades Stelle (Bild wie Kirchenmodell; erlaubt sind 5 % der Bildbreite, 64 px). Vor FIX-R7b waren es beim
+  Kirchenmodell 24,7 px auf diesen Anfahrten und netzweit bis 44,7 px (die fehlende Spiegelung, oben). Alle zehn
+  Stadteinfahrten der A/B-Bögen verlaufen in den letzten 640 m in Kurven (|curve| 0,11–0,29).
+
+### 19.2 Womit ein Wahrzeichen gezeichnet wird (Schnittstelle für AS6)
+
+Reihenfolge (Entscheidung der Leitung, Punkt 3):
+1. **Modell** – das Set hat im Manifest ein Modell (`ModelDB`, `PropLibrary` Art MODEL): das Modell. Seine Flächen
+   der Klassen `baked` / `baked_cutout` zeichnet `landmark.gdshader` (CE_ATLAS, mit CE_CUTOUT), `vpbr` CE_VCOL;
+   `glass` und `leaves` behalten ihr Klassenmaterial (ohne Wahrzeichen-Gesetz – AS6 sollte sie bei Wahrzeichen
+   meiden). Heute zeichnen 46 der 143 Wahrzeichen des Netzes als Modell: `props/church` 38-mal (ein Dom als
+   gewöhnliche Requisite), `props/building_tall` 5-mal, `landmarks/michel` 3-mal (Datenscan QA-R7b).
+2. **Arcades Bild** – sonst die Zelle „c“ des Sprite-Blatts, wie Arcade sie zeichnet (CE_PICTURE): dieselbe Rechnung
+   wie die Vertretungen (`billboard.gdshader`, Bild mit eingebackenem Licht × das Licht einer mittelgrauen Fläche),
+   die Lichtebene des Sprites nachts darüber, ungedunstet.
+3. **Prozedurale Form in 3D** – sonst die Art, die Arcade prozedural zeichnet (`proc`, kein Sprite, kein Modell):
+   `domed_church`, `tv_tower`, `lighthouse`, `skyscrapers` (`proc_mesh()`, aus Arcades Maßen der
+   `_lm_*`-Zeichnungen: Bezugshöhen 80 / 368 / 51 / 259 m, skaliert auf `height_m` × `scale`). Ein Fernsehturm bleibt
+   ein schlanker Turm, ein Leuchtturm ein Leuchtturm (offener Punkt N2: vorher ein breiter Block des Ersatz-Sets).
+   Betroffen: Hannover (Neues Rathaus), Dortmund (Florianturm), Leipzig (Völkerschlachtdenkmal), Madrid (Cuatro
+   Torres), Belgrad (Kirche des Heiligen Sava), Calais (Leuchtturm).
+4. **Ersatz-Set** – sonst das `fallback` des Eintrags bzw. des Etappenplans (Modell oder Bild, mit `fallback_scale`
+   und `fallback_tint`). Heute für keine Stadt nötig.
+
+AS6 muss dafür nichts am Renderer ändern: sobald `assets/models/manifest.json` für `landmarks/<name>` ein Modell
+führt, steht es statt des Bildes da (Ursprung = Anker des Sprites, −Z vom Fahrer weg, Klassen wie oben). Ein Modell
+für einen prozeduralen Eintrag (z. B. `landmarks/florianturm`) ersetzt die 3D-Form ebenso. Nachtlicht eines
+Modells: der Emissionsatlas (`baked`) bzw. die Lampenkanäle 10–14 (`vpbr`).
+
+### 19.3 Arcades Gesetz, weiches Ausblenden
+
+Je Wahrzeichen und Bild aus dem Abstand d seines Ankers (`fade()`, wie `RoadRenderer._draw_landmark`):
+Deckung 1 − smoothstep(0,72 L, L, d), Dunst 0,85 × (d − Nebelbeginn) / (L − Nebelbeginn) zur Nebelfarbe × 1,15,
+Beleuchtung = Nacht × (1 − smoothstep(0,8 F, F, d)) mit F = `render.landmark_far_m`, Anstrahlen (0,55 × Beleuchtung
+in `RoadRenderer.LANDMARK_FLOOD`) für eine gewöhnliche Requisite, die als Wahrzeichen steht (`props/church` als Dom).
+Die vier Werte gehen als `lm_fade` an die Materialien des Wahrzeichens – **jedes Wahrzeichen hat seine eigenen
+Materialien, keine Instanz-Uniform** (A-19).
+
+Nachts wie Arcade (FIX-R7b):
+- Bild (CE_PICTURE): die Lichtebene des Sprites liegt in **Anzeigewerten** über dem Bild (wie Arcades Leinwand und
+  `billboard.gdshader`), nicht linear gemischt – linear war ein halb heller Mischpixel aus dunkler Fassade und
+  hellem Fenster deutlich heller (Elbphilharmonie 22 Uhr: Fassade +28 % gegen Arcade; jetzt 0,99 ×, Render-Prüfung
+  „nacht_hell“).
+- Anstrahlen einer gewöhnlichen Requisite: im Bild wie Arcade (Bild × Flutlichtfarbe), beim Modell (CE_ATLAS) als
+  eigenes Licht – Albedo × Flutlichtfarbe × Anteil, die beleuchtete Albedo behält 1 − Anteil. R7b skalierte nur die
+  beleuchtete Albedo, die nachts kaum Licht bekommt. Gemessen (Render-Prüfung „anstrahlung“, 22 Uhr): Bremer Dom
+  (Modell) 1,32 × heller als ohne Anstrahlen und 0,97 × Arcade, Fourvière in Lyon (Bild) 1,71 × und 1,05 × Arcade.
+
+Weich statt gerastert (Befund B-09): ab 0,70 L zeichnet ein Wahrzeichen mit der durchscheinenden Variante seines
+Materials (CE_BLEND, `blend_mix`), näher mit der deckenden (Schatten, Tiefe – nahe Wahrzeichen werfen Schatten).
+Jenseits von L bleiben nachts nur seine leuchtenden Pixel. Die durchscheinenden Varianten der beleuchteten Klassen
+schreiben Tiefe (`depth_draw_always`): bei voller Deckung ist die Kuppelkirche in beiden Varianten pixelgleich
+(gemessen, Sonne mit Schatten, 0 von 921.600 Pixeln verschieden; mit `depth_draw_opaque` waren es 481 – die
+Flächen eines Netzes überdeckten sich in Zeichenreihenfolge). Prüfungen: `check_landmarks.gd` „weich“ (Material),
+`render/check_landmarks_render.gd` „wahrzeichen_weich“ (Differenzbild ohne Rastermuster).
+
+### 19.4 Die prozeduralen Formen
+
+`ShapeKit` baut Dreiecke im Format CE_VCOL (Farbe, Rauheit/Metall in UV, Lampenkanal in UV2) und Leuchtpunkte (CE_GLOW).
+- Kuppelkirche: Baukörper 64 × 44 × 30 m mit Gesims und flachem Walmdach, zwei Reihen Rundbogenfenster auf allen
+  Seiten, Portal, zwei Seitenkuppeln auf Tambouren, Haupttambour mit zwölf Fenstern, Hauptkuppel, Laterne, Spitze,
+  Kreuz (außer `cross: false`). Farben `wall` / `dome` des Katalogs. Nachts angestrahlt (Kanal 14; das Licht geht wie
+  Arcades Überzug ungedunstet durch den Dunst), Fenster warm (Kanal 12), warmer Schein um die Hauptkuppel wie Arcades
+  `_lm_glow` (16 m, 0,4).
+- Fernsehturm: Schaft in drei Kegelstümpfen, Kugel mit Fensterring (nachts warm), oberer Schaft, Antenne mit
+  rot-weißen Bändern, rote Flugwarnlichter bei 252 m (fest) und 300 / 368 m (1,5 s blinkend) – wie Arcade.
+- Leuchtturm: weißer Turm mit Fenstern, Wärterhaus mit Dach, schwarze Galerie, Laternenraum (nachts hell), Kuppel; das
+  Feuer blitzt viermal je Umdrehung (15 s), dazu Arcades vier kreisende Lichtstrahlen (240 m, flache Bänder, die sich
+  um ihre Achse zur Kamera drehen; CE_GLOW Art 3).
+- Hochhausgruppe: fünf Türme mit Glasfassade (Geschossbänder alle 4 m, Pfosten alle 3 m im Shader, nachts 35 % der
+  Fenster hell wie Arcade), Mast oder Pyramide, blinkendes Flugwarnlicht je Turm (auf der Spitze; auf einem flachen
+  Dach an dessen Vorderkante, sonst verdeckt die Brüstung das Licht in Arcades Größe von unten – FIX-R7b).
+Dreiecke (gemessen): Kuppelkirche 1.626–1.636, Fernsehturm 1.012, Leuchtturm 246, Hochhausgruppe 124 (die Fassade
+zeichnet der Shader) – je eine Fläche plus eine für die Leuchtpunkte; gebaut in 0,3–3,8 ms beim ersten Gebrauch
+(zwischengespeichert je Art, Höhe und Farben – nicht nach dem Maßstab, den trägt der Knoten; FIX-R7b, B-07).
+
+**Hauptachse am Anker** (FIX-R7b, Befund B-05): Arcade zeichnet ein prozedurales Wahrzeichen flach in der Ebene seines
+Ankers, die Kuppel am Anker. Die Formen stehen deshalb mit ihrer Hauptachse – Hauptkuppel, Turm, höchstes Hochhaus –
+auf dem Anker (`PROC_AXIS_Z`: 22 / 16 / 7 / 18 m × Maßstab nach vorn gerückt), der Körper reicht vor und hinter ihn.
+Vorher stand die Vorderseite am Anker und die Kuppel 25 m dahinter: tiefer und kleiner als in Arcade, in Leipzig hinter
+einem Baum verborgen.
+
+**Leuchtpunkte wie Arcades `_lm_glow`** (FIX-R7b, Befund B-02): eine weiche Scheibe der Farbe (Deckung 0,8 a, zum Rand
+linear auf 0) unter einem Kern von 0,35 des Radius in der um die Hälfte aufgehellten Farbe (Deckung 1,2 a); Radius
+max(Mindestpixel, Meter) mit Arcades Maßen – Flugwarnlicht des Fernsehturms 6 m / 2,5 px / a 0,85, der Hochhäuser
+3 m / 2,5 px / 0,85, Schein um die Kuppel 16 m / 4 px / 0,4, Leuchtfeuer 3,5 m (beim Blitz bis 25,5 m) / 2,5 px /
+0,5 … 1. Der Pixelmaßstab im Vertex-Schritt nimmt den **Betrag** von `PROJECTION_MATRIX[1][1]`: im Compatibility-
+Renderer ist er negativ (die Szene wird kopfüber in ihren Puffer gezeichnet). R7b rechnete mit dem Vorzeichen – jeder
+Leuchtpunkt bekam die Sicherheitsgrenze (3 % seiner Tiefe) statt seiner Größe; das Flugwarnlicht des Florianturms war
+17 × 19 px gegen Arcades 4 × 4 px (gemessen: jetzt 15 gegen Arcades 10 rote Pixel bei 22 Uhr).
+
+### 19.5 Skyline im Hintergrund (`layers/backdrop.gd`)
+
+Wie Arcade: nur in den City Limits (Bodenpunkt der Kamera), je Eintrag von `cities.json` „skyline“ eine Silhouette auf
+der Grundlinie des Panoramas in `render.skyline_distance_m` (1.800 m) Größe; beim ersten Sehen am Panorama verankert
+(`azimuth_deg`, sonst die wahre Richtung des Wahrzeichens auf der Straße von der Kamera aus – in 3D die Richtung
+seines Ankers auf dem Pfad –, sonst Arcades feste Winkel `SKY_OFFSETS`), danach dreht sie mit dem Panorama. Steht
+dasselbe Wahrzeichen auf der Straße, blendet die Silhouette aus, solange es in Reichweite ist (smoothstep(L, 1,15 L,
+d)) – dann übernimmt das 3D-Wahrzeichen, nie doppelt. Gezeichnet wird eine Sprite-Silhouette als Zelle „c“ des
+Blatts (× Umgebungslicht zum Nebel × 1,15 nach dem Dunst, getönt, nachts die Lichtebene), eine prozedurale mit
+Arcades eigener 2D-Zeichnung: eine `RoadRenderer`-Instanz, die nie in den Baum kommt, zeichnet über ihren `GeoBatch` in
+die Leinwand des Hintergrunds. Die Blätter werden in `prepare()` aufgelöst (hinter der Ladeabdeckung). Verankert wird
+erst, wenn die Etappe vorbereitet ist (vorher steht die Kamera noch nicht im Startbild). Snapshot:
+`backdrop.skyline` (Set, Winkel, Deckung, x). Prüfung `check_landmarks.gd` „skyline“.
+
+### 19.6 Dateien und Prüfungen
+
+| Datei | Was |
+|---|---|
+| `scripts/race3d/builders/landmarks.gd` | der Builder (Plan je Wahrzeichen, Gesetz, Materialien, Formen, Aufwärmen auf den echten Netzen) |
+| `assets/shaders/modern/landmark.gdshader` | CE_PICTURE, CE_ATLAS (+ CE_CUTOUT), CE_VCOL, CE_GLOW, je mit CE_BLEND |
+| `scripts/race3d/layers/backdrop.gd` | Skyline (§19.5) |
+| `tests/unit/race3d/test_landmarks.gd` | Gesetz = `RoadRenderer.landmark_fade` an 20 Abständen und drei Sichtweiten, Reichweite, jedes Wahrzeichen der 55 Städte hat eine Darstellung (die sechs prozeduralen als 3D-Form), Anker wie Arcade, Anker und Spiegelung aller 143 Wahrzeichen des Netzes gegen Arcades `_prep_prop` / `prop_flipped` (FIX-R7b), Ausrichtung zur Anfahrt ohne Ecke näher an der Straße (FIX-R7b), Formen (Höhe, Hauptachse am Anker, schlank, Flächen nach außen gewunden, Leuchtpunkte), keine Instanz-Uniform, Varianten, Tönung ferner und naher Wahrzeichen (offener Punkt N1) |
+| `tests/race3d/check_landmarks.gd` | „reichweite“, „nacht“, „position“, „prozedural“, „weich“, „skyline“ in der echten Rennszene (headless) |
+| `tests/race3d/render/check_landmarks_render.gd` | „wahrzeichen_stelle“ (Pixel des Wahrzeichens in Arcades Bild desselben Zustands gesucht: Versatz ≤ 5 % der Bildbreite), „wahrzeichen_weich“, „wahrzeichen_nacht“, „nacht_hell“ (FIX-R7b: Fassade der Elbphilharmonie 22 Uhr 0,8–1,1 × Arcade), „flugfeuer“ (Dortmund 22 Uhr: rote Flugwarnlichter sichtbar, höchstens 3 × Arcades rote Pixel desselben Zustands und höchstens 3 % des Bildes – die Leuchtpunkte rechnen ihre Größe mit der Bildhöhe aus einer Uniform, `VIEWPORT_SIZE` liest im Vertex-Schritt 0), „anstrahlung“ (FIX-R7b: Bremer Dom als Modell und Fourvière in Lyon als Bild, 22 Uhr – sichtbar angestrahlt, 0,8–1,25 × Arcade). Arcades Wahrzeichen-Pixel: dasselbe angehaltene Bild noch einmal mit leer vorbereiteten Wahrzeichen (`_c`, der Zwischenspeicher von `_prep_prop`) – an Arcade wird nichts geändert |
+| `tests/race3d/check_minimal_structures.gd` | „wahrzeichen“ verweist auf die Prüfungen oben, sobald es den Builder gibt |
+
+Offen: Modelle der Wahrzeichen (AS6); Wahrzeichen-Modelle mit Glas- oder Laubflächen blenden diese Flächen nicht
+weich aus.
