@@ -8,7 +8,9 @@ extends ChunkBuilder
 ## drops (drop_reason()):
 ##   "ribbon"    the prop stands beyond the clamped terrain ribbon (inside of a bend, medial axis): no ground there
 ##   "corridor"  decorative scenery inside the sight corridor of a bend (fairness rule F7): scenery-rule props and all
-##               vegetation. A dropped plant is replaced by ground cover (amendment A-3): pieces of the sets of
+##               vegetation – the WHOLE object (A-24: the AABB of its model, turned as placed, footprint()); one
+##               whose foot stands outside but whose model reaches in is first pushed away from the road, at most
+##               PUSH_MAX_M (push_out()); attached props likewise. A dropped plant is replaced by ground cover (amendment A-3): pieces of the sets of
 ##               graphics.modern.props.bend_cover (props/cover_bush, props/cover_grass), at most bend_cover_max_h_m
 ##               (0.5 m) high – one for a bush, three for a tree, not in the City Limits (cover_pieces(); debug
 ##               "cover", list "cover_list");
@@ -52,6 +54,11 @@ extends ChunkBuilder
 
 const OBJECT_SETS := {"streetlight": "props/streetlight"}   ## Track "object" items drawn here while builders/city.gd is missing
 const RIBBON_MARGIN_M := 1.0       ## a prop needs this much ribbon beyond its foot
+## A-24 (FIX-R7a's patch, RINT-M3): a prop whose foot stands outside the sight lines of a bend but whose model reaches
+## into them moves away from the road by that depth + PUSH_MARGIN_M – at most PUSH_MAX_M (FIX-R7a measured: 6 m lost
+## 180 city houses of the base, 12 m 8) – and is left out only when that is not enough (push_out(), footprint())
+const PUSH_MARGIN_M := 0.3
+const PUSH_MAX_M := 12.0
 const SLOPE_PROBE_M := 1.5         ## the ground plane under a prop is taken from points this far apart
 const BLOB_LIFT_M := 0.03
 const SHADOW_KEEP_M := 40.0        ## shadow casters stay on this far beyond the reach of the shadow map
@@ -846,7 +853,12 @@ static func _place(ctx: ChunkContext, inp: Dictionary, out: Dictionary, i: int, 
 	var flipped := side < 0 and not landmark and (bool(e["mirror_left"]) or (not is_model and bool(it.get("mirror", false))))
 	if it.has("align") and side != 0:
 		x = edge_anchor_x(x, side, flipped, float(e["extent_l"]), float(e["extent_r"]), sc)
-	var reason := drop_reason(ctx, it, e, z, x, side, seg_index, j, density, cover)
+	# A-24: the whole object against the sight lines of a bend – the model's AABB turned as it will stand
+	var yaw := place_yaw(e, seg_index, j) if is_model else 0.0
+	var fp := footprint(e, sc, side, flipped, it.has("align"), yaw)
+	if not is_cover:
+		x = push_out(ctx, it, e, z, x, side, fp, cover)
+	var reason := drop_reason(ctx, it, e, z, x, side, seg_index, j, density, cover, fp)
 	if reason != "":
 		if is_cover:
 			return
@@ -859,7 +871,6 @@ static func _place(ctx: ChunkContext, inp: Dictionary, out: Dictionary, i: int, 
 	if side != 0 and not it.has("offset") and cover.has(str(e["set"])) and ctx.in_bend_corridor(z, x):
 		sc = minf(sc, cover_max_h / maxf(0.01, float(e["height"])))   # ground cover inside the corridor
 	var h := 0.0
-	var yaw_base := hash01(seg_index, j, 5)
 	if it.has("h"):
 		# given relative to the road (ships on the water); RINT-M2 (QR5-08): with the bridge builder the water lies
 		# WATER_LIFT (0.15 m) above the terrain's water rows – the boats float on it, not 15 cm below
@@ -880,9 +891,6 @@ static func _place(ctx: ChunkContext, inp: Dictionary, out: Dictionary, i: int, 
 	var dark := not landmark and bool(it.get("prefer_proc", false))
 	if is_model:
 		model_id = chunk_variant(ctx.index, str(e["set"]), e["variants"])
-		var yaw := yaw_base * TAU if bool(e["veg"]) or str(e["cls"]) == "rock" else 0.0
-		if bool(e.get("face_road", false)):
-			yaw = (yaw_base - 0.5) * 2.0 * deg_to_rad(FACE_ROAD_DEG)   # R7c (A-16): at most ±20° away from facing the road
 		tr = ctx.frame(z, x, h, yaw).scaled_local(Vector3(sc, sc, sc))
 		if bool(e.get("ground_align", false)) and not it.has("h") and not it.has("bridge"):
 			tr.basis = align_basis(ctx, z, x, h, tr.basis)          # R7c (A-16): tilted to the ground normal
@@ -958,8 +966,9 @@ static func _place(ctx: ChunkContext, inp: Dictionary, out: Dictionary, i: int, 
 	var counts: Dictionary = out["counts"]
 	var attached := bool(it.get("attached", false))
 	counts[str(e["set"]) if is_cover else set_id] = int(counts.get(str(e["set"]) if is_cover else set_id, 0)) + 1
+	# [seg, item, set, x, z, scale, mirrored, kind, yaw (rad, as placed – A-24: tests/race3d/check_props_footprint.gd)]
 	(out["cover_list"] if is_cover else (out["attach_list"] if attached else out["list"])).append([seg_index, j, str(e["set"]),
-		snappedf(x, 0.001), snappedf(z, 0.001), snappedf(sc, 0.0001), 1 if flipped else 0, int(e["kind"])])
+		snappedf(x, 0.001), snappedf(z, 0.001), snappedf(sc, 0.0001), 1 if flipped else 0, int(e["kind"]), snappedf(yaw, 0.0001)])
 	# R7c (lead decision 6): the props the model places with itself – ordinary items of their own sets (own level of
 	# detail, own drops: an attached tree inside a bend corridor is left out like any tree)
 	if is_model and not attached and not is_cover:
@@ -1091,9 +1100,11 @@ static func item_set(it: Dictionary, inp: Dictionary) -> String:
 	return ""
 
 
-## Why a prop is left out ("" = it is drawn): see the header. e = its PropLibrary entry, (z, x) its foot.
+## Why a prop is left out ("" = it is drawn): see the header. e = its PropLibrary entry, (z, x) its foot, fp its
+## footprint (footprint(): reach towards the road, middle and half length along the road; Vector3.ZERO = the foot
+## only) – A-24: no part of the object in the sight lines of a bend (ChunkContext.in_sight_envelope()).
 static func drop_reason(ctx: ChunkContext, it: Dictionary, e: Dictionary, z: float, x: float, side: int, seg_index: int, item: int,
-		density: float, cover: Array) -> String:
+		density: float, cover: Array, fp: Vector3 = Vector3.ZERO) -> String:
 	if side == 0:
 		return ""
 	var decorative := not it.has("offset")           # placed by a scenery rule, not by an event of the stage
@@ -1101,12 +1112,74 @@ static func drop_reason(ctx: ChunkContext, it: Dictionary, e: Dictionary, z: flo
 	var beyond := absf(x) - ctx.shoulder_edge(row, side)
 	if beyond > ctx.ribbon_width(z, side) - RIBBON_MARGIN_M:
 		return "ribbon"
-	if (decorative or bool(e["veg"])) and not bool(it.get("landmark", false)) and ctx.in_bend_corridor(z, x) \
-			and not cover.has(str(e["set"])):
+	if (decorative or bool(e["veg"])) and not bool(it.get("landmark", false)) \
+			and ctx.in_sight_envelope(z + fp.y, x, fp.x, fp.z) and not cover.has(str(e["set"])):
 		return "corridor"
 	if density < 1.0 and decorative and thinnable(e) and hash01(seg_index, item, 7) >= density:
 		return "density"
 	return ""
+
+
+## A-24 (FIX-R7a's push-out, RINT-M3): a prop whose foot stands outside the envelope of the sight lines of a bend but
+## whose model (fp = footprint()) reaches into it moves away from the road by that depth + PUSH_MARGIN_M – at most
+## PUSH_MAX_M – and keeps its place in the picture instead of being left out; drop_reason() leaves out what still
+## reaches in or then lies beyond the ribbon. Never props the builder does not drop (landmarks, items of a stage event
+## that are not plants, ground cover). Returns the new x.
+static func push_out(ctx: ChunkContext, it: Dictionary, e: Dictionary, z: float, x: float, side: int, fp: Vector3,
+		cover: Array) -> float:
+	if side == 0 or bool(it.get("landmark", false)) or cover.has(str(e["set"])):
+		return x
+	if it.has("offset") and not bool(e["veg"]):
+		return x
+	if ctx.bend_intrusion(z, x) >= 0.0:
+		return x       # the foot itself stands in the sight lines: left out (a plant becomes ground cover)
+	var depth := ctx.bend_intrusion(z + fp.y, x, fp.x, fp.z)
+	if depth < 0.0 or depth > PUSH_MAX_M:
+		return x
+	return x + float(side) * (depth + PUSH_MARGIN_M)
+
+
+## Yaw (rad) a model of entry e stands with (item `item` of segment `seg_index`): a stable random turn for trees,
+## plants and rocks, at most ±FACE_ROAD_DEG for face_road models (R7c, A-16), 0 for everything else.
+static func place_yaw(e: Dictionary, seg_index: int, item: int) -> float:
+	var u := hash01(seg_index, item, 5)
+	if bool(e.get("face_road", false)):
+		return (u - 0.5) * 2.0 * deg_to_rad(FACE_ROAD_DEG)
+	if bool(e["veg"]) or str(e["cls"]) == "rock":
+		return u * TAU
+	return 0.0
+
+
+## A-24 (RINT-M3, lead decision): the footprint of a prop for the sight lines of a bend, from the model itself – the
+## AABB of the union of its variants (PropLibrary "aabb"), scaled, mirrored and turned by yaw as _place() places it
+## (ChunkContext.frame(): model +X = right of travel, model -Z = forward). Returns Vector3(reach: how far it extends
+## from its foot towards the road, dz: the middle of its extent along the road relative to the foot, half_len: half
+## that extent). Edge-aligned items reach at least to Arcade's near edge (the extent of the set; props/city_french_sud's
+## upper floors reach 2.08 m beyond it). A stand-in (no AABB): half its width as crown, the extent for aligned items,
+## centred on the foot – FIX-R7a's model.
+static func footprint(e: Dictionary, sc: float, side: int, flipped: bool, aligned: bool, yaw: float) -> Vector3:
+	var half_w := float(e["width"]) * sc * 0.5
+	var edge := 0.0
+	if aligned and side != 0:
+		edge = (float(e["extent_l"]) if (side > 0 or flipped) else float(e["extent_r"])) * sc
+	var a: Array = e.get("aabb", [])
+	if a.size() != 6:
+		return Vector3(edge if aligned and side != 0 else half_w, 0.0, half_w)
+	var c := cos(yaw)
+	var s := sin(yaw)
+	var lat := Vector2(INF, -INF)
+	var fwd := Vector2(INF, -INF)
+	for mx: float in [float(a[0]), float(a[3])]:
+		for mz: float in [float(a[2]), float(a[5])]:
+			var px := -mx if flipped else mx
+			var l := (px * c - mz * s) * sc
+			var f := (-px * s - mz * c) * sc
+			lat = Vector2(minf(lat.x, l), maxf(lat.y, l))
+			fwd = Vector2(minf(fwd.x, f), maxf(fwd.y, f))
+	var reach := -lat.x if side >= 0 else lat.y      # the road lies at -x of a prop on the right, at +x on the left
+	if aligned and side != 0:
+		reach = maxf(reach, edge)
+	return Vector3(maxf(reach, 0.0), 0.5 * (fwd.x + fwd.y), 0.5 * (fwd.y - fwd.x))
 
 
 ## True for the small decoration "Details" may thin out: trees, bushes, rocks and other low things (bales). Never

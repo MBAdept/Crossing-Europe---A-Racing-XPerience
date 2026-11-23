@@ -848,9 +848,29 @@ func _real_track(stage_id: String, from_city: String, net: Dictionary) -> Track:
 	return null
 
 
+## FIX-R7a (QR7a-01), RINT-M3 (A-24): how deep the footprint of a prop (reach towards the road, half_len along the road
+## around z) reaches into the exact envelope of the sight lines (the rows lo .. hi the chunk's snapshot holds;
+## ChunkContext.bend_intrusion() computed from the TerrainProfile).
+func _bend_depth(t: Track, tp: TerrainProfile, z: float, x: float, side: int, reach: float, half_len: float, lo: int, hi: int) -> float:
+	var n := 0 if half_len <= 0.0 else int(ceil(half_len * 2.0 / t.seg_len))
+	var depth := -INF
+	for q in n + 1:
+		var zq := z if n == 0 else z - half_len + half_len * 2.0 * float(q) / float(n)
+		var fq := zq / t.seg_len
+		var kq := clampi(int(floor(fq)), lo, hi - 1)
+		var u := clampf(fq - float(kq), 0.0, 1.0)
+		var m := absf(x) - lerpf(tp.edge(kq, side), tp.edge(kq + 1, side), u)
+		if m <= 0.0:
+			continue
+		var cw := maxf(tp.envelope_width(kq, side), tp.envelope_width(kq + 1, side))
+		if cw > 0.0:
+			depth = maxf(depth, cw - (m - maxf(reach, 0.0)))
+	return depth if depth > -INF else -1.0
+
+
 ## What the builder must draw of segment `k`, from the track itself and the kernel's TerrainProfile (not from the
 ## chunk snapshot): [[item index, set id]] and the drops.
-func _expected(t: Track, tp: TerrainProfile, lib: PropLibrary, k: int, dropped: Dictionary) -> Array:
+func _expected(t: Track, tp: TerrainProfile, lib: PropLibrary, k: int, dropped: Dictionary, lo: int = -1000000, hi: int = 1000000) -> Array:
 	var out: Array = []
 	var s := t.get_segment(k)
 	for j in s.sprites.size():
@@ -888,10 +908,17 @@ func _expected(t: Track, tp: TerrainProfile, lib: PropLibrary, k: int, dropped: 
 			if beyond > lerpf(tp.limit(k, side), tp.limit(k + 1, side), f) - Props.RIBBON_MARGIN_M:
 				dropped["ribbon"] += 1
 				continue
-			var m := absf(x) - lerpf(tp.edge(k, side), tp.edge(k + 1, side), f)
-			var corr := lerpf(tp.corridor_width(k, side), tp.corridor_width(k + 1, side), f)
-			var in_bend := corr > tp.corridor_min_m - t.shoulder_w + 0.5 and m > 0.0 and m <= corr
-			if in_bend and (not it.has("offset") or bool(e["veg"])) and not bool(it.get("landmark", false)):
+			# A-24: the whole object (the model's AABB turned as placed) – pushed out of the envelope, else left out
+			var fp := Props.footprint(e, sc, side, flipped, it.has("align"), Props.place_yaw(e, k, j) if is_model else 0.0)
+			var droppable := (not it.has("offset") or bool(e["veg"])) and not bool(it.get("landmark", false))
+			if droppable and _bend_depth(t, tp, z, x, side, 0.0, 0.0, lo, hi) < 0.0:
+				var d := _bend_depth(t, tp, z + fp.y, x, side, fp.x, fp.z, lo, hi)
+				if d >= 0.0 and d <= Props.PUSH_MAX_M:
+					x += float(side) * (d + Props.PUSH_MARGIN_M)     # push_out()
+					if absf(x) - tp.edge(k, side) > lerpf(tp.limit(k, side), tp.limit(k + 1, side), f) - Props.RIBBON_MARGIN_M:
+						dropped["ribbon"] += 1
+						continue
+			if droppable and _bend_depth(t, tp, z + fp.y, x, side, fp.x, fp.z, lo, hi) >= 0.0:
 				dropped["corridor"] += 1
 				continue
 		out.append([j, str(e["set"])])
@@ -929,7 +956,7 @@ func test_chunk_list_is_the_tracks_list_minus_the_documented_drops() -> void:
 			var dropped := {"ribbon": 0, "corridor": 0, "missing": 0, "density": 0}
 			for k in range(int(ch["seg_a"]), int(ch["seg_b"])):
 				sceneries[t.get_segment(k).scenery] = true
-				for e: Array in _expected(t, tp, b.library, k, dropped):
+				for e: Array in _expected(t, tp, b.library, k, dropped, int(ch["seg_a"]) - ChunkContext.ENV_MARGIN, int(ch["seg_b"]) + ChunkContext.ENV_MARGIN):
 					want["%d/%d" % [k, int(e[0])]] = str(e[1])
 			assert_eq(got, want, "%s km %.0f, Stück %d: Requisitenliste = Streckenliste minus Auslassungen" % [where[0], where[2], int(ch["index"])])
 			assert_eq(part.get("dropped", dropped), dropped, "%s km %.0f, Stück %d: Auslassungen nach Grund" % [where[0], where[2], int(ch["index"])])

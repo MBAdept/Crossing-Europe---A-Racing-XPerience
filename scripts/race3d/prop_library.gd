@@ -19,7 +19,8 @@ extends RefCounted
 ##   metres, "ax", "ay": anchor inside the cell, "extent_l", "extent_r": metres from the anchor to the object's sides
 ##   (edge alignment), "mirror_left": mirrored on the left roadside, "width", "height": object size (m),
 ##   "cls": "tree" | "plant" | "rock" | "building" | "landmark" | "other", "veg": tree or plant, "blob": density of
-##   its contact shadow (0 = none), "cast": lowest levels.shadow_casters at which it casts a real shadow}
+##   its contact shadow (0 = none), "cast": lowest levels.shadow_casters at which it casts a real shadow, "aabb":
+##   union of the variants' model AABBs [x0, y0, z0, x1, y1, z1] (models only; A-24, variants_aabb())}
 ## models[model_id] = {"reps": [representation at chunk LOD level 0, 1, 2] ("lod0" … | "impostor"), "caster": has a
 ##   low-poly shadow mesh, "lamps": [{"pos", "dir", "role", "color", "size", "range", "energy"}] (anchors with a
 ##   direction: street lights), "imp_w", "imp_h", "imp_ax": impostor quad}
@@ -230,6 +231,7 @@ func _resolve(set_id: String) -> Dictionary:
 		for mid: Variant in variants:
 			_add_model(str(mid))
 		e["variants"] = variants
+		e["aabb"] = variants_aabb(variants)
 		if str(model.get("kind", "")) != "":
 			e["cls"] = _cls_of_kind(str(model["kind"]))
 	elif not sp.is_empty() and str(r.get("fallback", "sprite")) == "sprite":
@@ -258,6 +260,23 @@ func _resolve(set_id: String) -> Dictionary:
 		"other":
 			e["blob"] = 0.85 if float(e["height"]) <= 6.0 and not tags.has("road") and not tags.has("bridge") and not tags.has("ship") and not tags.has("boat") else 0.0
 	return e
+
+
+## A-24 (RINT-M3): the union of the manifest AABBs ([x0, y0, z0, x1, y1, z1], model space) of a set's variant models –
+## the largest variant wherever it stands; [] when none carries one. Props.footprint() turns it as the prop is placed.
+static func variants_aabb(variants: Array) -> Array:
+	var out: Array = []
+	for mid: Variant in variants:
+		var a: Array = ModelDB.model(str(mid)).get("aabb", [])
+		if a.size() != 6:
+			continue
+		if out.is_empty():
+			out = [float(a[0]), float(a[1]), float(a[2]), float(a[3]), float(a[4]), float(a[5])]
+			continue
+		for c in 3:
+			out[c] = minf(float(out[c]), float(a[c]))
+			out[c + 3] = maxf(float(out[c + 3]), float(a[c + 3]))
+	return out
 
 
 static func _cls_of_kind(kind: String) -> String:
