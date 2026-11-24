@@ -57,11 +57,12 @@ void vertex() {
 void fragment() {
 	vec2 p = ce_ground_pos(v_world);
 	float dist = length(v_world - CAMERA_POSITION_WORLD);
-	vec3 tone = ce_ground_far(p, dist);
+	float bare;                                 // R7d: what stands out of a snow cover
+	vec3 tone = ce_ground_far_b(p, dist, bare);
 	// the rim is a wall 2.4 km away: the ground pattern (blotches, fields) would run into vertical stripes on it – it
 	// shows the mean of the far ground
 	tone = mix(tone, ce_ground_field_mean(far_color, far_accent, far_amount, far_nature), step(0.5, UV.x));
-	float snow = ce_ground_snow(ce_snow, p);
+	float snow = ce_ground_snow(ce_snow, p) * (1.0 - bare * (1.0 - step(0.5, UV.x)));
 	tone = mix(tone, CE_GROUND_SNOW, snow);
 	tone *= 1.0 - 0.16 * ce_wet * (1.0 - snow);
 	tone = clamp(tone, vec3(0.0), vec3(1.0));

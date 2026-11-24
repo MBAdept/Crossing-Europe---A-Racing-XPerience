@@ -2913,6 +2913,15 @@ zu sehen ist. Fahrzeuge, Lichter, Schilder, der Sichtkorridor und die Fairness-S
   Muster (Reihen, Fahrgassen, Hecken) gehen wie bisher nach dem Fußabdruck eines Pixels in ihr Mittel über.
 - Gras nah an der Straße: trockenere und frischere Büschel über einige Meter, im Bankett und im Graben blühende Flecken
   (ein Hauch Gelb, Weiß oder Lila über Meter, keine Punkte – sie würden beim Vorbeifahren nur flimmern).
+- **Fehler im Bestand behoben** (gefunden in der eigenen Prüfung von R7d): `ce_ground_fields()` vergleicht die
+  Abstände zu den Feldmittelpunkten in Quadratmetern, startete aber mit 64 (= 8 m) – kein Mittelpunkt lag je so nah,
+  jeder Pixel behielt seine Rasterzelle als beide Felder und `edge_m` 0,707. Die Folgen: rechteckige Rasterfelder statt
+  Voronoi-Feldern, jeder Pixel galt als Feldrand (der Grenzton – Vorgewende oder Hecke – lag über ganzen Feldern),
+  Saatreihen, Fahrgassen und Mähstreifen erschienen nie. Jetzt startet die Suche mit 10¹².
+- **Schnee**: was aus der Schneedecke schaut (`ce_ground_open_b(…, out bare)`): die Hecken (0,8), auf gepflügtem Acker
+  die Kämme zwischen den Furchen (bis 0,5, im Mittel 0,25, sobald die Furchen feiner als ein Pixel sind), Stoppeln
+  (0,2), die Stängel einer Reihenkultur (bis 0,12); nichts auf Wiese, Getreide, Bankett, Rasen und Pflaster und
+  nichts, wo die Felder in der Ferne ihr Mittel zeigen. Gelände, äußerer Ring und Fernboden rechnen dasselbe.
 - **Rastanlagen** (`builders/terrain.gd` `lawn_at()`, CUSTOM1.a): rechts neben einer Tankspur (`StagePlan.fuel_lanes`,
   60 m davor bis 60 m danach, über weitere 80 m ausgeblendet) liegt bis 110 m jenseits des Banketts gemähter Rasen mit
   breiten Mähstreifen statt Feldern, ab 170 m wieder Felder. Ohne ihn lag nachts hinter der Tankstelle eine dunkle

@@ -62,8 +62,11 @@ void ce_ground_fields(vec2 p, out float id1, out float id2, out float edge_m) {
 	vec2 q = vec2(c * p.x + s * p.y, -s * p.x + c * p.y) / CE_GROUND_FIELD_M;
 	vec2 n = floor(q);
 	vec2 f = q - n;
-	float d1 = 64.0;
-	float d2 = 64.0;
+	// R7d: the distances are squared METRES – the old start of 64 (8 m) was never beaten, every pixel kept its own grid
+	// cell as both fields with edge_m 0.707: no Voronoi fields, every pixel on a border (no rows, no tramlines, the
+	// border tone over whole fields)
+	float d1 = 1.0e12;
+	float d2 = 1.0e12;
 	vec2 r1 = vec2(0.0);
 	vec2 r2 = vec2(1.0);
 	vec2 c1 = n;
@@ -149,7 +152,10 @@ float ce_ground_lines(float x, float period, float offset, float half_w) {
 //   base     ground tone (the grass of the scenery)          accent   colour of the patches (grain, heather, rock …)
 //   amount   share of the fields that are patches, 0..1      nature   1 vegetation … 0 paved ground of a city centre
 //   field    how much of the field structure shows, 0..1 (0 on the verge beside the road)
-vec3 ce_ground_open(vec3 base, vec3 accent, float amount, float nature, vec2 p, float dist, float field) {
+// bare (R7d): how much of this ground stands out of a snow cover, 0..1 – the hedgerows, the ridges of ploughed earth
+// (snow lies in the furrows), stubble and the stalks of a row crop; the mean once the pattern is finer than a pixel,
+// nothing where the fields have become their mean far away, on the verge, the lawn and paved ground
+vec3 ce_ground_open_b(vec3 base, vec3 accent, float amount, float nature, vec2 p, float dist, float field, out float bare) {
 	vec2 fwm = fwidth(p);
 	float foot = max(fwm.x, fwm.y);            // metres of ground under one pixel (the longer side)
 	// the colours of the fields fade into their mean once a field is only a pixel or two across (R7d: was 9–30 m of
@@ -194,6 +200,11 @@ vec3 ce_ground_open(vec3 base, vec3 accent, float amount, float nature, vec2 p, 
 	tone = mix(tone, border_tone, border);
 	float line = (1.0 - smoothstep(0.8 - w, 0.8 + w, edge_m)) * field * (1.0 - smoothstep(1.2, 3.5, foot));
 	tone *= 1.0 - 0.13 * line * (1.0 - nature);
+	// R7d: what stands out of the snow
+	float ridge = clamp(0.5 + rows, 0.0, 1.0);    // 0 in a furrow, 1 on a ridge; 0.5 when the rows are finer than a pixel
+	float earth = crop == 3 && fract(id1 * 13.7) < 0.55 ? 0.5 * ridge : 0.0;
+	float stalks = crop == 3 ? (fract(id1 * 13.7) < 0.55 ? 0.0 : 0.2) : (crop == 2 ? 0.12 * ridge : 0.0);
+	bare = max(near_border * hedge * hedge_fade * 0.8, (earth + stalks) * inside) * field * (1.0 - far);
 	// soft blotches at two scales; they go as the footprint of a pixel outgrows them
 	float blot = texture(ground_noise, p / CE_GROUND_BLOT_M).g;
 	float big = texture(ground_noise, p / (CE_GROUND_BLOT_M * 5.0) + vec2(0.37, 0.11)).g;
@@ -204,9 +215,19 @@ vec3 ce_ground_open(vec3 base, vec3 accent, float amount, float nature, vec2 p, 
 	return tone;
 }
 
-// The ground far away at pattern position p (what far_ground.gdshader shows).
+vec3 ce_ground_open(vec3 base, vec3 accent, float amount, float nature, vec2 p, float dist, float field) {
+	float bare;
+	return ce_ground_open_b(base, accent, amount, nature, p, dist, field, bare);
+}
+
+// The ground far away at pattern position p (what far_ground.gdshader shows); bare as in ce_ground_open_b.
+vec3 ce_ground_far_b(vec2 p, float dist, out float bare) {
+	return ce_ground_open_b(far_color, far_accent, far_amount, far_nature, p, dist, 1.0, bare);
+}
+
 vec3 ce_ground_far(vec2 p, float dist) {
-	return ce_ground_open(far_color, far_accent, far_amount, far_nature, p, dist, 1.0);
+	float bare;
+	return ce_ground_far_b(p, dist, bare);
 }
 
 // Snow cover (0..1) of open ground for the global snow amount: a little patchy while it is thin.

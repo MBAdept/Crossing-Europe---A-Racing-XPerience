@@ -83,7 +83,8 @@ void fragment() {
 	float band = ce_ground_stripes(UV.y, 2.0) * 2.0;
 	float band_k = 1.0 - smoothstep(band_fade_m.x, band_fade_m.y, lat);
 	vec3 base = COLOR.rgb + v_band.rgb * (band_k * band * band_contrast);
-	vec3 tone = ce_ground_open(base, v_style.rgb, amount, nature, p, dist, field);
+	float bare;                                 // R7d: what stands out of a snow cover (hedgerows, ridges, stubble)
+	vec3 tone = ce_ground_open_b(base, v_style.rgb, amount, nature, p, dist, field, bare);
 	// R7d: the service area's lawn is mown – wide stripes along the road beyond the verge (mean-neutral; they go where
 	// they are thinner than a pixel)
 	tone *= 1.0 + ce_ground_stripes(lat, 8.0) * 0.08 * lawn * nature * smoothstep(field_from_m, field_full_m, lat);
@@ -122,15 +123,17 @@ void fragment() {
 	tone = mix(tone, flower, smoothstep(0.6, 0.86, bloom) * 0.24 * (verge + 0.7 * ditch) * (1.0 - smoothstep(1.0, 4.0, foot)));
 	tone = mix(COLOR.rgb, tone, detail);
 	// snow: on everything but the water, thin and dirty on the gravel strip
-	float snow = ce_ground_snow(ce_snow, p) * (1.0 - 0.45 * gravel);
+	float snow = ce_ground_snow(ce_snow, p) * (1.0 - 0.45 * gravel) * (1.0 - bare * detail);
 	vec3 snow_col = CE_GROUND_SNOW * (0.955 + 0.045 * blot + (g1 - 0.5) * 0.03 * near_k);
 	tone = mix(tone, snow_col, snow);
 	// wet ground is darker
 	tone *= 1.0 - 0.16 * ce_wet * (1.0 - snow);
 	// the outer ring becomes the far ground
-	vec3 far_tone = ce_ground_far(p, dist);
-	far_tone = mix(far_tone, CE_GROUND_SNOW, ce_ground_snow(ce_snow, p));
-	far_tone *= 1.0 - 0.16 * ce_wet * (1.0 - ce_ground_snow(ce_snow, p));
+	float far_bare;
+	vec3 far_tone = ce_ground_far_b(p, dist, far_bare);
+	float far_snow = ce_ground_snow(ce_snow, p) * (1.0 - far_bare);
+	far_tone = mix(far_tone, CE_GROUND_SNOW, far_snow);
+	far_tone *= 1.0 - 0.16 * ce_wet * (1.0 - far_snow);
 	tone = mix(tone, far_tone, fade_far);
 	// water under a bridge
 	float ripple = texture(ground_noise, p / 23.0 + vec2(0.17, 0.43)).g;
