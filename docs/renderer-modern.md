@@ -2923,9 +2923,22 @@ zu sehen ist. Fahrzeuge, Lichter, Schilder, der Sichtkorridor und die Fairness-S
   Breite, jede in ihrem Ton, mit dunklen Fugen quer und längs, etwas Abplatzung; die Radspuren sind heller poliert.
   Der Beton ist höchstens 2–3 % heller als Arcades Asphalt (`col_concrete`), damit die Markierungen ihren Kontrast
   behalten. `RoadBuilder.is_concrete()` entscheidet wie `AudioFeed` (Test „concrete_sections_follow_the_audio“).
-- **Asphaltalter**: In Abschnitten von 240 m ist der Belag erneuert (dunkler, feiner), älter (heller) oder unverändert,
-  manchmal nur auf der rechten Spur, mit einer dünnen Naht, wo zwei Alter aneinanderstoßen. z_period (1.440 m) ist ein
-  Vielfaches von 5 m und 240 m.
+- **Asphaltalter**: In Abschnitten von 240 m ist der Belag erneuert (dunkler, feiner), älter (etwas dunkler, gröber)
+  oder unverändert, manchmal nur auf der rechten Spur, mit einer dünnen Naht, wo zwei Alter aneinanderstoßen – nie
+  heller als der Grundton, damit die Markierungen ihren Kontrast behalten. z_period (1.440 m) ist ein Vielfaches von
+  5 m und 240 m.
+- **Lesbare Markierungen** (Vertrag A-27: Kontrast der Randlinien mindestens 0,9 × Arcade bei 20, 60 und 120 m,
+  trocken und nass, Tag und Nacht – `check_freie_strecke.gd` „markierung“). Gemessen vor R7d (720eaf4): trocken bei
+  120 m 0,70–0,82 × (Arcades Streifen liegen auf ganzen Pixeln und wirken etwa einen halben Pixel breiter), nass 0,14–
+  0,61 × (der Spiegel des Himmels hellte den Asphalt bis an das Auto auf). Seit R7d:
+  - jede Linie ist um einen viertel Pixel je Seite breiter (`pw` = 0,25 × Fußabdruck – in der Nähe nichts, in der
+    Ferne so kräftig wie Arcades Linie);
+  - der Spiegel des Himmels auf nassem Asphalt wächst erst zwischen `mirror_from` = 110 und 220 m herein (Arcades
+    eigener Glanz zum Ende der Sicht bleibt); nah am Auto zeigen der dunklere Asphalt, die Gischt und die
+    Spiegelungen der Lampen den Regen. „Zum Horizont hin spiegelt die Fahrbahn“ (`check_weather.gd` „nass“, 150–
+    260 m) bleibt;
+  - nasse Farbe ist nicht mehr um 7 % dunkler.
+  Gemessen danach: alle 18 Fälle 0,92–1,30 × Arcade.
 
 ### 20.6 Bäume
 
