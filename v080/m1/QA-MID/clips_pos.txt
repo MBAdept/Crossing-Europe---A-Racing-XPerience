@@ -1,0 +1,5 @@
+clip_tunnel --stage=hamburg_hannover --from=hamburg --start-km=3.0 --hour=12 --weather=normal --vehicle=limousine --seed=11 --autopilot --autopilot-refuel=never --traffic-warmup --no-countdown --start-speed=120
+clip_bruecke_nacht --stage=kiel_hamburg --from=kiel --start-km=74.5 --hour=22 --weather=normal --vehicle=limousine --seed=11 --autopilot --autopilot-refuel=never --traffic-warmup --no-countdown --start-speed=120
+clip_stadt_nuernberg --stage=wuerzburg_nuernberg --from=wuerzburg --start-km=103 --hour=19.5 --weather=normal --vehicle=limousine --seed=11 --autopilot --autopilot-refuel=never --traffic-warmup --no-countdown --start-speed=80
+clip_regennacht --stage=kassel_wuerzburg --from=kassel --start-km=58 --hour=22 --weather=rain --vehicle=kombi --seed=12 --autopilot --autopilot-refuel=never --traffic-warmup --no-countdown --start-speed=140
+clip_schnee --stage=hannover_kassel --from=hannover --start-km=98 --hour=12 --weather=snow --vehicle=kombi --seed=12 --autopilot --autopilot-refuel=never --traffic-warmup --no-countdown --start-speed=130

@@ -27,7 +27,19 @@ Haltung des Nutzers: Qualität vor Tempo, keine Prüfungen/Nacharbeit streichen;
    ERGEBNIS 3× identisch, Leistung gates/perf3_median.md (Pixelarbeit llvmpipe +17–24 %, sonst gleich). Bilder:
    shots/ab (A/B), shots/basis_kopf (alt|neu), clips/ (Tag, Dämmerung).
    Offene Punkte für QA-mid: Nacht (K-8), Regen-/Schneenacht 1,19×/1,22× (K-3), Schneefelder (K-7), Deck messen.
-2. Danach: QA-mid (ganzes Rennen Kiel – Nürnberg in jeder Bedingung) → FIX/NACH → ZS2 (Goldens nach Ansehen,
+2. **QA-mid LÄUFT** (seit 24.11. 18:56, Kopf 6092197): Ordner m1/QA-MID. Rennläufe `sh/qrun.sh 0 2` und `sh/qrun.sh 1 2`
+   (nohup, wiederaufnehmbar: ein Lauf mit RUN-Zeile im runs/<tag>.log wird übersprungen) über plan.txt (48 Zeilen);
+   Fortschritt logs/qrun.log; danach startet ein Warter `sh/media.sh` (A/B, Clips, Leistung je Voreinstellung), sobald
+   „QRUN 0 DONE“ und „QRUN 1 DONE“ in logs/qrun.log stehen. Nach Neustart des Containers: beide qrun.sh neu starten und
+   den Warter (until grep …; do sleep 60; done; sh/media.sh) neu setzen. sh/stage_shots.gd v2 (19:16): Fotos landen
+   ±80 m am Punkt; die vorher gefahrenen Läufe (KH t08/t12/t1930/t22/r12/r22/s12, HH t12/t22) am Ende mit v2 neu fahren
+   (Log löschen, qrun erneut). Bericht im Aufbau: deliver/QA-MID/bericht.md. Befunde bisher: keine Fehler; Notiz:
+   Schaufenster building_shop nachts reinweiß wie Arcade-Lichtschicht; Autopilot 166–235 km/h in Tempo-50-Zonen.
+   FIX-Arbeitsbaum: .claude/worktrees/qamid-fix, Zweig wip-v080-qamid-fix → origin wip/v080-qamid-fix (Basis 6092197):
+   beb69d2 Tunnelhügel ohne Rippen (Q-01), b18b0d6 Fichte/Palme im Schnee in Flecken (Q-02). Prüfbilder: m1/QA-MID/fix/
+   (spruce/, ab/ über sh/fixab.sh <tag…> mit Positionen aus media_pos.txt). Nach QA-Läufen + Medien: Tore auf dem
+   FIX-Kopf, Bericht, dann ZS2 aus dem FIX-Kopf bauen.
+3. Danach (alt 2): QA-mid (ganzes Rennen Kiel – Nürnberg in jeder Bedingung) → FIX/NACH → ZS2 (Goldens nach Ansehen,
    was_neu.md + Checkliste, Linux/Windows-Build, an den Nutzer per Datei).
 3. Leitungsnotizen: m1/lead/m2_integration_notes.md (letzte Abschnitte zuerst).
 
