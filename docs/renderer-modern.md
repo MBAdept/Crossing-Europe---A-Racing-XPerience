@@ -2854,7 +2854,8 @@ zu sehen ist. Fahrzeuge, Lichter, Schilder, der Sichtkorridor und die Fairness-S
   eigenen `SubViewport` (`cloud_vp`, `CLOUD_SCALE` 2), die der Himmelsshader vormultipliert über alles legt – Wolken
   verdecken Sterne, Mond und, wo sie dicht sind, die Sonne. Gemessen (llvmpipe, nur die Shader, 1376 × 816):
   Himmel ohne Wolken 6,3 ms über einem leeren Bild, Wolken in voller Auflösung 122 ms, in halber 39 ms (16 Proben)
-  bzw. 49 ms (24 Proben) – die halbe Auflösung spart zwei Drittel, die Wolken sind weich.
+  bzw. 49 ms (24 Proben) – die halbe Auflösung spart zwei Drittel, die Wolken sind weich. In einem Tunnel (die Leinwand
+  deckt den ganzen Himmel) wird die Wolkenschicht nicht gezeichnet (`UPDATE_DISABLED`).
 - **Haufenwolken**: Eine Schicht mit flacher Basis in `CloudField.HEIGHT_M` (1.600 m); jeder Haufen ist eine Kuppel bis
   `THICK_M` (450 m) darüber, deren Höhe dem Überschuss des Feldes über der Schwelle folgt (Wurzel: runde Kuppen,
   steile Flanken; in dünnen Gruppen flacher). Der Blickstrahl wird von der Basis aufwärts in `sky_steps` Proben auf

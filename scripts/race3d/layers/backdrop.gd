@@ -251,6 +251,11 @@ func update(view: Dictionary, _dt: float) -> void:
 		_flat = tunnel01
 	else:
 		_flat = 0.0
+	if cloud_vp != null:
+		# R7d: inside a tunnel (and under the debug cover) the canvas hides the whole sky – the cloud layer is not drawn
+		var mode := SubViewport.UPDATE_DISABLED if _flat >= 0.999 or _cover else SubViewport.UPDATE_ALWAYS
+		if cloud_vp.render_target_update_mode != mode:
+			cloud_vp.render_target_update_mode = mode
 	canvas.position = Vector2(-MARGIN, 0.0) + (view.get("shake", Vector2.ZERO) as Vector2)
 	if _sky2d:
 		sky_node.position = canvas.position
