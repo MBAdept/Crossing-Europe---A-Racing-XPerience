@@ -145,12 +145,17 @@ vec3 over_expose(vec3 c) {
 	return mix(min(e, vec3(1.0)), glare.rgb, smoothstep(1.0, 1.8, top) * 0.5);
 }
 """
+## QA-mid (Q-04): the outside behind the quad is drawn in the tube's light – the rig mixes the light towards
+## Palette.TUNNEL_AMBIENT (amber) while the camera is inside – and a snowy outside read beige-yellow through the opening
+## (Valík, Elbtunnel; Arcade draws the outside in the outside palette, white). `wb` turns that light's colour back into
+## the outside light's at the same brightness (exit_white_balance()) before Arcade's law over-exposes it.
 const GLARE_SHADER := """shader_type spatial;
 render_mode unshaded, blend_mix, depth_draw_never, cull_disabled, fog_disabled, shadows_disabled;
 uniform sampler2D screen_tex : hint_screen_texture, filter_nearest;
+uniform vec3 wb = vec3(1.0);
 """ + GLARE_LAW + """
 void fragment() {
-	ALBEDO = over_expose(texture(screen_tex, SCREEN_UV).rgb);
+	ALBEDO = over_expose(texture(screen_tex, SCREEN_UV).rgb * wb);
 	ALPHA = 1.0;
 }
 """
@@ -186,6 +191,7 @@ var state: Dictionary = {}
 
 var _renderer: Node
 var _track: Track
+var _exit_wb := Vector3.ONE   ## QA-mid (Q-04): white balance of the glare quad (exit_white_balance())
 var _fog_begin := 0.45
 var _fog_end := 1.0
 var _tunnel_dark_m := 260.0
@@ -481,7 +487,20 @@ func _update_exit(view: Dictionary, pal: Dictionary, tunnel01: float, fog_out: C
 		var z_car := float(pl.get("z", 0.0)) + float(pl.get("length", 4.5)) + EXIT_CAR_GAP_M
 		beyond = z_car > z_quad
 		z_quad = maxf(z_quad, z_car)
+	var amb_out: Color = pal.get("ambient", Color.WHITE)
+	_exit_wb = exit_white_balance(amb_out, amb_out.lerp(Palette.TUNNEL_AMBIENT, clampf(tunnel01, 0.0, 1.0)))
 	_show_exit(_exit_state, path if glare > 0.0 else null, z_quad, fog_out, beyond)
+
+
+## QA-mid (Q-04): per-channel gain that turns light of the colour `current` (the tube-mixed ambient, the light the
+## outside seen through the exit is drawn in) into light of the colour `outside` at the same luminance (pure): the
+## ratio of the two chromaticities (colour / luminance), each channel within 0.5 … 2. Identity outside a tunnel.
+static func exit_white_balance(outside: Color, current: Color) -> Vector3:
+	var lo := maxf(Palette.luminance(outside), 1.0e-4)
+	var lc := maxf(Palette.luminance(current), 1.0e-4)
+	var g := Vector3(outside.r / lo, outside.g / lo, outside.b / lo) / Vector3(maxf(current.r, 1.0e-4) / lc,
+		maxf(current.g, 1.0e-4) / lc, maxf(current.b, 1.0e-4) / lc)
+	return g.clamp(Vector3(0.5, 0.5, 0.5), Vector3(2.0, 2.0, 2.0))
 
 
 ## Alpha of the glare quad for an exit `d` metres ahead of the camera (pure): EXIT_GLARE_FAR far away, EXIT_GLARE_NEAR
@@ -553,6 +572,7 @@ func _show_exit(a: Vector2, path: RoadPath3D, z_quad: float, fog_out: Color, cov
 		var fr := path.frame_at(z_quad, centre, lift)
 		_glare.transform = Transform3D(fr.basis * Basis.from_scale(Vector3(w, h, 1.0)), fr.origin)
 		_glare_mat.set_shader_parameter(&"glare", Vector4(col.r, col.g, col.b, a.x / EXIT_GLARE_FAR))
+		_glare_mat.set_shader_parameter(&"wb", _exit_wb)
 		_glare.visible = true
 	elif _glare != null:
 		_glare.visible = false

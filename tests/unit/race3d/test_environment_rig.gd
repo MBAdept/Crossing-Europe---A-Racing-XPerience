@@ -348,3 +348,33 @@ func test_exit_ramp() -> void:
 	assert_true(Rig.after_law(0.85, top) - Rig.after_law(0.35, top) >= 0.8 * (0.85 - 0.35), "Markierung bleibt lesbar (%.3f)" % [
 		Rig.after_law(0.85, top) - Rig.after_law(0.35, top)])
 	assert_eq(Rig.EXIT_AFTER_SNOW, 1.0, "bei Schnee kein Nachglühen (der Schnee ist schon das hellste Bild)")
+
+
+## QA-mid (Q-04): the glare quad sees the outside drawn in the tube's amber light (Palette.TUNNEL_AMBIENT mixed in by
+## tunnel01); its white balance turns that light's colour into the outside light's at the same luminance, so a snowy
+## outside reads white through the exit (Arcade draws it in the outside palette), not beige.
+func test_exit_white_balance() -> void:
+	var outside := Color(0.80, 0.82, 0.86)
+	var one := Rig.exit_white_balance(outside, outside)
+	assert_near(one.x, 1.0, 1.0e-5, "draußen: keine Änderung (R)")
+	assert_near(one.y, 1.0, 1.0e-5, "draußen: keine Änderung (G)")
+	assert_near(one.z, 1.0, 1.0e-5, "draußen: keine Änderung (B)")
+	var cur := outside.lerp(Palette.TUNNEL_AMBIENT, 1.0)
+	var wb := Rig.exit_white_balance(outside, cur)
+	var lit := Color(cur.r * wb.x, cur.g * wb.y, cur.b * wb.z)
+	var lo := Palette.luminance(outside)
+	var ll := Palette.luminance(lit)
+	assert_near(ll, Palette.luminance(cur), 1.0e-4, "gleiche Helligkeit")
+	assert_near(lit.r / ll, outside.r / lo, 1.0e-4, "Farbe des Außenlichts (R)")
+	assert_near(lit.b / ll, outside.b / lo, 1.0e-4, "Farbe des Außenlichts (B)")
+	assert_true(wb.z > 1.3 and wb.x < 0.9, "der Bernsteinstich wird herausgenommen (%s)" % str(wb))
+	# Schnee im Röhrenlicht: vorher beige (Blau deutlich unter Rot), nachher neutral
+	var snow := Color(0.84, 0.87, 0.9)
+	var beige := Color(snow.r * cur.r, snow.g * cur.g, snow.b * cur.b)
+	assert_true(beige.b < 0.7 * beige.r, "im Röhrenlicht beige (%s)" % str(beige))
+	var fixed := Color(beige.r * wb.x, beige.g * wb.y, beige.b * wb.z)
+	assert_true(fixed.b >= 0.95 * fixed.r, "mit Weißabgleich weiß bis kühl (%s)" % str(fixed))
+	var half := Rig.exit_white_balance(outside, outside.lerp(Palette.TUNNEL_AMBIENT, 0.5))
+	assert_true(half.z > 1.0 and half.z < wb.z, "an der Rampe zur Hälfte")
+	var hard := Rig.exit_white_balance(Color(1.0, 0.0, 0.0), Color(0.0, 0.0, 1.0))
+	assert_true(hard.x <= 2.0 and hard.z >= 0.5, "begrenzt auf 0,5 … 2")
