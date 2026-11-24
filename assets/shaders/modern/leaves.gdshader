@@ -31,6 +31,12 @@ uniform float shadow_part = 0.25;              // how much of the directional sh
 // darker at night
 uniform vec3 snow_albedo = vec3(0.84, 0.87, 0.9);
 uniform float snow_night = 0.3;
+// QA-mid (Q-02): share of the cards that carry snow (ModernMaterials.LEAF_SNOW_CARDS by leaf texture; 1 = every card).
+// A crown whose cards nearly all face up – the spruce's tiers, the palm's fronds – turned white as a whole; with a
+// share below 1 the snow lies in patches: cells of 0.8 m in the model's own space (bent by a wave so that their edges
+// are no straight lines; the same in every level of detail, shifted per tree) carry snow with this probability, the edge of a patch drawn by the needles' brightness. (The
+// cards' phase is no random number for this: 59–71 % of the spruce's cards share a phase near 0.)
+uniform float snow_cards = 1.0;
 
 global uniform vec4 ce_wind;
 global uniform float ce_time;
@@ -46,6 +52,7 @@ global uniform vec3 ce_sun_dir;
 varying float v_cloud;     // R7d: the cloud shadow on this object's direct light (ce_cloud_sun_v, its origin)
 
 varying float v_bright;
+varying vec3 v_snow_p;   // QA-mid: model-space position (before the sway), shifted per tree – the snow patches
 varying vec3 v_tint;     // RINT-M2 (A-19): placement tint (MultiMesh custom data r, g, b, 1); white without
 
 void vertex() {
@@ -53,6 +60,8 @@ void vertex() {
 	float phase = COLOR.g * 6.2831853;
 	float soft = 1.0 - COLOR.b;
 	v_bright = COLOR.a;
+	float seed = INSTANCE_CUSTOM.a > 0.5 ? fract(INSTANCE_CUSTOM.a) * 37.0 : 0.0;
+	v_snow_p = VERTEX + vec3(seed * 3.1, seed * 0.7, seed * 1.7);
 	v_tint = INSTANCE_CUSTOM.a > 0.5 ? INSTANCE_CUSTOM.rgb : vec3(1.0);
 	vec2 dir = ce_wind.xy;
 	float strength = ce_wind.z;
@@ -94,6 +103,13 @@ void fragment() {
 	if (ce_snow > 0.0) {
 		float up = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz).y;
 		float k = clamp(ce_snow, 0.0, 1.0) * smoothstep(0.35, 0.85, up) * 0.85;
+		if (snow_cards < 0.999) {
+			vec3 q = v_snow_p * 1.25;
+			q += vec3(sin(q.y * 2.9 + q.x * 1.7), sin(q.z * 2.3 + q.y * 1.3), sin(q.x * 2.6 + q.z * 1.9)) * 0.35;
+			float r = fract(sin(dot(floor(q), vec3(12.9898, 78.233, 37.719))) * 43758.5453);
+			float lum = dot(t.rgb, vec3(0.3, 0.59, 0.11));
+			k *= smoothstep(-0.08, 0.08, snow_cards - r + (lum - 0.3) * 0.8);
+		}
 		ALBEDO = mix(ALBEDO, snow_albedo * (1.0 - snow_night * clamp(ce_night, 0.0, 1.0)), k);
 	}
 	ROUGHNESS = 0.8;

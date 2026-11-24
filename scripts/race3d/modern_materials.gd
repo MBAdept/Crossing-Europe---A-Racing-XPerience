@@ -300,6 +300,21 @@ const STATIC_MARKERS: Array[String] = ["inc/lod_band.gdshaderinc", "ce_lod_hidde
 ## a prop model then carries its own distance band (lod_band) and far light (far_sun, shadow_far) – builders/props.gd.
 const PER_MESH_CLASSES: Array[String] = [VPBR_STATIC, "baked", "baked_cutout", "leaves"]
 
+## QA-mid (Q-02): share of the cards that carry snow, by leaf texture (leaves.gdshader `snow_cards`; others: 1).
+## Under the snow law of the leaves (smoothstep(0.35, 0.85, up) × 0.85 of the albedo) a crown whose cards nearly all
+## face up turned white as a whole – area mean of the spruce 0.68 (Arcade's spruce stays dark green), the palm 0.83 –
+## while oak, beech, birch and pine carry caps (0.15–0.26). A crown above LEAF_SNOW_MAX gets a share that brings its
+## mean to about LEAF_SNOW_MEAN (the level of oak and birch: from 40 m and more a mean of 0.3 already reads white,
+## the snow being far brighter than the needles); tests/unit/race3d/test_leaf_snow.gd measures every leaves mesh of the
+## catalogue (a new model whose crown turns white needs its entry here). Ground cover (cover_grass, heather) may turn
+## white.
+const LEAF_SNOW_MEAN := 0.2
+const LEAF_SNOW_MAX := 0.3
+const LEAF_SNOW_CARDS := {
+	"props/tree_spruce/leaves.png": 0.29,
+	"props/tree_palm/leaves.png": 0.24,
+}
+
 
 ## Material class a model's surface of class `cls` draws with: VPBR_STATIC for "vpbr" on every model that is not a
 ## vehicle (manifest kind "vehicle" or "heavy": paint, lamps, fade, sun, fill and the level cross-fade are per car).
@@ -346,6 +361,7 @@ func material(class_id: String, model: Dictionary = {}, mesh_path: String = "") 
 	elif class_id == "leaves":
 		if textures.has("leaves"):
 			mat.set_shader_parameter("leaf_tex", ModelDB.texture(str(textures["leaves"])))
+		mat.set_shader_parameter("snow_cards", float(LEAF_SNOW_CARDS.get(str(textures.get("leaves", "")), 1.0)))
 	_materials[key] = mat
 	return mat
 

@@ -2273,6 +2273,13 @@ der Wolke (`lights.beam_at()`), nachts das Rot der eigenen Rückleuchten.
   Bäume (`leaves`), Leitplankenholme, Masten, Laternen (`vpbr` statischer Modelle: `ModernMaterials.static_code()` setzt
   dort `snow_cover` 1, Fahrzeuge behalten 0). Nachts um 30 % dunkler (`snow_night`), damit Dächer und Kronen nicht über
   dem Schneeboden leuchten. Fernbilder und Ersatzbilder tönen wie Arcade 15 % zu `#bfccd6`.
+  **Fichte und Palme in Flecken** (QA-mid, Q-02): Kronen, deren Karten fast alle nach oben zeigen, wurden als Ganzes
+  weiß – die Fichte im Flächenmittel zu 68 % (Eiche 16, Buche 15, Birke 18, Kiefer 26 %), vor Schneeboden und -himmel
+  nur noch dünne Gerippe, während Arcades Fichte dunkelgrün bleibt. `ModernMaterials.LEAF_SNOW_CARDS` gibt solchen
+  Blattbildern einen Anteil (`snow_cards`: Fichte 0,29, Palme 0,24): Schnee liegt dann nur in Zellen von 0,8 m im
+  Modellraum (von einer Welle gebogen, in jeder Stufe gleich, je Baum verschoben), der Rand vom Nadelbild gezeichnet –
+  im Mittel etwa `LEAF_SNOW_MEAN` (0,2) wie Eiche und Birke. Kronen bis `LEAF_SNOW_MAX` (0,3) behalten jede Karte;
+  `tests/unit/race3d/test_leaf_snow.gd` misst jedes Blätternetz des Katalogs (Bodendecker dürfen weiß werden).
 
 ### 15.6 Belichtungsrampe an der Tunnelausfahrt
 

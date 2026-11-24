@@ -826,7 +826,7 @@ im Rennen, die Stufe nach Entfernung wie im Requisiten-Builder: `--mode=dist` (A
 
 ### Offen (für die Shader- und Renderer-Pakete)
 
-- `leaves.gdshader`: Schnee (aufwärts gerichtete Karten weißen mit `ce_snow`) und Nässe (dunkler, glänzender mit
+- `leaves.gdshader`: Schnee (aufwärts gerichtete Karten weißen mit `ce_snow`; Fichte und Palme nur in Flecken, `snow_cards` – renderer-modern.md §15.5) und Nässe (dunkler, glänzender mit
   `ce_wet`); ein Ausblenden flach angeschnittener Karten nach der Kartennormale bräuchte eine zweite Normale.
 - Requisiten-Builder: Leitungen zwischen Strommasten. (Rotordrehung und Bodendecker in den Kurven-Korridoren sind
   mit der Zusammenführung von M1 erledigt.)
