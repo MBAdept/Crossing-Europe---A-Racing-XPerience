@@ -1,1 +1,33 @@
 08:07:41 RISKY DONE
+09:00:47 render checks – 31 Dateien OK, 1 Dateien rot
+CHAIN1 DONE 09:00:47
+09:13:22 run_tests exit 0 – 850 Tests, 0 fehlgeschlagen – 157 CHECK OK, 0 CHECK FEHLER
+09:14:28 chain4 auf e8c6f07
+09:37:32 run_tests (2) exit 0 – 851 Tests, 0 fehlgeschlagen – 157 CHECK OK, 0 CHECK FEHLER
+10:10 golden check exit 0 – GOLDEN arcade: 20 von 20 identisch (216 s) GOLDEN arcade-ui: 17 von 17 identisch (267 s) 
+gate golden fertig (489 s, nice 10)
+10:33 modern-check (KEEP) exit 1 – GOLDEN modern: 0 von 6 identisch (1077 s) GOLDEN modern-gles: modern_s3_hoch OpenGL ES gegen OpenGL: OK max. Abweichung 2/255, PSNR 73.3 dB, 8237 Pixel verschieden (309 s) 
+gate modernkeep fertig (1392 s, nice 10)
+10:40 modern_sight --full exit 0 (6 OK, 0 FEHLER); modern_path_check --full exit 0 (2 OK, 0 FEHLER)
+gate sight fertig (380 s, nice 10)
+10:45 ergebnis – ERGEBNIS kiel_hamburg: 28 Schlüssel, identisch (außer gfx) ERGEBNIS dev_testetappe: 28 Schlüssel, identisch (außer gfx) ERGEBNIS saragossa_pau: 28 Schlüssel, identisch (außer gfx) 
+gate ergebnis fertig (335 s, nice 10)
+11:12 perf – perf head kiel_hamburg medium exit 0 (0 Skriptfehler) perf head kiel_hamburg deck exit 0 (0 Skriptfehler) perf head kiel_hamburg high exit 0 (0 Skriptfehler) perf base kiel_hamburg medium exit 0 (0 Skriptfehler) perf base kiel_hamburg deck exit 0 (0 Skriptfehler) perf base kiel_hamburg high exit 0 (0 Skriptfehler) 
+gate perf fertig (1592 s, nice 10)
+CHAIN2 DONE 11:12:21
+CHAIN3 DONE 11:12:21
+11:19:34 render checks (2) – 32 Dateien OK, 0 Dateien rot
+CHAIN4 DONE 11:19:34
+13:28:22 slot3a auf 6092197
+13:50:33 run_tests (3) exit 0 – 851 Tests, 0 fehlgeschlagen – 157 CHECK OK, 0 CHECK FEHLER
+15:31:50 render checks (3) – 32 Dateien OK, 0 Dateien rot
+SLOT3A DONE 15:31:50
+15:46 golden check exit 0 – GOLDEN arcade: 20 von 20 identisch (195 s) GOLDEN arcade-ui: 17 von 17 identisch (230 s) 
+gate golden fertig (430 s, nice 10)
+16:08 modern-check (KEEP) exit 1 – GOLDEN modern: 0 von 6 identisch (1014 s) GOLDEN modern-gles: modern_s3_hoch OpenGL ES gegen OpenGL: OK max. Abweichung 2/255, PSNR 73.2 dB, 8498 Pixel verschieden (298 s) 
+gate modernkeep fertig (1317 s, nice 10)
+16:15 modern_sight --full exit 0 (6 OK, 0 FEHLER); modern_path_check --full exit 0 (2 OK, 0 FEHLER)
+gate sight fertig (384 s, nice 10)
+16:20 ergebnis – ERGEBNIS kiel_hamburg: 28 Schlüssel, identisch (außer gfx) ERGEBNIS dev_testetappe: 28 Schlüssel, identisch (außer gfx) ERGEBNIS saragossa_pau: 28 Schlüssel, identisch (außer gfx) 
+gate ergebnis fertig (307 s, nice 10)
+SLOT3B DONE 16:20:26

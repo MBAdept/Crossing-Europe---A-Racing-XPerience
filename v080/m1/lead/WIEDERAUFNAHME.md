@@ -1,4 +1,4 @@
-# Wiederaufnahme (zuletzt aktualisiert 24.11.2026 ~09:00 UTC)
+# Wiederaufnahme (zuletzt aktualisiert 24.11.2026 ~18:15 UTC)
 
 Haltung des Nutzers: Qualität vor Tempo, keine Prüfungen/Nacharbeit streichen; Lackflackern pausiert (A-21);
 „bitte ohne meine Testergebnisse erst einmal weitermachen“. Nutzer schreibt Deutsch; Tags/Releases macht der Nutzer.
@@ -20,14 +20,13 @@ Haltung des Nutzers: Qualität vor Tempo, keine Prüfungen/Nacharbeit streichen;
   jeder Schritt prüft, ob sein Ergebnis schon da ist) – der Container wurde am 23./24.11. zweimal neu gestartet.
 
 ## Fortsetzen
-1. R7d „Freie Strecke“ (A-27): Worktree .claude/worktrees/wf_a71eeb2e-3b7-1 (lokaler Branch wip-v080-r7d →
-   origin/wip/v080-r7d, Kopf 7489ef8). Bau fertig (Himmel/Wolken, Wolkenschatten, Felder, Beton, Asphaltalter,
-   lesbare Markierungen, Baumtöne, neue Bildprüfung check_freie_strecke.gd). Tore laufen als Skripte in
-   m1/R7D/sh/ (chain1 = alle Bildprüfungen → gates/render_checks.log; chain3 = A/B + Clips + chain2; chain2 =
-   run_tests, Verdeckung head/base, golden, modernkeep, sight, ergebnis, perf → gates/summary.txt). Alle Skripte
-   wiederaufnehmbar: einfach erneut starten. A/B-Bilder (19) angesehen und gut; Tag-Clip geprüft.
-   Bericht-Entwurf deliver/R7D/bericht.md (Abschnitte 1, Tore, Leistung, Goldens offen).
-   Danach eigene Kritik- und QA-Runde, FIX, Nachprüfung.
+1. **R7d „Freie Strecke“ FERTIG** – Endstand **6092197** auf origin/wip/v080-r7d (Worktree
+   .claude/worktrees/wf_a71eeb2e-3b7-1). Bericht deliver/R7D/bericht.md (Kurzfassung, Kritik K-1…K-8, Tore, Leistung,
+   offene Punkte). Alle Tore auf 6092197 grün: run_tests 851/0, Bildprüfungen 32/0, golden 20/20 + 17/17, modern-check
+   0/6 (erwartet, Bogen shots/goldens_modern_r7d.jpg), Verdeckung 144/147 gleich (Rest Pixelfarbe), sight 6/0, path 2/0,
+   ERGEBNIS 3× identisch, Leistung gates/perf3_median.md (Pixelarbeit llvmpipe +17–24 %, sonst gleich). Bilder:
+   shots/ab (A/B), shots/basis_kopf (alt|neu), clips/ (Tag, Dämmerung).
+   Offene Punkte für QA-mid: Nacht (K-8), Regen-/Schneenacht 1,19×/1,22× (K-3), Schneefelder (K-7), Deck messen.
 2. Danach: QA-mid (ganzes Rennen Kiel – Nürnberg in jeder Bedingung) → FIX/NACH → ZS2 (Goldens nach Ansehen,
    was_neu.md + Checkliste, Linux/Windows-Build, an den Nutzer per Datei).
 3. Leitungsnotizen: m1/lead/m2_integration_notes.md (letzte Abschnitte zuerst).
