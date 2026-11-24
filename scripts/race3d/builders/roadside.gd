@@ -381,8 +381,11 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 		commit_step(ctx, part, parent, k)
 
 
-## A-28 (RINT-M3): one piece of the mesh per commit step ("Roadside", then "Roadside_2" …); the reflectors hang on the
-## first piece (all pieces are chunk-local with the identity transform).
+## A-28 (RINT-M3): one piece of the mesh per commit step – step 0 creates the node "Roadside", every step adds its
+## piece to that node's mesh as one more surface. ONE node per chunk, as before the steps: the guardrail draws with the
+## shared vpbr material, whose instance uniforms take 16 slots of the global shader buffer per geometry instance – a node
+## per piece took up to PIECES_MAX of them per chunk (the forest check counted 236 > 230 instances, RINT-M3; A-19). The
+## reflectors hang on the node (all pieces are chunk-local with the identity transform).
 func commit_steps(part: Dictionary) -> int:
 	return maxi(1, (part.get("pieces", []) as Array).size())
 
@@ -391,10 +394,17 @@ func commit_step(ctx: ChunkContext, part: Dictionary, parent: Node3D, k: int) ->
 	if int(part.get("vertices", 0)) <= 0:
 		return
 	var pieces: Array = part.get("pieces", [])
+	var arrays: Array = pieces[k] if k < pieces.size() else part["arrays"]
+	var mi: MeshInstance3D = null
+	if k > 0:
+		mi = parent.get_node_or_null("Roadside") as MeshInstance3D
+	if mi != null:
+		(mi.mesh as ArrayMesh).add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+		return
 	var mesh := ArrayMesh.new()
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, pieces[k] if k < pieces.size() else part["arrays"])
-	var mi := MeshInstance3D.new()
-	mi.name = "Roadside" if k == 0 else "Roadside_%d" % (k + 1)
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	mi = MeshInstance3D.new()
+	mi.name = "Roadside"
 	mi.mesh = mesh
 	var materials: Variant = ctx.services.get("materials")
 	if not (materials is ModernMaterials):

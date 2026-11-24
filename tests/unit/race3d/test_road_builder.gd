@@ -319,7 +319,8 @@ func test_commit_and_roadside() -> void:
 
 ## A-28 (RINT-M3): a large mesh is committed in pieces – split_arrays() keeps every triangle with its vertices and
 ## attributes (the same triangles, in the same order, as the whole), and the road builder commits one piece per step
-## ("Road", "Road_2", …), all with the road's material on the ground layer.
+## ("Road", "Road_2", …), all with the road's material on the ground layer; the roadside builder adds its pieces to one
+## node as surfaces (its material has instance uniforms, A-19).
 func test_split_arrays_and_commit_steps() -> void:
 	var t := _syn(400)
 	var ctx := _context(t, 2)
@@ -361,6 +362,26 @@ func test_split_arrays_and_commit_steps() -> void:
 	assert_eq(names, ["Road", "Road_2", "Road_3"], "Namen der Teile")
 	assert_eq(tri_sum, int(part["triangles"]), "alle Dreiecke eingehängt")
 	parent.free()
+	# the guardrail draws with vpbr (instance uniforms: 16 slots of the global shader buffer per geometry instance) –
+	# its steps add surfaces to ONE node, never a node per piece (RINT-M3: the forest check counted 236 > 230, A-19)
+	var side: ChunkBuilder = RoadsideBuilder.new()
+	var spart := side.build(ctx, side.collect(ctx))
+	var sarrays: Array = spart["arrays"]
+	var sbig := spart.duplicate()
+	sbig["pieces"] = ChunkBuilder.split_arrays(sarrays, 3)
+	var sparent := Node3D.new()
+	for k in side.commit_steps(sbig):
+		side.commit_step(ctx, sbig, sparent, k)
+	assert_eq(sparent.get_child_count(), 1, "Leitplanken in drei Schritten: ein Knoten")
+	var rs := sparent.get_node_or_null("Roadside") as MeshInstance3D
+	assert_true(rs != null and (rs.mesh as ArrayMesh).get_surface_count() == 3, "… mit drei Flächen, je Schritt eine")
+	if rs != null:
+		var stris := 0
+		for s in (rs.mesh as ArrayMesh).get_surface_count():
+			stris += (rs.mesh as ArrayMesh).surface_get_array_index_len(s) / 3
+		assert_eq(stris, int(spart["triangles"]), "alle Dreiecke der Leitplanken eingehängt")
+		assert_true((rs.material_override as ShaderMaterial).shader.resource_path.ends_with("vpbr.gdshader"), "ein Material für alle Flächen")
+	sparent.free()
 	assert_eq(ChunkBuilder.pieces_for(0), 1, "leer: ein Schritt")
 	assert_eq(ChunkBuilder.pieces_for(ChunkBuilder.PIECE_VERTICES), 1, "bis PIECE_VERTICES: ein Schritt")
 	assert_eq(ChunkBuilder.pieces_for(ChunkBuilder.PIECE_VERTICES + 1), 2, "darüber: zwei")

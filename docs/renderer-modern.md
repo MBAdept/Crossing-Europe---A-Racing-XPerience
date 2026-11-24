@@ -2632,7 +2632,11 @@ Bausteins: `ChunkBuilder.commit_steps(part)` und `commit_step(ctx, part, parent,
 `commit()` ruft). `road`, `roadside` und `terrain` teilen ihr Netz in `build()` (Arbeitsfaden) mit
 `ChunkBuilder.split_arrays()` in Stücke gleicher Dreieckszahl, sobald es mehr als `PIECE_VERTICES` (2.000) Ecken hat
 (höchstens `PIECES_MAX` 4), und hängen je Schritt ein Stück ein („Road“, „Road_2“ …, alle mit demselben Material,
-dieselben Dreiecke in derselben Reihenfolge – dasselbe Bild); die Reflektoren hängen am ersten Stück. Der Streamer
+dieselben Dreiecke in derselben Reihenfolge – dasselbe Bild); die Reflektoren hängen am ersten Stück. `roadside`
+hängt seine Stücke dagegen als weitere **Flächen desselben Knotens** „Roadside“ ein: die Leitplanke zeichnet mit dem
+gemeinsamen `vpbr`-Material, dessen Instanz-Uniforms je Geometrie-Instanz 16 Plätze des globalen Shader-Puffers
+belegen – ein Knoten je Stück trieb die Waldprüfung `instanzen_wald` auf 236 > 230 Instanzen (A-19); ein Knoten je
+Stück Strecke wie vor den Schritten (`test_road_builder`). Der Streamer
 merkt sich Baustein und Schritt (`commit_i`, `commit_k`), schätzt einen Schritt mit der mittleren Schrittzeit des
 Bausteins, `commit_by` zählt Schritte. Gemessen (Sonde `commit_cost.gd`, Xvfb, Kiel – Hamburg, Last 2): ein Einhängen von
 `roadside` (≈ 2.850 Ecken) kostet im Median 0,21 ms, in zwei Stücken 0,10 ms je Schritt; `road` (≤ 900 Ecken) 0,02 ms
