@@ -1,0 +1,292 @@
+class_name ChunkContext
+extends RefCounted
+## Kernel of the mode "Modern" (v0.8.0): everything a chunk builder may know about one chunk of road
+## (chunk_segments segments = 96 m), snapshotted on the main thread so that ChunkBuilder.build() can run on a
+## worker thread.
+##
+## Rows: the chunk has rows seg_a .. seg_b (33 boundaries); row i is the start of segment seg_a + i. The last row is
+## the first row of the next chunk – its segs entry is only the far edge (the sprites of that segment belong to the
+## next chunk). Chunk-local coordinates are relative to the road centre of row 0 (rows_o[0] = 0); the streamer puts
+## the chunk node there and owns its transform.
+##
+## The three builder rules (they keep the fallback mapping of the contract possible):
+##  1. every position comes from local() / frame() / ground() (or, on the main thread, from the RoadPath3D),
+##  2. never assume the transform of a chunk node is static, never cache world positions,
+##  3. rigid instances (props, signs, structures) are placed with frame().
+## local(), frame(), ground() and the other helpers below interpolate the snapshot arrays only – they are safe on a
+## worker thread. path, terrain, track and services are MAIN THREAD ONLY (collect / commit).
+## Owner: race3d kernel. Docs: docs/renderer-modern.md.
+
+## Every TrackSegment field that is copied into segs (tests/unit/race3d/test_chunk_streamer.gd checks the list
+## against the class).
+const ENV_MARGIN := 8                   ## rows of the envelope snapshot beyond either end of the chunk (24 m)
+const SEG_FIELDS: Array[String] = ["index", "z", "km", "curve", "y", "lanes", "lane_count", "fuel_lane", "road", "scenery",
+	"country", "speed_limit", "tunnel", "city", "guardrail", "runout", "fuel_zone", "cover", "cover_front", "country_to",
+	"bridge", "bridge_i", "water", "water_depth", "water_level", "bank", "sprites"]
+
+var index := 0                          ## chunk index (seg_a / chunk_segments)
+var seg_a := 0
+var seg_b := 0
+var segs: Array[Dictionary] = []        ## snapshot of every TrackSegment field incl. a deep copy of `sprites`
+var rows_o := PackedVector3Array()      ## road centre per row, chunk-local
+var rows_r := PackedVector3Array()      ## unit right vector per row
+var rows_f := PackedVector3Array()      ## unit forward vector per row
+var rows_heading := PackedFloat64Array()  ## road heading per row (rad, RoadPath3D convention)
+var rows_edge := PackedVector2Array()   ## paved road edges per row (left, right incl. fuel lane), m from the centre
+var floor_y := PackedFloat32Array()     ## valley floor per row, chunk-local y
+var rings := 0                          ## terrain rings per side
+var ring_x := PackedFloat32Array()      ## terrain ring distances beyond the shoulder per row and side
+var ring_h := PackedFloat32Array()      ## terrain heights at those rings, relative to the road of the row
+var corridor := PackedVector2Array()    ## sight corridor beyond the shoulder per row (left, right), fairness rule F7 (A-17)
+var corridor_min := 5.5                 ## its width away from bends (TerrainProfile.corridor_min_m - shoulder)
+## The exact envelope of the sight lines beyond the shoulder (left, right; 0: none leaves the road) for the rows
+## seg_a - ENV_MARGIN .. seg_b + ENV_MARGIN – a footprint near the end of the chunk reaches into its neighbours' rows –
+## and the outer shoulder edges of those rows (m from the centre, positive on both sides).
+var envelope := PackedVector2Array()
+var env_edge := PackedVector2Array()
+var origin := Vector3.ZERO              ## origin-relative position of row 0 when the snapshot was taken
+var seg_len := 3.0
+var lane_w := 3.75
+var shoulder_w := 2.5
+var length_z := 0.0                     ## road position of the finish line (Track.length_z)
+var path: RoadPath3D                    ## MAIN THREAD ONLY
+var terrain: TerrainProfile             ## MAIN THREAD ONLY
+var track: Track                        ## MAIN THREAD ONLY
+## What the renderer hands to the builders (ChunkStreamer.services): {"renderer": ModernRenderer, "materials":
+## ModernMaterials}. MAIN THREAD ONLY (collect / commit). {} in tests without a renderer – a builder must work
+## without it (materials through ModernMaterials.shared(), no lamp registration).
+var services: Dictionary = {}
+var cfg: Dictionary = {}
+var scenery_db: Dictionary = {}
+var levels: Dictionary = {}
+var sync := false
+
+
+## Takes the snapshot of the rows a..b (main thread). The path must reach row b and the track must still hold the
+## segments (ChunkStreamer checks both). Rows k < 0 are the lead-in before the start line (chunk -1, FIX-ZS1): the
+## path places them on its straight lead-in, the terrain repeats the cross-section of row 0, and their segs entries
+## are segment 0's (lead_in_snapshot(): own index and z, no sprites – nothing of the stage stands there twice).
+func capture(chunk_index: int, a: int, b: int, p: RoadPath3D, t: TerrainProfile, tr: Track) -> void:
+	index = chunk_index
+	seg_a = a
+	seg_b = b
+	path = p
+	terrain = t
+	track = tr
+	seg_len = tr.seg_len
+	lane_w = tr.lane_w
+	shoulder_w = tr.shoulder_w
+	length_z = tr.length_z
+	var rl := p.rows_local(a, b)
+	origin = rl["origin"]
+	rows_o = rl["o"]
+	rows_r = rl["r"]
+	rows_f = rl["f"]
+	rows_heading = rl["heading"]
+	var count := b - a + 1
+	segs.clear()
+	rows_edge.resize(count)
+	for q in count:
+		var s := tr.get_segment(a + q)
+		segs.append(seg_snapshot(s) if a + q >= 0 else lead_in_snapshot(s, a + q, tr.seg_len))
+		var half := s.lanes * lane_w * 0.5
+		rows_edge[q] = Vector2(-half, half + s.fuel_lane * lane_w)
+	var tp := t.rows(a, b)
+	rings = int(tp["rings"])
+	ring_x = tp["x"]
+	ring_h = tp["h"]
+	corridor = tp["corridor"]
+	var ne := count + 2 * ENV_MARGIN
+	envelope.resize(ne)
+	env_edge.resize(ne)
+	for q in ne:
+		var k := a - ENV_MARGIN + q
+		var se := tr.get_segment(k)
+		var he := se.lanes * lane_w * 0.5
+		env_edge[q] = Vector2(he + shoulder_w, he + se.fuel_lane * lane_w + shoulder_w)
+		envelope[q] = Vector2(t.envelope_width(k, -1), t.envelope_width(k, 1))
+	corridor_min = maxf(0.0, t.corridor_min_m - shoulder_w)
+	var floors: PackedFloat64Array = tp["floor"]
+	floor_y.resize(count)
+	for q in count:
+		floor_y[q] = floors[q] - origin.y
+
+
+## Plain copy of a TrackSegment (deep copy of its sprites).
+static func seg_snapshot(s: TrackSegment) -> Dictionary:
+	return {"index": s.index, "z": s.z, "km": s.km, "curve": s.curve, "y": s.y, "lanes": s.lanes, "lane_count": s.lane_count,
+		"fuel_lane": s.fuel_lane, "road": s.road, "scenery": s.scenery, "country": s.country, "speed_limit": s.speed_limit,
+		"tunnel": s.tunnel, "city": s.city, "guardrail": s.guardrail, "runout": s.runout, "fuel_zone": s.fuel_zone,
+		"cover": s.cover, "cover_front": s.cover_front, "country_to": s.country_to, "bridge": s.bridge, "bridge_i": s.bridge_i,
+		"water": s.water, "water_depth": s.water_depth, "water_level": s.water_level, "bank": s.bank,
+		"sprites": s.sprites.duplicate(true)}
+
+
+## The segs entry of lead-in row k < 0: segment 0 (`s0`) with the index k, the road position k × seg_len and the
+## odometer 0, without sprites.
+static func lead_in_snapshot(s0: TrackSegment, k: int, seg_length: float) -> Dictionary:
+	var d := seg_snapshot(s0)
+	d["index"] = k
+	d["z"] = float(k) * seg_length
+	d["km"] = 0.0
+	d["sprites"] = []
+	return d
+
+
+## Number of rows (segments + 1).
+func row_count() -> int:
+	return rows_o.size()
+
+
+## Road position z as a fractional row (0 = row 0).
+func row_of(z: float) -> float:
+	return z / seg_len - float(seg_a)
+
+
+## Road coordinates (z along the road in visible metres, x lateral + right, h above the road) -> chunk-local.
+## Bilinear between the two rows, like RoadPath3D.world(); positions a little outside the chunk are extrapolated.
+func local(z: float, x: float, h: float) -> Vector3:
+	var f := z / seg_len - float(seg_a)
+	var i := clampi(int(floor(f)), 0, rows_o.size() - 2)
+	var t := f - float(i)
+	return rows_o[i].lerp(rows_o[i + 1], t) + rows_r[i].lerp(rows_r[i + 1], t) * x + Vector3(0.0, h, 0.0)
+
+
+## Road heading (rad) at road position z.
+func heading(z: float) -> float:
+	var f := z / seg_len - float(seg_a)
+	var i := clampi(int(floor(f)), 0, rows_o.size() - 2)
+	return lerpf(rows_heading[i], rows_heading[i + 1], f - float(i))
+
+
+## Rigid chunk-local frame at road coordinates: +X right, +Y up, -Z = road forward at z, turned by yaw_rad
+## (+ = to the right, like a road heading). Yaw only – props stand upright.
+func frame(z: float, x: float, h: float, yaw_rad: float = 0.0) -> Transform3D:
+	var a := heading(z) + yaw_rad
+	return Transform3D(Basis(RoadPath3D.right_of(a), Vector3.UP, -RoadPath3D.fwd_of(a)), local(z, x, h))
+
+
+## Height of the ground at road coordinates (z, x) relative to the road at z – the value to pass as h to local() /
+## frame(): 0 on the road and its shoulders, the terrain ribbon beside them, the valley floor beyond the ribbon.
+func ground(z: float, x: float) -> float:
+	var f := z / seg_len - float(seg_a)
+	var i := clampi(int(floor(f)), 0, rows_o.size() - 2)
+	var t := clampf(f - float(i), 0.0, 1.0)
+	return lerpf(_ground_row(i, x), _ground_row(i + 1, x), t)
+
+
+func _ground_row(i: int, x: float) -> float:
+	var e := rows_edge[i]
+	var si := 0 if x < 0.0 else 1
+	var m := (-x + e.x if si == 0 else x - e.y) - shoulder_w
+	if m <= 0.0 or rings <= 0:
+		return 0.0
+	var o := (i * 2 + si) * rings
+	return TerrainProfile.interp(ring_x, o, ring_h, o, rings, m)
+
+
+## Outer shoulder edge of a row: metres from the centreline (positive on both sides); side -1 left, +1 right.
+func shoulder_edge(row: int, side: int) -> float:
+	var e := rows_edge[clampi(row, 0, rows_edge.size() - 1)]
+	return (-e.x if side < 0 else e.y) + shoulder_w
+
+
+## Distance of terrain ring `ring` of a row beyond the shoulder (side -1 left, +1 right).
+func ring_offset(row: int, side: int, ring: int) -> float:
+	return ring_x[(row * 2 + (0 if side < 0 else 1)) * rings + ring]
+
+
+## Height of that ring relative to the road of the row.
+func ring_height(row: int, side: int, ring: int) -> float:
+	return ring_h[(row * 2 + (0 if side < 0 else 1)) * rings + ring]
+
+
+## Width of the terrain ribbon beyond the shoulder at road position z (the distance of the last ring).
+func ribbon_width(z: float, side: int) -> float:
+	if rings <= 0:
+		return 0.0
+	var f := z / seg_len - float(seg_a)
+	var i := clampi(int(floor(f)), 0, rows_o.size() - 2)
+	var t := clampf(f - float(i), 0.0, 1.0)
+	var si := 0 if side < 0 else 1
+	return lerpf(ring_x[(i * 2 + si) * rings + rings - 1], ring_x[((i + 1) * 2 + si) * rings + rings - 1], t)
+
+
+## True when road coordinates (z, x) lie inside the sight corridor (fairness rule F7: no ground above the road) or
+## on the road itself.
+func in_corridor(z: float, x: float) -> bool:
+	var f := z / seg_len - float(seg_a)
+	var i := clampi(int(floor(f)), 0, rows_o.size() - 2)
+	var t := clampf(f - float(i), 0.0, 1.0)
+	var si := 0 if x < 0.0 else 1
+	var e := rows_edge[i].lerp(rows_edge[i + 1], t)
+	var m := (-x + e.x if si == 0 else x - e.y) - shoulder_w
+	var c := corridor[i].lerp(corridor[i + 1], t)
+	return m <= (c.x if si == 0 else c.y)
+
+
+## True when (z, x) lies inside the sight corridor of a bend – the envelope of the real sight lines (SightCorridor,
+## contract A-17) where one leaves the road, at least the plain strip + TerrainProfile.BEND_FLOOR_M – where fairness
+## rule F7 allows nothing taller than 0.5 m (the props builder leaves such props out or puts ground cover there).
+## Away from bends the corridor is only the corridor_min strip beside the road, and that strip does not count here.
+## Near the ends of a bend this is a little wider than the sight lines need (the floor); in_sight_envelope() tests the
+## exact envelope.
+## Without the optional arguments only the foot (z, x) is tested. An object that is larger than its foot passes
+## reach = how far it extends from x towards the road (m: the near edge of an edge-aligned building, a crown's
+## radius) and half_len = half its length along the road (m): then true when any part of that footprint beyond the
+## shoulder lies in the corridor (A-17: nothing taller than 0.5 m inside the envelope; R7a measured props whose foot
+## is outside but whose near part reaches in).
+func in_bend_corridor(z: float, x: float, reach: float = 0.0, half_len: float = 0.0) -> bool:
+	var si := 0 if x < 0.0 else 1
+	var n := 0 if half_len <= 0.0 else int(ceil(half_len * 2.0 / seg_len))
+	for q in n + 1:
+		var zq := z if n == 0 else z - half_len + half_len * 2.0 * float(q) / float(n)
+		var f := zq / seg_len - float(seg_a)
+		var i := clampi(int(floor(f)), 0, rows_o.size() - 2)
+		var t := clampf(f - float(i), 0.0, 1.0)
+		var e := rows_edge[i].lerp(rows_edge[i + 1], t)
+		var m := (-x + e.x if si == 0 else x - e.y) - shoulder_w
+		var c := corridor[i].lerp(corridor[i + 1], t)
+		var cw := c.x if si == 0 else c.y
+		if cw > corridor_min + 0.5 and m > 0.0 and m - maxf(reach, 0.0) <= cw:
+			return true
+	return false
+
+
+## True when any part of the footprint of an object (foot (z, x), reach and half_len as in in_bend_corridor()) beyond
+## the shoulder lies in the exact envelope of the sight lines of a bend (TerrainProfile.envelope_width(): no floor at
+## the ends of a bend, nothing where no sight line leaves the road) – contract A-17 to the letter: nothing taller than
+## 0.5 m stands in it. FIX-R7a (QR7a-05): the city's fence pieces test this; the border pillars test the same
+## envelope on the TerrainProfile (BorderB.pillar_in_sight()).
+func in_sight_envelope(z: float, x: float, reach: float = 0.0, half_len: float = 0.0) -> bool:
+	return bend_intrusion(z, x, reach, half_len) >= 0.0
+
+
+## How deep (m) the footprint of an object (foot (z, x), reach and half_len as in in_bend_corridor()) reaches into the
+## envelope of the sight lines of a bend, measured across the road: moving the object this much farther away from the
+## road clears it (plus a margin of the caller's choice). Negative when no part of it is inside (how far its nearest
+## part stays outside, or -1.0 where no sight line leaves the road); a sample whose foot lies on the road or the
+## shoulder is not a corridor case. Along the road the footprint is sampled every half row; between two rows the
+## larger envelope of the two counts. Worker-safe (snapshot arrays only). FIX-R7a (QR7a-01): what a builder
+## needs to push such an object out instead of leaving it out.
+func bend_intrusion(z: float, x: float, reach: float = 0.0, half_len: float = 0.0) -> float:
+	var si := 0 if x < 0.0 else 1
+	var n := 0 if half_len <= 0.0 else int(ceil(half_len * 2.0 / seg_len))
+	var depth := -INF
+	for q in n + 1:
+		var zq := z if n == 0 else z - half_len + half_len * 2.0 * float(q) / float(n)
+		var f := zq / seg_len - float(seg_a - ENV_MARGIN)
+		var i := clampi(int(floor(f)), 0, envelope.size() - 2)
+		var t := clampf(f - float(i), 0.0, 1.0)
+		var e := env_edge[i].lerp(env_edge[i + 1], t)
+		var m := (-x - e.x if si == 0 else x - e.y)
+		if m <= 0.0:
+			continue
+		# the larger of the two rows around the sample, not their mean: near the start and the end of a bend the
+		# envelope changes by up to 2 m from row to row, and nothing tells how it runs in between
+		var c0 := envelope[i]
+		var c1 := envelope[i + 1]
+		var cw := maxf(c0.x, c1.x) if si == 0 else maxf(c0.y, c1.y)
+		if cw > 0.0:
+			depth = maxf(depth, cw - (m - maxf(reach, 0.0)))
+	return depth if depth > -INF else -1.0

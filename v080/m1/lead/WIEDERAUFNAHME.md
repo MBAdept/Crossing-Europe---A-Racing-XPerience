@@ -1,4 +1,4 @@
-# Wiederaufnahme (zuletzt aktualisiert 24.11.2026 ~03:45 UTC)
+# Wiederaufnahme (zuletzt aktualisiert 24.11.2026 ~09:00 UTC)
 
 Haltung des Nutzers: Qualität vor Tempo, keine Prüfungen/Nacharbeit streichen; Lackflackern pausiert (A-21);
 „bitte ohne meine Testergebnisse erst einmal weitermachen“. Nutzer schreibt Deutsch; Tags/Releases macht der Nutzer.
@@ -20,9 +20,14 @@ Haltung des Nutzers: Qualität vor Tempo, keine Prüfungen/Nacharbeit streichen;
   jeder Schritt prüft, ob sein Ergebnis schon da ist) – der Container wurde am 23./24.11. zweimal neu gestartet.
 
 ## Fortsetzen
-1. R7d „Freie Strecke“ (A-27): Worktree .claude/worktrees/wf_a71eeb2e-3b7-1, neuer Branch wip/v080-r7d von 720eaf4;
-   Brief = R7D_WHY/R7D_SCOPE/R7D_RULES/R7D_GATES in m1/lead/m6_r7d_draft.js. Danach eigene Kritik- und QA-Runde,
-   FIX, Nachprüfung (früher KRITIK-R7D ∥ QA-R7D → FIX-R7D → NACH-R7D).
+1. R7d „Freie Strecke“ (A-27): Worktree .claude/worktrees/wf_a71eeb2e-3b7-1 (lokaler Branch wip-v080-r7d →
+   origin/wip/v080-r7d, Kopf 7489ef8). Bau fertig (Himmel/Wolken, Wolkenschatten, Felder, Beton, Asphaltalter,
+   lesbare Markierungen, Baumtöne, neue Bildprüfung check_freie_strecke.gd). Tore laufen als Skripte in
+   m1/R7D/sh/ (chain1 = alle Bildprüfungen → gates/render_checks.log; chain3 = A/B + Clips + chain2; chain2 =
+   run_tests, Verdeckung head/base, golden, modernkeep, sight, ergebnis, perf → gates/summary.txt). Alle Skripte
+   wiederaufnehmbar: einfach erneut starten. A/B-Bilder (19) angesehen und gut; Tag-Clip geprüft.
+   Bericht-Entwurf deliver/R7D/bericht.md (Abschnitte 1, Tore, Leistung, Goldens offen).
+   Danach eigene Kritik- und QA-Runde, FIX, Nachprüfung.
 2. Danach: QA-mid (ganzes Rennen Kiel – Nürnberg in jeder Bedingung) → FIX/NACH → ZS2 (Goldens nach Ansehen,
    was_neu.md + Checkliste, Linux/Windows-Build, an den Nutzer per Datei).
 3. Leitungsnotizen: m1/lead/m2_integration_notes.md (letzte Abschnitte zuerst).

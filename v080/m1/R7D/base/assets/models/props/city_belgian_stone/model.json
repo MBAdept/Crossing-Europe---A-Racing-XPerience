@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/city_belgian_stone",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 10, "height_m": 17.5, "length_m": 13},
+  "extent_m": {"left": 9.14, "right": 4.78},
+  "aabb": [-5.3, 0, -13, 5.06, 17.52, 0.3],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 1336,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_belgian_stone/lod0_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 278,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_belgian_stone/lod1_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/city_belgian_stone/albedo.png", "emit": "props/city_belgian_stone/emit.png"},
+  "roughness": 0.86,
+  "auto_lod": false,
+  "tags": ["prop", "building", "city", "mirror_left", "belgian", "center"],
+  "bytes": 644231,
+  "hash": "2d06ee95c09e61fc16432395a6a3b4768474d3b7"
+ },
+ "sets": {
+  "props/city_belgian_stone": {"model": "props/city_belgian_stone"}
+ }
+}

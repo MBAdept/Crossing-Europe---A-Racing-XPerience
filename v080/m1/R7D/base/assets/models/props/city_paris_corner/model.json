@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/city_paris_corner",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 22.3, "height_m": 26.27, "length_m": 18},
+  "extent_m": {"left": 16.85, "right": 10.66},
+  "aabb": [-11.486, 0, -18.62, 11.12, 26.59, 0.986],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 5675,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_paris_corner/lod0_body.res",
+      "classes": ["vpbr", "baked_cutout"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 3418,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_paris_corner/lod1_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/city_paris_corner/albedo.webp", "emit": "props/city_paris_corner/emit.png"},
+  "roughness": 0.86,
+  "auto_lod": false,
+  "tags": ["prop", "building", "city", "mirror_left", "paris", "center"],
+  "bytes": 425778,
+  "hash": "2640ba9536a89efbe8414d157152f6c265432c00"
+ },
+ "sets": {
+  "props/city_paris_corner": {"model": "props/city_paris_corner"}
+ }
+}

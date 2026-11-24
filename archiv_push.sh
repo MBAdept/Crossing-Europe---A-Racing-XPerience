@@ -5,14 +5,14 @@ SCR=/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-
 ST=$SCR/archiv_stage
 cp $SCR/v080/m1/lead/WIEDERAUFNAHME.md $SCR/v080/m1/lead/m2_integration_notes.md $SCR/v080/m1/lead/contract_11_3.md $ST/v080/m1/lead/
 cp $SCR/v080/m1/lead/WIEDERAUFNAHME.md $ST/README.md
-cd /home/user/crossing-europe---a-racing-xperience
+cd /home/user/crossing-europe---a-racing-xperience/.claude/worktrees/wf_a71eeb2e-3b7-1
 export GIT_INDEX_FILE=$SCR/archiv.index
 rm -f $GIT_INDEX_FILE
 git --work-tree=$ST add -A .
 TREE=$(git write-tree)
 PARENT=""
 if git fetch -q origin wip/v080-lead-archiv 2>/dev/null; then PARENT="-p $(git rev-parse FETCH_HEAD)"; fi
-printf 'v0.8.0 Leitung: Archiv der Berichte, Notizen, Arbeitsstände und Workflow-Protokolle (Stand nach RINT-M3, R7d als Nächstes)\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq\n' > $SCR/archiv_msg.txt
+printf 'v0.8.0 Leitung: Archiv der Berichte, Notizen, Arbeitsstände und Workflow-Protokolle (Stand: R7d gebaut, Tore laufen)\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq\n' > $SCR/archiv_msg.txt
 C=$(git commit-tree $TREE $PARENT -F $SCR/archiv_msg.txt)
 unset GIT_INDEX_FILE
 echo "commit $C"
