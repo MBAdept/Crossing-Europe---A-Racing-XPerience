@@ -1,0 +1,43 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/barn",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 11, "height_m": 8.1, "length_m": 14},
+  "extent_m": {"left": 10.93, "right": 5.24},
+  "aabb": [-5.513, 0, -14.5, 5.513, 8.1, 0.5],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 290,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/barn/lod0_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "lights": [
+   {
+    "role": "lights",
+    "pos": [0, 4.4, 0.255],
+    "dir": [0, 0, 1],
+    "size": 0.631,
+    "color": "#ffd890"
+   }
+  ],
+  "textures": {"albedo": "props/barn/albedo.png"},
+  "roughness": 0.85,
+  "auto_lod": false,
+  "tags": ["prop", "building", "mirror_left"],
+  "bytes": 437126,
+  "hash": "d1ac0b984e4c8730aa1cbbb60ad41177e6e7a3c4"
+ },
+ "sets": {
+  "props/barn": {"model": "props/barn"}
+ }
+}

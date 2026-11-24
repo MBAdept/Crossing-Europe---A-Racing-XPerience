@@ -1,0 +1,18 @@
+Sichtkorridor: das ganze Modell statt des Fußpunkts, hinausschieben bis 12 m (A-24)
+
+FIX-R7a's Patch von Hand auf den zusammengeführten props.gd übertragen, mit dem Modell
+statt der Bibliotheksbreite: footprint() nimmt die AABB der Vereinigung aller Varianten
+(PropLibrary "aabb"), skaliert, gespiegelt und mit dem Gierwinkel gedreht, mit dem _place()
+das Modell stellt (place_yaw()); an der Kante ausgerichtete Häuser reichen mindestens bis
+Arcades Vorderkante (max(extent, AABB-Seite) quer, die AABB längs). push_out() und
+drop_reason() rechnen mit demselben Abdruck; angehängte Requisiten (attach) ebenso.
+Listeneinträge tragen den Gierwinkel als neuntes Element.
+
+tests/race3d/props_footprint.gd -> check_props_footprint.gd (git mv, damit Gate von
+run_tests.sh): rechnet das Modell unabhängig aus dem Manifest, prüft "list" und
+"attach_list". --full: 0 von 218.090 gemessenen Requisiten in der Hülle (128 Richtungen).
+Mutationen: nur Fuß -> FEHLER 474, Breitenmodell von FIX-R7a -> FEHLER 391 (schnell, 6
+Richtungen). Orakel in test_props.gd mit der genauen Hülle und demselben Abdruck.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

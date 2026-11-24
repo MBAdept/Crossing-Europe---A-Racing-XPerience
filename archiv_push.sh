@@ -12,7 +12,7 @@ git --work-tree=$ST add -A .
 TREE=$(git write-tree)
 PARENT=""
 if git fetch -q origin wip/v080-lead-archiv 2>/dev/null; then PARENT="-p $(git rev-parse FETCH_HEAD)"; fi
-printf 'v0.8.0 Leitung: Archiv der Berichte, Notizen, Arbeitsstände und Workflow-Protokolle (Stand nach R7, RINT-M3 + R7d gestartet)\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq\n' > $SCR/archiv_msg.txt
+printf 'v0.8.0 Leitung: Archiv der Berichte, Notizen, Arbeitsstände und Workflow-Protokolle (Stand nach RINT-M3, R7d als Nächstes)\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\nClaude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq\n' > $SCR/archiv_msg.txt
 C=$(git commit-tree $TREE $PARENT -F $SCR/archiv_msg.txt)
 unset GIT_INDEX_FILE
 echo "commit $C"

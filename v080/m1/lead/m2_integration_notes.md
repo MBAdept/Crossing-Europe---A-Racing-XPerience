@@ -444,3 +444,16 @@ Grundlage: FIX-M2 bericht.md B-01 (Sehnenstudie, Vorschau T4), A-3/A-10 ("Entsch
   RINT-M3 (wip/v080-rint-m3) → R7D (wip/v080-r7d) → KRITIK-R7D ∥ QA-R7D → FIX-R7D (wip/v080-fix-r7d) → NACH-R7D.
   Resume: Workflow({scriptPath: wf_m6.js, resumeFromRunId: 'wf_a71eeb2e-3b7', args: <args_m6.json>}).
 - 12 R7-Worktrees entfernt (alles auf origin, r7c enthält die .uid 8153d20); 12 GB frei.
+
+## 24.11. ~03:45 UTC – RINT-M3 FERTIG (Leitung selbst ab 23.11. 19:55; Workflow-Werkzeug nicht mehr verfügbar)
+- Endstand wip/v080-rint-m3 720eaf4 (= d6d55b4 Leitplanken-Fix + Modern-Goldens). Bericht deliver/RINT-M3/bericht.md.
+- Notiz 7: ohne Code; Maxima im Zeitraffer 16 = Sichtkorridor-Nachrechnung (auch die Wahrzeichen-Spitze 8–14 ms = sync_ms_max
+  + 0,35 ms); Zeitraffer 4: sync 0. capture +0,25 ms; warm-Geometrieblock bis 2,9 ms (für PERF/Deck).
+- Notiz 9: Hansehaus 0,46× (= QA-Wert auf 9b02f05), Lyon 0,92/0,72× → AS5b. Notiz 11: Sprite bytegleich. N-02 behoben (Bilder).
+- Befund der Montage: instanzen_wald 236 > 230 durch A-28-Leitplankenstücke (je Stück ein vpbr-Knoten) → Flächen eines
+  Knotens (d6d55b4), 222; Sonde probe/wald_hist_probe.gd.
+- Tore Endstand alle grün (842/157, Render 31/31, Arcade 20/20 + 17/17, Modern 6/6 + GLES, Builds, Smoke L/GLES/W).
+- A/B: 75 Bilder + 3 Clips, nichts schlechter als RINT-M2; T1–T4 und Start-Eiche jetzt gleich (F-03 erledigt).
+- Container zweimal neu gestartet (23:32, 00:19): Abläufe jetzt wiederaufnehmbar (m1/RINT-M3/sh/slotA/B/C.sh).
+- NÄCHSTES: R7d inline (kein Workflow): Branch wip/v080-r7d von 720eaf4, Brief m1/lead/m6_r7d_draft.js (R7D_WHY/SCOPE/RULES/
+  GATES); danach eigene Kritik + QA-Linse, FIX, Nachprüfung; dann QA-mid; dann ZS2.

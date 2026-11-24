@@ -1,0 +1,19 @@
+Streamer: ein beim Einhängen verworfenes Stück gibt seine Reflektoren und Lampen frei (A-28, N-01)
+
+Ein Stück, das der Streamer im Zustand COMMITTING verwirft, betrat den Baum nie und sendet
+kein tree_exiting: die Lichtebene behielt seine Reflektoren, nach dem Freigeben warf
+_update_glints() in jedem Bild mit Abblendlicht einen SCRIPT ERROR und die Glanzpunkte
+froren ein (NACH-RINT N-01).
+- chunk_streamer._drop(): für ein COMMITTING-Stück ModernRenderer.release_chunk(node);
+  der Renderer ruft release_under(root) jeder Ebene, die es hat (lights, flares).
+- lights._update_glints() überspringt und vergisst Einträge freigegebener Knoten (wie
+  _update_pools() und flares schon); je Speicher eine eigene _forget-Methode (zwei
+  gebundene Kopien derselben Methode gelten als derselbe Callable – ein Knoten mit Lampen
+  UND Reflektoren konnte den zweiten nicht verbinden).
+- Tests: Reflektor an einem nie eingehängten Knoten, freigeben, Glanzpunkte -> kein
+  Fehler, Zähler 0; release_under() für lights und flares; Streamer verwirft ein halb
+  eingehängtes Stück -> release_chunk(), seine Reflektoren sofort vergessen.
+  NACH-RINT's Sonde: Zähler 1 -> 0, kein SCRIPT ERROR.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

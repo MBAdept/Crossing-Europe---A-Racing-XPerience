@@ -1,0 +1,42 @@
+{
+  "format": "ce-traffic-sounds-1",
+  "sample_rate": 32000,
+  "sounds": {
+    "car_petrol": {"file": "car_petrol.wav", "layer": "engine", "ref_kmh": 120, "pitch_exp": 1.0, "gain_db": -4.0},
+    "car_diesel": {"file": "car_diesel.wav", "layer": "engine", "ref_kmh": 120, "pitch_exp": 1.0, "gain_db": -4.0},
+    "car_sport": {"file": "car_sport.wav", "layer": "engine", "ref_kmh": 140, "pitch_exp": 1.0, "gain_db": -2.0},
+    "van_diesel": {"file": "van_diesel.wav", "layer": "engine", "ref_kmh": 110, "pitch_exp": 1.0, "gain_db": -3.0},
+    "truck_diesel": {"file": "truck_diesel.wav", "layer": "engine", "ref_kmh": 85, "pitch_exp": 1.0, "gain_db": 3.0},
+    "bus_diesel": {"file": "bus_diesel.wav", "layer": "engine", "ref_kmh": 90, "pitch_exp": 1.0, "gain_db": 0.0},
+    "tires_car": {"file": "tires_car.wav", "layer": "tires", "ref_kmh": 120, "pitch_exp": 0.35, "gain_db": -3.0, "level_db_per_decade": 30.0},
+    "tires_truck": {"file": "tires_truck.wav", "layer": "tires", "ref_kmh": 85, "pitch_exp": 0.35, "gain_db": 1.0, "level_db_per_decade": 30.0},
+    "air": {"file": "air.wav", "layer": "air", "ref_kmh": 120, "pitch_exp": 0.5, "gain_db": -6.0, "level_db_per_decade": 40.0}
+  },
+  "classes": {
+    "car": {"engine": ["car_petrol", "car_diesel"], "tires": "tires_car", "air": "air", "size": 1.0},
+    "sport": {"engine": ["car_sport"], "tires": "tires_car", "air": "air", "size": 1.0},
+    "van": {"engine": ["van_diesel"], "tires": "tires_car", "air": "air", "size": 1.3},
+    "truck": {"engine": ["truck_diesel"], "tires": "tires_truck", "air": "air", "size": 2.2},
+    "bus": {"engine": ["bus_diesel"], "tires": "tires_truck", "air": "air", "size": 2.0},
+    "police": {"engine": ["car_sport"], "tires": "tires_car", "air": "air", "size": 1.0}
+  },
+  "models": {"hatch": "car", "sedan": "car", "wagon": "car", "suv": "van", "van": "van", "sports": "sport", "truck": "truck", "bus": "bus", "police": "police"},
+  "synth": {
+    "generator": "tools/audio/traffic_synth.py",
+    "model": 1,
+    "loudness_lufs": -20.0,
+    "loudness": "jede Schleife K-bewertet (BS.1770 ohne Gating) über die ganze Schleife gleich laut; Pegelverhältnisse nur über gain_db und level_db_per_decade",
+    "seam": "seam_step_pct/seam_hf_pct = Perzentil des Sprungs bzw. der HF-Energie an der Naht unter allen Positionen (Klick wäre ~100)",
+    "loops": {
+      "car_petrol": {"kind": "engine", "label": "1,5 l Reihenvierzylinder Turbo-Benziner", "kmh": 120.0, "rpm": 2500.0, "period": 1536, "cycles": 62, "loop_phase_deg": 599.5, "splice_rho": 0.932, "components_lu": {"exh": -4.5, "rasp": -18.5, "jet": -20.5, "intake": -12.5, "hiss": -18.5, "whoosh": -16.5, "mech": -9.5, "inj": -16.5, "comb": -7.5}, "samples": 95232, "seconds": 2.976, "seam_step_pct": 35.6, "seam_hf_pct": 79.8, "seam_env_db": 0.04, "env_step_max_db": 0.59, "env_range_db": 1.4, "dc_lsb": -0.001, "peak_dbfs": -8.91, "rms_dbfs": -19.76, "loudness_lufs": -20.0, "level_dba": -25.7},
+      "car_diesel": {"kind": "engine", "label": "2,0 l Reihenvierzylinder Turbodiesel", "kmh": 120.0, "rpm": 1900.0, "period": 2021, "cycles": 48, "loop_phase_deg": 204.1, "splice_rho": 0.961, "components_lu": {"exh": -3.9, "rasp": -19.9, "jet": -19.9, "intake": -11.9, "whoosh": -15.9, "mech": -10.9, "inj": -12.9, "comb": -9.9, "knock": -7.9}, "samples": 97008, "seconds": 3.0315, "seam_step_pct": 41.9, "seam_hf_pct": 23.3, "seam_env_db": 0.11, "env_step_max_db": 0.62, "env_range_db": 1.3, "dc_lsb": -0.0, "peak_dbfs": -9.49, "rms_dbfs": -18.97, "loudness_lufs": -20.0, "level_dba": -25.72},
+      "car_sport": {"kind": "engine", "label": "3,0 l Reihensechszylinder Turbo, Sportauspuff", "kmh": 140.0, "rpm": 3200.0, "period": 1200, "cycles": 80, "loop_phase_deg": 484.2, "splice_rho": 0.733, "components_lu": {"exh": -2.5, "rasp": -8.5, "jet": -9.5, "intake": -8.5, "hiss": -18.5, "whoosh": -12.5, "mech": -9.5, "inj": -16.5, "comb": -7.5}, "samples": 96000, "seconds": 3.0, "seam_step_pct": 10.5, "seam_hf_pct": 86.1, "seam_env_db": 0.19, "env_step_max_db": 0.96, "env_range_db": 1.9, "dc_lsb": 0.001, "peak_dbfs": -9.68, "rms_dbfs": -20.69, "loudness_lufs": -20.0, "level_dba": -24.21},
+      "van_diesel": {"kind": "engine", "label": "2,0 l Reihenvierzylinder Turbodiesel (Transporter/SUV)", "kmh": 110.0, "rpm": 2200.6, "period": 1745, "cycles": 55, "loop_phase_deg": 209.2, "splice_rho": 0.91, "components_lu": {"exh": -5.7, "rasp": -19.7, "jet": -19.7, "intake": -11.7, "whoosh": -15.7, "mech": -9.7, "inj": -11.7, "comb": -9.7, "knock": -5.7}, "samples": 95975, "seconds": 2.9992, "seam_step_pct": 18.1, "seam_hf_pct": 77.6, "seam_env_db": 0.11, "env_step_max_db": 0.82, "env_range_db": 1.6, "dc_lsb": -0.001, "peak_dbfs": -9.63, "rms_dbfs": -19.95, "loudness_lufs": -20.0, "level_dba": -24.4},
+      "truck_diesel": {"kind": "engine", "label": "12,8 l Reihensechszylinder Diesel (Sattelzugmaschine)", "kmh": 85.0, "rpm": 1250.0, "period": 3072, "cycles": 31, "loop_phase_deg": 443.7, "splice_rho": 0.778, "components_lu": {"exh": 2.0, "rasp": -18.0, "jet": -20.0, "intake": -4.0, "whoosh": -8.0, "mech": -12.0, "inj": -14.0, "comb": -10.0, "knock": -10.0, "rattle": -10.0}, "samples": 95232, "seconds": 2.976, "seam_step_pct": 32.8, "seam_hf_pct": 61.9, "seam_env_db": 0.27, "env_step_max_db": 0.96, "env_range_db": 2.3, "dc_lsb": -0.001, "peak_dbfs": -6.65, "rms_dbfs": -19.34, "loudness_lufs": -20.0, "level_dba": -25.41},
+      "bus_diesel": {"kind": "engine", "label": "10,7 l Reihensechszylinder Diesel, Heckmotor (Reisebus)", "kmh": 90.0, "rpm": 1299.9, "period": 2954, "cycles": 32, "loop_phase_deg": 259.1, "splice_rho": 0.899, "components_lu": {"exh": 2.3, "rasp": -17.7, "jet": -19.7, "intake": -5.7, "whoosh": -9.7, "mech": -12.7, "inj": -16.7, "comb": -10.7, "knock": -12.7, "rattle": -16.7}, "samples": 94528, "seconds": 2.954, "seam_step_pct": 53.0, "seam_hf_pct": 22.9, "seam_env_db": 0.15, "env_step_max_db": 1.01, "env_range_db": 1.7, "dc_lsb": 0.0, "peak_dbfs": -9.23, "rms_dbfs": -18.46, "loudness_lufs": -20.0, "level_dba": -27.48},
+      "tires_car": {"kind": "tires", "label": "4 Pkw-Reifen 205/55 R16 auf Splittmastixasphalt, 120 km/h", "kmh": 120.0, "groups": [{"name": "205/55 R16", "tyres": 4, "rot_hz": [17.33, 17.19, 17.27, 17.29], "pitch_hz": 1111.1}], "components_lu": {"texture": -3.2, "tread": -9.6, "pump": -16.1, "cavity": -12.3, "rumble": -13.9}, "tonality_db": 13.6, "samples": 96000, "seconds": 3.0, "seam_step_pct": 50.5, "seam_hf_pct": 84.7, "seam_env_db": 0.39, "env_step_max_db": 1.52, "env_range_db": 7.1, "dc_lsb": 0.0, "peak_dbfs": -6.76, "rms_dbfs": -21.08, "loudness_lufs": -20.0, "level_dba": -22.63},
+      "tires_truck": {"kind": "tires", "label": "12 Lkw-Reifen (Lenkachse 315/70 R22.5, Antriebsachse zwillingsbereift, 3 Aufliegerachsen 385/65 R22.5) auf Splittmastixasphalt, 85 km/h", "kmh": 85.0, "groups": [{"name": "Lenkachse 315/70 R22.5 (Rillenprofil)", "tyres": 2, "rot_hz": [7.4, 7.4], "pitch_hz": 562.2}, {"name": "Antriebsachse 315/70 R22.5 (Blockprofil, Zwillingsreifen)", "tyres": 4, "rot_hz": [7.46, 7.51, 7.46, 7.5], "pitch_hz": 407.1}, {"name": "Auflieger 385/65 R22.5 (Rillenprofil)", "tyres": 6, "rot_hz": [7.01, 7.0, 7.05, 7.04, 7.02, 6.95], "pitch_hz": 590.3}], "components_lu": {"texture": -3.6, "tread": -10.8, "pump": -18.1, "cavity": -11.7, "rumble": -14.3}, "tonality_db": 10.5, "samples": 96000, "seconds": 3.0, "seam_step_pct": 22.6, "seam_hf_pct": 79.6, "seam_env_db": 0.04, "env_step_max_db": 1.98, "env_range_db": 7.2, "dc_lsb": 0.001, "peak_dbfs": -6.95, "rms_dbfs": -20.51, "loudness_lufs": -20.0, "level_dba": -23.57},
+      "air": {"kind": "air", "label": "Umströmung eines Fahrzeugs (Nachlauf, Ablösung an A-Säule/Spiegel/Radhäusern, Spalte), 120 km/h", "kmh": 120.0, "components_lu": {"Nachlauf (Wirbel hinter dem Fahrzeug)": -1.9, "Ablösung A-Säule/Spiegel/Radhäuser": -4.4, "Spalte und Kanten (Zischen)": -22.8}, "tonality_db": 8.0, "samples": 96000, "seconds": 3.0, "seam_step_pct": 9.0, "seam_hf_pct": 50.1, "seam_env_db": 0.47, "env_step_max_db": 2.97, "env_range_db": 10.0, "dc_lsb": 0.001, "peak_dbfs": -5.65, "rms_dbfs": -20.3, "loudness_lufs": -20.0, "level_dba": -24.72}
+    }
+  }
+}

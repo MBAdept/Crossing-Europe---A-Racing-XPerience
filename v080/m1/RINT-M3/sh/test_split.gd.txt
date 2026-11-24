@@ -1,0 +1,50 @@
+
+
+## A-28 (RINT-M3): a large mesh is committed in pieces – split_arrays() keeps every triangle with its vertices and
+## attributes (the same triangles, in the same order, as the whole), and the road builder commits one piece per step
+## ("Road", "Road_2", …), all with the road's material on the ground layer.
+func test_split_arrays_and_commit_steps() -> void:
+	var t := _syn(400)
+	var ctx := _context(t, 2)
+	var road: ChunkBuilder = RoadBuilder.new()
+	var part := road.build(ctx, road.collect(ctx))
+	var arrays: Array = part["arrays"]
+	for n in [1, 2, 3, 4]:
+		var pieces := ChunkBuilder.split_arrays(arrays, n)
+		assert_eq(pieces.size(), n, "%d Teile" % n)
+		var tris: Array = []
+		for pa: Array in pieces:
+			var v: PackedVector3Array = pa[Mesh.ARRAY_VERTEX]
+			var c0: PackedFloat32Array = pa[Mesh.ARRAY_CUSTOM0]
+			assert_eq(c0.size(), v.size() * 4, "CUSTOM0 je Ecke vier Werte, mitgeschnitten")
+			for i: int in pa[Mesh.ARRAY_INDEX]:
+				assert_true(i >= 0 and i < v.size(), "Index im Teil")
+				tris.append(v[i])
+		var whole: Array = []
+		var wv: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		for i: int in arrays[Mesh.ARRAY_INDEX]:
+			whole.append(wv[i])
+		assert_eq(tris, whole, "%d Teile: dieselben Dreiecke in derselben Reihenfolge" % n)
+	# the builder's own pieces and its commit steps
+	var steps := road.commit_steps(part)
+	assert_eq(steps, ChunkBuilder.pieces_for(int(part["vertices"])), "Schritte = Teile nach der Eckenzahl (%d Ecken)" % int(part["vertices"]))
+	var big := part.duplicate()
+	big["pieces"] = ChunkBuilder.split_arrays(arrays, 3)
+	var parent := Node3D.new()
+	for k in road.commit_steps(big):
+		road.commit_step(ctx, big, parent, k)
+	assert_eq(parent.get_child_count(), 3, "drei Schritte, drei Netze")
+	var names: Array = []
+	var tri_sum := 0
+	for c: Node in parent.get_children():
+		names.append(str(c.name))
+		var mi := c as MeshInstance3D
+		assert_true(mi.layers == 2 and mi.material_override == road.get("material"), "jedes Teil auf Boden-Ebene 2 mit dem Straßenmaterial")
+		tri_sum += (mi.mesh as ArrayMesh).surface_get_array_index_len(0) / 3
+	assert_eq(names, ["Road", "Road_2", "Road_3"], "Namen der Teile")
+	assert_eq(tri_sum, int(part["triangles"]), "alle Dreiecke eingehängt")
+	parent.free()
+	assert_eq(ChunkBuilder.pieces_for(0), 1, "leer: ein Schritt")
+	assert_eq(ChunkBuilder.pieces_for(ChunkBuilder.PIECE_VERTICES), 1, "bis PIECE_VERTICES: ein Schritt")
+	assert_eq(ChunkBuilder.pieces_for(ChunkBuilder.PIECE_VERTICES + 1), 2, "darüber: zwei")
+	assert_eq(ChunkBuilder.pieces_for(ChunkBuilder.PIECE_VERTICES * 100), ChunkBuilder.PIECES_MAX, "höchstens PIECES_MAX")

@@ -1,0 +1,32 @@
+21:53 import exit 0 Fehlerzeilen 0; check_scripts exit 1 – Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org  339 Skripte geprüft, 0 fehlerhaft 
+gate import fertig (15 s, nice 10)
+22:11 run_tests (tests) exit 0 – 842 Tests, 0 fehlgeschlagen – 157 CHECK OK, 0 CHECK FEHLER
+gate tests fertig (1100 s, nice 10)
+22:18 golden check exit 0 – GOLDEN arcade: 20 von 20 identisch (188 s) GOLDEN arcade-ui: 17 von 17 identisch (211 s) 
+gate golden fertig (404 s, nice 10)
+22:35 modern-check (KEEP) exit 1 – GOLDEN modern: 0 von 6 identisch (788 s) GOLDEN modern-gles: modern_s3_hoch OpenGL ES gegen OpenGL: OK max. Abweichung 2/255, PSNR 73.2 dB, 8545 Pixel verschieden (242 s) 
+gate modernkeep fertig (1036 s, nice 10)
+22:40 modern_sight --full exit 0 (6 OK, 0 FEHLER); modern_path_check --full exit 0 (2 OK, 0 FEHLER)
+gate sight fertig (294 s, nice 10)
+22:40 validate exit 0 – CHECK models OK
+gate validate fertig (4 s, nice 10)
+22:53 check-keys exit 0 – CHECK cache_keys OK      110 Modelle: ein geänderter Lack, Metallwert, Blickwin
+gate keys fertig (747 s, nice 10)
+22:58 check_sprite_geometry exit 0 – CHECK sprite_geometry OK
+gate geometry fertig (285 s, nice 10)
+23:00 audio_qc exit 0 –  98 Klänge geprüft, 0 mit Fehlern, 0 Probleme insgesamt -> OK 
+gate audio fertig (129 s, nice 10)
+23:11 determinism exit 0 – git status assets/models: 0 geänderte Dateien
+gate determinism fertig (659 s, nice 10)
+23:14 ergebnis – ERGEBNIS kiel_hamburg: 28 Schlüssel, identisch (außer gfx) ERGEBNIS dev_testetappe: 28 Schlüssel, identisch (außer gfx) ERGEBNIS saragossa_pau: 28 Schlüssel, identisch (außer gfx) 
+gate ergebnis fertig (229 s, nice 10)
+23:16 texmem – 4 Messungen
+gate texmem fertig (105 s, nice 10)
+03:28 modern-check (Endstand 720eaf4) exit 0 – GOLDEN modern: 6 von 6 identisch (847 s) GOLDEN modern-gles: modern_s3_hoch OpenGL ES gegen OpenGL: OK max. Abweichung 2/255, PSNR 73.2 dB, 8545 Pixel verschieden (247 s) 
+gate moderncheck2 fertig (1100 s, nice 10)
+03:28 check_scripts (Endstand 720eaf4) exit 0 – 339 Skripte geprüft, 0 fehlerhaft
+gate scripts2 fertig (12 s, nice 10)
+03:31 build_linux exit 0, build_windows exit 0
+gate builds fertig (175 s, nice 10)
+03:38 smoke linux exit 0, gles exit 0, windows (build/CrossingEurope.exe) exit 0 – SMOKE linux_opengl3_es: OK SMOKE linux: OK SMOKE windows: OK 
+gate smoke fertig (411 s, nice 10)

@@ -1,0 +1,18 @@
+# Modern change detectors of the slice Kiel – Hamburg (tools/golden.sh modern-make / modern-check, docs/qa-v080.md):
+# what the mode "Modern" draws at the slice's reference positions, with the full HUD. Not an identity gate – Modern
+# is still being built – but every change of its picture shows up here and is acknowledged by regenerating the list
+# in the same commit (tools/golden.sh modern-make). One run of the race scene per line:
+#   id | shot times (s) | arguments of the race scene (after "--")
+# Every run: --graphics=modern --gfx-sync --audio-sync, --fixed-fps 60, 1280×720, its own empty XDG_DATA_HOME, an
+# explicit quality preset, NO --shot-fast (A-2: the RenderingServer must draw every frame). <id>_00.png …, MD5 of the
+# PNG file. The id named in GLES_ID of tools/golden.sh is also drawn through OpenGL ES and compared with this run.
+#
+# km 0: standing start, countdown (start gate with its lamps, HUD countdown), Mittel
+modern_start_mittel | 2.2 | --stage=kiel_hamburg --from=kiel --hour=12 --weather=normal --vehicle=limousine --seed=11 --autopilot --autopilot-refuel=never --traffic-warmup --gfx-preset=medium
+# S2 first fuel lane and station, S3 open Autobahn (Hoch), S4 City Limits / Köhlbrandbrücke, S5 finish (Niedrig)
+modern_s2_mittel    | 3   | --stage=kiel_hamburg --from=kiel --start-km=13.6 --hour=12 --weather=normal --vehicle=limousine --seed=11 --autopilot --autopilot-refuel=never --traffic-warmup --no-countdown --start-speed=120 --gfx-preset=medium
+modern_s3_hoch      | 3   | --stage=kiel_hamburg --from=kiel --start-km=60 --hour=12 --weather=normal --vehicle=limousine --seed=11 --autopilot --autopilot-refuel=never --traffic-warmup --no-countdown --start-speed=120 --gfx-preset=high
+modern_s4_mittel    | 3   | --stage=kiel_hamburg --from=kiel --start-km=80 --hour=12 --weather=normal --vehicle=limousine --seed=11 --autopilot --autopilot-refuel=never --traffic-warmup --no-countdown --start-speed=50 --gfx-preset=medium
+modern_s5_niedrig   | 3   | --stage=kiel_hamburg --from=kiel --start-km=94 --hour=12 --weather=normal --vehicle=limousine --seed=11 --autopilot --autopilot-refuel=never --traffic-warmup --no-countdown --start-speed=120 --gfx-preset=low
+# S1 at night (moon, headlights, lamps), Mittel
+modern_s1_nacht     | 3   | --stage=kiel_hamburg --from=kiel --start-km=2 --hour=22 --weather=normal --vehicle=limousine --seed=11 --autopilot --autopilot-refuel=never --traffic-warmup --no-countdown --start-speed=120 --gfx-preset=medium

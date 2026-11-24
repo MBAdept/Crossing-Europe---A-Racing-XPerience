@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/fuel_pump",
+ "model": {
+  "kind": "furniture",
+  "object": {"width_m": 1.3, "height_m": 4.35, "length_m": 3.8},
+  "extent_m": {"left": 2.36, "right": 0.46},
+  "aabb": [-0.626, 0, -3.8, 0.626, 4.34, 0],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 384,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/fuel_pump/lod0_body.res",
+      "classes": ["baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/fuel_pump/albedo.png", "emit": "props/fuel_pump/emit.png"},
+  "roughness": 0.5,
+  "auto_lod": false,
+  "tags": ["prop", "fuel"],
+  "bytes": 113030,
+  "hash": "929da33e67d2f5bdb4da389114705d706f093c35"
+ },
+ "sets": {
+  "props/fuel_pump": {"model": "props/fuel_pump"}
+ }
+}

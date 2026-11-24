@@ -1,0 +1,549 @@
+extends SceneTree
+## Render checks of the vehicle lights of the mode "Modern" (R3; contract D14 F6, §6 R3) – they need a real renderer:
+##   xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --rendering-driver opengl3 --audio-driver Dummy \
+##       --fixed-fps 60 -s res://tests/race3d/render/check_vehicle_lights.gd -- --graphics=modern --gfx-sync --audio-sync
+## tools/run_render_checks.sh modern runs it. Prints "RENDER-CHECK <name> OK|FEHLER …"; exit code 0 when all pass.
+## The shipped renderer with every layer that exists; a still stage without traffic, test cars placed into the view
+## (tests/race3d/fixtures/vehicle_probe_renderer.gd); two pictures of the same moment, the lamp on and off, compared.
+##   blinker        an indicator of a car 300 m ahead (Kiel – Hamburg, day and night): its lamp core is at least
+##                  RoadRenderer.INDICATOR_MIN_PX (2.4 x 2.0 px: >= 2 x 2 bright amber pixels) and its glow reaches
+##                  at least the radius INDICATOR_MIN_GLOW_PX around it; the other side stays dark
+##   ruecklicht_n1  N1 (Hamburg – Hannover km 71, snow, 22:00): the tail lights of a car at 0.839 x visibility (where
+##                  the simulation counts it as seen) lift the picture above the luminance threshold of this check
+##                  (peak + 0.02 luminance and + 0.10 red against the same picture without the car)
+##   bremslicht     brake light by day at 50, 150 and 300 m: braking lights the rear (more red than the tail lamp
+##                  alone, Arcade's glow strength 0.35) at every distance
+##   blaulicht      FIX-M2 (QA-M2-BILD B-03): the beacon of the police MODEL at 60 m, by day and at 22:00, lifts at least
+##                  BEACON_MIN_PX pixels clearly bluer (+BEACON_LIFT) than the same picture with the beacon off –
+##                  the model's light bar is 8 cm high, its glow (VehiclePose3D.MODEL_BEACON_GAIN) carries the signal
+##   abblendlicht   FIX-M2 (QA-M2-BILD B-05): a red truck at 20 and 60 m in the player's low beam (22:00) stays a red
+##                  truck: at most LOWBEAM_WHITE_SHARE of its footprint above luminance 200/255 and a mean luminance of
+##                  at most LOWBEAM_MEAN (measured before the fix: 38 % white, mean 0.60 at 60 m – "a white glowing box";
+##                  Arcade 0.5 %, 0.17)
+##   bremsschein    RINT-M2 (A-20, NACH-M2 N-01): the extra glow of a MODEL's brake lights (VehiclePose3D.MODEL_BRAKE_GAIN)
+##                  is there by day and fades at night: the red the brake adds (brake on against off, same moment) round
+##                  a braking sports car at 60 m – by day at least BRAKE_DAY_MIN (Arcade's glow law alone, gain 1.0,
+##                  stays below), at 22:00 at most BRAKE_NIGHT_MAX (the full day gain at night goes above) – and round a
+##                  braking sedan at 20 m at 22:00 at most BRAKE_NIGHT20_MAX
+##   sichtgrenze    F4/F5 and Arcade's fog of sprites (FIX1, QA QB-07/QB-11): a dark car at the end of the sight
+##                  (0.995 × visibility) changes its footprint by less than 3 % contrast; at 0.839 × visibility (where
+##                  the simulation counts it as seen) the pixels it still covers keep at least half the contrast they
+##                  have at the fog begin (0.45 × visibility) – Arcade tints a sprite by 0.7 × the fog amount towards
+##                  its own colour × the fog colour, the engine's depth fog had left about 30 %
+## "-- --save=<absolute folder>" keeps the pictures (vehicle_lights_<name>.png).
+## (The scene and the autoloads are accessed untyped: -s scripts compile before the autoloads exist.)
+
+const RACE := "res://scenes/race/race.tscn"
+const PROBE := "res://tests/race3d/fixtures/vehicle_probe_renderer.gd"
+const CHECKS := ["blinker", "ruecklicht_n1", "bremslicht", "blaulicht", "abblendlicht", "bremsschein", "sichtgrenze"]
+const INDICATOR_MIN_PX := Vector2(2.4, 2.0)     ## RoadRenderer.INDICATOR_MIN_PX (copied: -s script)
+const INDICATOR_MIN_GLOW_PX := 4.5              ## RoadRenderer.INDICATOR_MIN_GLOW_PX
+const N1_LUM := 0.02                            ## threshold of the tail light at 0.839 x visibility …
+const N1_RED := 0.10                            ## … and of its red channel
+## blaulicht: pixels lifted … (by day / at 22:00; measured 310 / 1061 with the model glow, 102 / 303 with Arcade's law
+## alone – Arcade's sprite with its blue light layer about 3 × that)
+const BEACON_MIN_PX := {12: 200, 22: 600}
+const BEACON_LIFT := 0.12                       ## … by at least this much blue
+const LOWBEAM_WHITE_SHARE := 0.05               ## abblendlicht: share of the footprint above luminance 200/255 …
+const LOWBEAM_MEAN := 0.35                      ## … and mean luminance of the footprint
+## bremsschein (RINT-M2): limits of the red the brake adds (summed lift, see _brake_lift()), measured with the head
+## (VehiclePose3D night shares 0.6 near / 0.15 far), with Arcade's glow law (MODEL_BRAKE_GAIN 1.0) and with the full
+## day gain at night (night shares 1.0)
+const BRAKE_DAY_MIN := 29.0               ## measured: gain 2.2 33.1, gain 1.0 25.0 (RINT-M2)
+const BRAKE_NIGHT_MAX := 57.0             ## measured: head 28.3 (night share 0.15 far), full day gain 68.9, gain 1.0 19.7
+const BRAKE_NIGHT20_MAX := 500.0          ## measured: head 436.1 (night share 0.6 near), full day gain 602.8, gain 1.0 161.8
+## Kiel – Hamburg: start positions tried for the distance checks until the road ahead hides nothing (no crest)
+const CLEAR_KMS: Array = [2.0, 10.0, 20.0, 30.0, 45.0, 60.0, 70.0]
+
+var _failed: Array[String] = []
+var _probe: GDScript
+var _renderers: GDScript
+var _wall0 := 0
+
+
+func _initialize() -> void:
+	_wall0 = Time.get_ticks_msec()
+	_run.call_deferred()
+
+
+func _run() -> void:
+	if DisplayServer.get_name() == "headless":
+		print("RENDER-CHECK vehicle_lights FEHLER  braucht einen echten Renderer (Xvfb + --rendering-driver opengl3), nicht --headless")
+		quit(1)
+		return
+	_probe = load(PROBE)
+	_renderers = load("res://scripts/race/race_renderers.gd")
+	root.get_node("Settings").call("disarm_crash_guard")
+	var cli := CliArgs.all()
+	var had_traffic := cli.has("no-traffic")
+	cli["no-traffic"] = true
+	_renderers.set("modern_script", PROBE)
+	var only := str(cli.get("only", ""))
+	for c: String in CHECKS:
+		if only == "" or only.split(",").has(c):
+			await call("_check_" + c)
+	_probe.call("reset")
+	_renderers.set("modern_script", str(_renderers.get("MODERN_SCRIPT")))
+	if not had_traffic:
+		cli.erase("no-traffic")
+	ModernMaterials.drop_shared()
+	root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+	print("RENDER-CHECKS %s  (%d fehlgeschlagen, %.0f s)" % ["OK" if _failed.is_empty() else "FEHLER", _failed.size(), (Time.get_ticks_msec() - _wall0) / 1000.0])
+	quit(0 if _failed.is_empty() else 1)
+
+
+# --- helpers ---------------------------------------------------------------------------------------------------
+
+func _report(check: String, problems: Array[String], msg: String) -> void:
+	var ok := problems.is_empty()
+	print("RENDER-CHECK %-14s %s  %s%s" % [check, "OK    " if ok else "FEHLER", msg, "" if ok else "  –  FEHLT: " + "; ".join(problems)])
+	if not ok:
+		_failed.append(check)
+
+
+func _need(problems: Array[String], cond: bool, what: String) -> void:
+	if not cond:
+		problems.append(what)
+
+
+## A still Modern stage (no autopilot, no traffic, HUD hidden) – Kiel – Hamburg km 2 unless `extra` says otherwise.
+func _launch(extra: Dictionary = {}) -> Node:
+	var setup := {"mode": "single", "race_id": "", "stage_id": "kiel_hamburg", "from_city": "kiel", "vehicle": "limousine",
+		"start_world_minutes": 12.0 * 60.0, "weather": "normal", "start_km": 2.0, "autopilot": false, "seed": 11,
+		"gfx": "modern", "no_countdown": true}
+	setup.merge(extra, true)
+	var sc: Node = (load(RACE) as PackedScene).instantiate()
+	sc.set("setup", setup)
+	await physics_frame
+	root.add_child(sc)
+	(sc.get("hud") as Control).visible = false
+	await _until(func() -> bool: return int(sc.get("_sim_steps")) >= 5, 3000)
+	# the world clock stands still from here on (the sun moves with it: by day two pictures of the same scene
+	# differed by 1/255 in a few dozen pixels) – the session keeps drawing every frame with dt = 0
+	Engine.time_scale = 0.0
+	await _frames(2)
+	return sc
+
+
+## True when the camera sees the point (z, x, h) of the road over the road itself (no crest in between, sampled
+## every 3 m along the road, 0.3 m margin) – the distance checks need a car that is not hidden by the terrain.
+func _clear(r: Node, z: float, x: float, h: float) -> bool:
+	var path: RoadPath3D = r.get("path")
+	var cam: Camera3D = r.get("camera")
+	var view: Dictionary = r.get("view")
+	var cam_z := float(view["camera_z"])
+	var cam_x := float(view["camera_x"])
+	var c := cam.global_transform.origin
+	var target := path.world(z, x, h)
+	var zi := cam_z + 10.0
+	while zi < z - 3.0:
+		var t := (zi - cam_z) / (z - cam_z)
+		var line := c.lerp(target, t)
+		var road := path.world(zi, lerpf(cam_x, x, t), 0.0)
+		if line.y < road.y + 0.3:
+			return false
+		zi += 3.0
+	return true
+
+
+## A still stage at the first of `kms` where every distance of `dists` (m ahead of the camera, in the lane x offset
+## `lane` from the player) can be seen over the road (see _clear()).
+func _launch_clear(extra: Dictionary, kms: Array, dists: Array, lane: float) -> Node:
+	for km: float in kms:
+		var e := extra.duplicate()
+		e["start_km"] = km
+		var sc: Node = await _launch(e)
+		var r: Node = sc.get("renderer")
+		var view: Dictionary = r.get("view")
+		var x := float((view["player"] as Dictionary).get("x", 0.0)) + lane
+		var ok := true
+		for d: float in dists:
+			ok = ok and _clear(r, float(view["camera_z"]) + d, x, 0.6)
+		if ok:
+			return sc
+		await _free(sc)
+	return await _launch(extra)
+
+
+func _free(sc: Node) -> void:
+	_probe.call("reset")
+	Engine.time_scale = 1.0
+	sc.queue_free()
+	await process_frame
+	await process_frame
+	root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+
+
+func _frames(n: int) -> void:
+	for i in n:
+		await process_frame
+
+
+func _until(cond: Callable, max_frames: int = 2000) -> int:
+	var n := 0
+	while not bool(cond.call()) and n < max_frames:
+		await process_frame
+		n += 1
+	return n
+
+
+func _capture() -> Image:
+	await RenderingServer.frame_post_draw
+	return root.get_texture().get_image()
+
+
+## Shows `cars` (or nothing) and returns the picture once it is drawn (a few frames: nodes are built on first use).
+func _shot(cars: Array) -> Image:
+	_probe.set("inject", cars)
+	await _frames(4)
+	return await _capture()
+
+
+func _keep(img: Image, pic_name: String) -> void:
+	var dir := str(CliArgs.all().get("save", ""))
+	if dir.is_absolute_path():
+		DirAccess.make_dir_recursive_absolute(dir)
+		img.save_png(dir.path_join("vehicle_lights_%s.png" % pic_name))
+
+
+func _car(id: int, set_id: String, z: float, x: float, extra: Dictionary = {}) -> Dictionary:
+	var c := {"kind": "car", "id": id, "set": set_id, "z": z, "x": x, "length": float(ModelDB.object_size(set_id).get("length_m", 4.7)),
+		"tail": 0.0, "brake": 0.0, "speed": 0.0, "blink": 0, "blink_t": 0.0}
+	c.merge(extra, true)
+	return c
+
+
+## Screen pixels of the flares of one kind role of the injected car (from the flare layer's data of the last frame).
+func _flare_px(r: Node, kind_indicator: bool) -> Array[Vector2]:
+	var out: Array[Vector2] = []
+	var fl: Node = r.call("layer", "flares")
+	if fl == null:
+		return out
+	var cam: Camera3D = r.get("camera")
+	for f: Dictionary in fl.call("flares"):
+		if not bool(f["vehicle"]):
+			continue
+		if kind_indicator != (float(f["kind"]) > 0.5):
+			continue
+		out.append(cam.unproject_position(f["pos"]))
+	return out
+
+
+static func _lum(c: Color) -> float:
+	return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b
+
+
+# --- blinker ------------------------------------------------------------------------------------------------------
+
+func _check_blinker() -> void:
+	var p: Array[String] = []
+	var msgs: Array[String] = []
+	for hour: float in [12.0, 22.0]:
+		var sc: Node = await _launch_clear({"start_world_minutes": hour * 60.0}, CLEAR_KMS, [300.0], 0.0)
+		var r: Node = sc.get("renderer")
+		var view: Dictionary = r.get("view")
+		var cam_z := float(view["camera_z"])
+		var x := float((view["player"] as Dictionary).get("x", 0.0))
+		_need(p, _clear(r, cam_z + 300.0, x, 0.6), "%.0f Uhr: freie Sicht auf 300 m (keine Kuppe)" % hour)
+		var on := await _shot([_car(9301, "traffic/sedan_silver", cam_z + 300.0, x, {"blink": 1, "blink_t": 0.1})])
+		var pts := _flare_px(r, true)
+		var off := await _shot([_car(9301, "traffic/sedan_silver", cam_z + 300.0, x, {"blink": 1, "blink_t": 0.5})])
+		_keep(on, "blinker_%02d" % int(hour))
+		_need(p, pts.size() >= 1, "%.0f Uhr: Lichtpunkt des rechten Blinkers in der Flare-Ebene" % hour)
+		if pts.is_empty():
+			await _free(sc)
+			continue
+		var c := pts[0]
+		var x0 := 1000000
+		var x1 := -1
+		var y0 := 1000000
+		var y1 := -1
+		var core := 0
+		var glow := 0
+		var far := 0.0
+		for dy in range(-14, 15):
+			for dx in range(-14, 15):
+				var px := int(c.x) + dx
+				var py := int(c.y) + dy
+				if px < 0 or py < 0 or px >= on.get_width() or py >= on.get_height():
+					continue
+				var a := on.get_pixel(px, py)
+				var b := off.get_pixel(px, py)
+				var d := Color(a.r - b.r, a.g - b.g, a.b - b.b)
+				if d.r > 2.0 / 255.0 or d.g > 2.0 / 255.0:
+					glow += 1
+					far = maxf(far, Vector2(dx, dy).length())
+				# a lit core pixel: bright and amber (red above green above blue), clearly lifted
+				if a.r >= 0.6 and a.r >= a.g and a.g > a.b + 0.1 and d.r + d.g > 0.25:
+					core += 1
+					x0 = mini(x0, px)
+					x1 = maxi(x1, px)
+					y0 = mini(y0, py)
+					y1 = maxi(y1, py)
+		var w := x1 - x0 + 1 if x1 >= 0 else 0
+		var h := y1 - y0 + 1 if y1 >= 0 else 0
+		_need(p, w >= int(ceil(INDICATOR_MIN_PX.x - 0.5)) and h >= int(INDICATOR_MIN_PX.y) and core >= 4,
+			"%.0f Uhr: Blinkerkern bei 300 m mindestens %s px (gemessen %d × %d, %d Pixel)" % [hour, str(INDICATOR_MIN_PX), w, h, core])
+		_need(p, far >= INDICATOR_MIN_GLOW_PX - 1.0, "%.0f Uhr: Schein reicht mindestens %.1f px weit (%.1f px)" % [hour, INDICATOR_MIN_GLOW_PX, far])
+		msgs.append("%.0f Uhr: Kern %d × %d px (%d Pixel), Schein bis %.1f px, %d Pixel heller" % [hour, w, h, core, far, glow])
+		await _free(sc)
+	_report("blinker", p, "Blinker bei 300 m – " + "; ".join(msgs))
+
+
+# --- ruecklicht_n1 ------------------------------------------------------------------------------------------------
+
+func _check_ruecklicht_n1() -> void:
+	var p: Array[String] = []
+	var sc: Node = await _launch({"stage_id": "hamburg_hannover", "from_city": "hamburg", "start_km": 71.0,
+		"start_world_minutes": 22.0 * 60.0, "weather": "snow", "vehicle": "kompakt", "seed": 13})
+	var r: Node = sc.get("renderer")
+	var view: Dictionary = r.get("view")
+	var vis := float(r.get("visibility_m"))
+	var cam_z := float(view["camera_z"])
+	var x := float((view["player"] as Dictionary).get("x", 0.0))
+	var lights := float((view["palette"] as Dictionary).get("lights", 0.0))
+	var d := 0.839 * vis
+	var with_car := await _shot([_car(9401, "traffic/sedan_red", cam_z + d, x, {"tail": lights})])
+	var pts := _flare_px(r, false)
+	var without := await _shot([])
+	_keep(with_car, "ruecklicht_n1")
+	_need(p, lights > 0.9, "Nacht (Lichter der Palette %.2f)" % lights)
+	_need(p, pts.size() >= 2, "Rückleuchten als Lichtpunkte (%d)" % pts.size())
+	var best_lum := 0.0
+	var best_red := 0.0
+	for c: Vector2 in pts:
+		for dy in range(-5, 6):
+			for dx in range(-5, 6):
+				var px := clampi(int(c.x) + dx, 0, with_car.get_width() - 1)
+				var py := clampi(int(c.y) + dy, 0, with_car.get_height() - 1)
+				var a := with_car.get_pixel(px, py)
+				var b := without.get_pixel(px, py)
+				best_lum = maxf(best_lum, _lum(a) - _lum(b))
+				best_red = maxf(best_red, a.r - b.r)
+	_need(p, best_lum >= N1_LUM and best_red >= N1_RED, "Rücklicht bei 0,839 × Sichtweite über der Schwelle (Leuchtdichte +%.3f ≥ %.2f, Rot +%.3f ≥ %.2f)" % [best_lum, N1_LUM, best_red, N1_RED])
+	await _free(sc)
+	_report("ruecklicht_n1", p, "N1 (Hamburg – Hannover km 71, Schnee, 22 Uhr), Sichtweite %.0f m: Auto bei %.0f m, Rücklicht hebt das Bild um %.3f Leuchtdichte, %.3f Rot" % [
+		vis, d, best_lum, best_red])
+
+
+# --- bremslicht ---------------------------------------------------------------------------------------------------
+
+func _check_bremslicht() -> void:
+	var p: Array[String] = []
+	var msgs: Array[String] = []
+	var sc: Node = await _launch_clear({}, CLEAR_KMS, [50.0, 150.0, 300.0], -3.75)
+	var r: Node = sc.get("renderer")
+	var view: Dictionary = r.get("view")
+	var cam_z := float(view["camera_z"])
+	var x := float((view["player"] as Dictionary).get("x", 0.0)) - 3.75
+	for dist: float in [50.0, 150.0, 300.0]:
+		var on := await _shot([_car(9501, "traffic/wagon_white", cam_z + dist, x, {"brake": 1.0})])
+		var pts := _flare_px(r, false)
+		var off := await _shot([_car(9501, "traffic/wagon_white", cam_z + dist, x, {"brake": 0.0})])
+		_keep(on, "bremslicht_%03d" % int(dist))
+		var red := 0.0
+		var lifted := 0
+		for c: Vector2 in pts:
+			for dy in range(-8, 9):
+				for dx in range(-8, 9):
+					var px := clampi(int(c.x) + dx, 0, on.get_width() - 1)
+					var py := clampi(int(c.y) + dy, 0, on.get_height() - 1)
+					var dr := on.get_pixel(px, py).r - off.get_pixel(px, py).r
+					red = maxf(red, dr)
+					lifted += 1 if dr > 0.03 else 0
+		_need(p, pts.size() >= 2 and red >= 0.08, "%.0f m: Bremslicht sichtbar (Rot +%.3f ≥ 0,08, %d Lichtpunkte)" % [dist, red, pts.size()])
+		msgs.append("%.0f m: Rot +%.2f an %d Pixeln" % [dist, red, lifted])
+	await _free(sc)
+	_report("bremslicht", p, "Bremslicht bei Tag – " + "; ".join(msgs))
+
+
+# --- blaulicht (FIX-M2) --------------------------------------------------------------------------------------------
+
+func _check_blaulicht() -> void:
+	var p: Array[String] = []
+	var msgs: Array[String] = []
+	for hour: float in [12.0, 22.0]:
+		var sc: Node = await _launch_clear({"start_world_minutes": hour * 60.0}, CLEAR_KMS, [60.0], -3.75)
+		var r: Node = sc.get("renderer")
+		var view: Dictionary = r.get("view")
+		var cam_z := float(view["camera_z"])
+		var x := float((view["player"] as Dictionary).get("x", 0.0)) - 3.75
+		var lights := float((view["palette"] as Dictionary).get("lights", 0.0))
+		var on := await _shot([_car(9701, "police/de", cam_z + 60.0, x, {"tail": lights, "beacon": "a"})])
+		var off := await _shot([_car(9701, "police/de", cam_z + 60.0, x, {"tail": lights})])
+		_keep(on, "blaulicht_%02d" % int(hour))
+		var c: Vector3 = r.call("world_to_screen", cam_z + 60.0 + float(ModelDB.object_size("police/de").get("length_m", 4.7)) * 0.5, x, 1.7)
+		var scale := Vector2(root.get_texture().get_size()) / root.get_visible_rect().size
+		var cx := int(c.x * scale.x)
+		var cy := int(c.y * scale.y)
+		var lifted := 0
+		for dy in range(-40, 41):
+			for dx in range(-40, 41):
+				var px := cx + dx
+				var py := cy + dy
+				if px < 0 or py < 0 or px >= on.get_width() or py >= on.get_height():
+					continue
+				var a := on.get_pixel(px, py)
+				var b := off.get_pixel(px, py)
+				if a.b - b.b >= BEACON_LIFT and a.b > a.r + 0.1:
+					lifted += 1
+		var need_px := int(BEACON_MIN_PX[int(hour)])
+		_need(p, lifted >= need_px, "%.0f Uhr: Blaulicht bei 60 m hebt %d Pixel um +%.2f Blau (mindestens %d)" % [hour, lifted, BEACON_LIFT, need_px])
+		msgs.append("%.0f Uhr: %d Pixel deutlich blauer" % [hour, lifted])
+		await _free(sc)
+	_report("blaulicht", p, "Polizei (Modell) bei 60 m – " + "; ".join(msgs))
+
+
+# --- abblendlicht (FIX-M2) -----------------------------------------------------------------------------------------
+
+func _check_abblendlicht() -> void:
+	var p: Array[String] = []
+	var msgs: Array[String] = []
+	var sc: Node = await _launch_clear({"start_world_minutes": 22.0 * 60.0}, CLEAR_KMS, [20.0, 60.0], 0.0)
+	var r: Node = sc.get("renderer")
+	var view: Dictionary = r.get("view")
+	var cam_z := float(view["camera_z"])
+	var x := float((view["player"] as Dictionary).get("x", 0.0))
+	var lights := float((view["palette"] as Dictionary).get("lights", 0.0))
+	var size: Dictionary = ModelDB.object_size("traffic/truck_red")
+	for dist: float in [20.0, 60.0]:
+		var on := await _shot([_car(9801, "traffic/truck_red", cam_z + dist, x, {"tail": lights, "heavy": true})])
+		_keep(on, "abblendlicht_%03d" % int(dist))
+		# the rear face only: the footprint of the last metre of the truck (a car's z is its rear)
+		var rect := _footprint(r, cam_z + dist + 0.5, x, 1.0, float(size.get("width_m", 2.5)) * 0.9, float(size.get("height_m", 3.8)))
+		var n := 0
+		var white := 0
+		var sum := 0.0
+		for py in range(maxi(rect.position.y, 0), mini(rect.end.y, on.get_height())):
+			for px in range(maxi(rect.position.x, 0), mini(rect.end.x, on.get_width())):
+				var l := _lum(on.get_pixel(px, py))
+				sum += l
+				n += 1
+				white += 1 if l > 200.0 / 255.0 else 0
+		var share := float(white) / maxf(1.0, float(n))
+		var mean := sum / maxf(1.0, float(n))
+		_need(p, n > 50, "%.0f m: Heck im Bild (%d Pixel)" % [dist, n])
+		_need(p, share <= LOWBEAM_WHITE_SHARE and mean <= LOWBEAM_MEAN,
+			"%.0f m: kein weißer Kasten (%.1f %% über 200, Mittel %.2f; höchstens %.0f %%, %.2f)" % [dist, share * 100.0, mean,
+			LOWBEAM_WHITE_SHARE * 100.0, LOWBEAM_MEAN])
+		msgs.append("%.0f m: %.1f %% weiß, Mittel %.2f" % [dist, share * 100.0, mean])
+	_need(p, lights > 0.9, "Nacht (Lichter der Palette %.2f)" % lights)
+	await _free(sc)
+	_report("abblendlicht", p, "roter Lkw im Abblendlicht, 22 Uhr – " + "; ".join(msgs))
+
+
+# --- bremsschein (RINT-M2) ------------------------------------------------------------------------------------------
+
+## The red the brake adds (on against off, summed over the pixels it lifts by more than +0.03, in units of full red) in
+## the footprint of the car's rear, widened by the glow – the strength of the glow, not only its area.
+func _brake_lift(r: Node, set_id: String, z: float, x: float, lights: float) -> float:
+	var size: Dictionary = ModelDB.object_size(set_id)
+	var on := await _shot([_car(9901, set_id, z, x, {"tail": lights, "brake": 1.0})])
+	var off := await _shot([_car(9901, set_id, z, x, {"tail": lights, "brake": 0.0})])
+	_keep(on, "bremsschein_%s_%03d_%02d" % [set_id.get_file(), int(z - float((r.get("view") as Dictionary)["camera_z"])), int(lights * 10.0)])
+	var rect := _footprint(r, z + 0.5, x, 1.0, float(size.get("width_m", 1.9)), float(size.get("height_m", 1.4)))
+	var grow := maxi(10, int(rect.size.x * 0.6))
+	rect = rect.grow(grow)
+	var lifted := 0.0
+	for py in range(maxi(rect.position.y, 0), mini(rect.end.y, on.get_height())):
+		for px in range(maxi(rect.position.x, 0), mini(rect.end.x, on.get_width())):
+			var dr := on.get_pixel(px, py).r - off.get_pixel(px, py).r
+			lifted += dr if dr > 0.03 else 0.0
+	return lifted
+
+
+func _check_bremsschein() -> void:
+	var p: Array[String] = []
+	var msgs: Array[String] = []
+	for hour: float in [12.0, 22.0]:
+		var sc: Node = await _launch_clear({"start_world_minutes": hour * 60.0}, CLEAR_KMS, [20.0, 60.0], 0.0)
+		var r: Node = sc.get("renderer")
+		var view: Dictionary = r.get("view")
+		var cam_z := float(view["camera_z"])
+		var x := float((view["player"] as Dictionary).get("x", 0.0))
+		var lights := float((view["palette"] as Dictionary).get("lights", 0.0))
+		var sports: float = await _brake_lift(r, "traffic/sports_yellow", cam_z + 60.0, x, lights)
+		if hour < 18.0:
+			_need(p, sports >= BRAKE_DAY_MIN, "12 Uhr: Sportwagen bei 60 m, Rot %.1f (mindestens %.1f)" % [sports, BRAKE_DAY_MIN])
+			msgs.append("12 Uhr Sportwagen 60 m Rot %.1f" % sports)
+		else:
+			var sedan: float = await _brake_lift(r, "traffic/sedan_silver", cam_z + 20.0, x, lights)
+			_need(p, lights > 0.9, "Nacht (Lichter der Palette %.2f)" % lights)
+			_need(p, sports <= BRAKE_NIGHT_MAX, "22 Uhr: Sportwagen bei 60 m, Rot %.1f (höchstens %.1f)" % [sports, BRAKE_NIGHT_MAX])
+			_need(p, sedan <= BRAKE_NIGHT20_MAX, "22 Uhr: Limousine bei 20 m, Rot %.1f (höchstens %.1f)" % [sedan, BRAKE_NIGHT20_MAX])
+			msgs.append("22 Uhr Sportwagen 60 m Rot %.1f, Limousine 20 m Rot %.1f" % [sports, sedan])
+		await _free(sc)
+	_report("bremsschein", p, "Schein des Bremslichts der Modelle – " + "; ".join(msgs))
+
+
+# --- sichtgrenze (FIX1) -------------------------------------------------------------------------------------------
+
+## Contrast of a car's picture against the same picture without it, over its screen footprint: [mean Weber contrast
+## of the footprint, mean Weber contrast of the pixels it changes, number of changed pixels].
+func _contrast(on: Image, off: Image, rect: Rect2i) -> Array:
+	var sum_all := 0.0
+	var sum_changed := 0.0
+	var n_all := 0
+	var n_changed := 0
+	for y in range(maxi(rect.position.y, 0), mini(rect.end.y, on.get_height())):
+		for x in range(maxi(rect.position.x, 0), mini(rect.end.x, on.get_width())):
+			var la := _lum(on.get_pixel(x, y))
+			var lb := _lum(off.get_pixel(x, y))
+			var c := absf(la - lb) / maxf(lb, 0.02)
+			sum_all += c
+			n_all += 1
+			if absf(la - lb) > 2.5 / 255.0:
+				sum_changed += c
+				n_changed += 1
+	return [sum_all / maxf(1.0, float(n_all)), sum_changed / maxf(1.0, float(n_changed)), n_changed]
+
+
+## Screen rectangle of a car of length l, width w, height h at road position (z, x).
+func _footprint(r: Node, z: float, x: float, l: float, w: float, h: float) -> Rect2i:
+	var lo := Vector2(1.0e9, 1.0e9)
+	var hi := Vector2(-1.0e9, -1.0e9)
+	for dz: float in [-l * 0.5, l * 0.5]:
+		for dx: float in [-w * 0.5, w * 0.5]:
+			for dh: float in [0.0, h]:
+				var p: Vector3 = r.call("world_to_screen", z + dz, x + dx, dh)
+				lo = Vector2(minf(lo.x, p.x), minf(lo.y, p.y))
+				hi = Vector2(maxf(hi.x, p.x), maxf(hi.y, p.y))
+	var scale := Vector2(root.get_texture().get_size()) / root.get_visible_rect().size   # logical -> picture pixels
+	return Rect2i(Vector2i(int(floor(lo.x * scale.x)) - 1, int(floor(lo.y * scale.y)) - 1), Vector2i(int(ceil((hi.x - lo.x) * scale.x)) + 3,
+		int(ceil((hi.y - lo.y) * scale.y)) + 3))
+
+
+func _check_sichtgrenze() -> void:
+	var p: Array[String] = []
+	var first: Node = await _launch()
+	var vis := float((first.get("renderer") as Node).get("visibility_m"))
+	await _free(first)
+	var fracs: Array[float] = [0.45, 0.839, 0.995]
+	var dists: Array = []
+	for f: float in fracs:
+		dists.append(f * vis)
+	var sc: Node = await _launch_clear({}, CLEAR_KMS, dists, 0.0)
+	var r: Node = sc.get("renderer")
+	var view: Dictionary = r.get("view")
+	var cam_z := float(view["camera_z"])
+	var x := float((view["player"] as Dictionary).get("x", 0.0))
+	var res := {}
+	for f: float in fracs:
+		var z := cam_z + f * vis
+		var on := await _shot([_car(9601, "traffic/sedan_black", z, x)])
+		var off := await _shot([])
+		_keep(on, "sichtgrenze_%03d" % int(f * 1000.0))
+		var size: Dictionary = ModelDB.object_size("traffic/sedan_black")
+		var rect := _footprint(r, z, x, float(size.get("length_m", 4.7)), float(size.get("width_m", 1.8)), float(size.get("height_m", 1.45)))
+		res[f] = _contrast(on, off, rect)
+	var near: Array = res[0.45]
+	var mid: Array = res[0.839]
+	var far: Array = res[0.995]
+	_need(p, int(near[2]) >= 4, "das Auto ist bei 0,45 × Sichtweite zu sehen (%d Pixel)" % int(near[2]))
+	_need(p, float(far[0]) < 0.03, "an der Sichtgrenze (0,995 × Sichtweite) unter 3 %% Kontrast (%.1f %%)" % (float(far[0]) * 100.0))
+	_need(p, int(mid[2]) >= 1 and float(mid[1]) >= 0.5 * float(near[1]),
+		"bei 0,839 × Sichtweite behalten die Pixel des Autos mindestens die Hälfte des Kontrasts am Nebelbeginn (%.0f %% gegen %.0f %%)" % [
+			float(mid[1]) * 100.0, float(near[1]) * 100.0])
+	await _free(sc)
+	_report("sichtgrenze", p, "Sichtweite %.0f m, schwarze Limousine: Kontrast seiner Pixel bei 0,45 / 0,839 × Sicht %.0f / %.0f %%, Fläche an der Sichtgrenze %.2f %%" % [
+		vis, float(near[1]) * 100.0, float(mid[1]) * 100.0, float(far[0]) * 100.0])

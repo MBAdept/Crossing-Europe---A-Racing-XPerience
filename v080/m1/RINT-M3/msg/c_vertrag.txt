@@ -1,0 +1,6 @@
+Vertrag §11.4 (Leitung): R7-Aufteilung, Sichtkorridor ganzes Objekt, Wahrzeichen, LOD-Band, Freie Strecke, Streamer-Budgets, Plan
+
+Text der Leitung wörtlich nach dem Ende von §11.3 angehängt (A-23 bis A-29).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

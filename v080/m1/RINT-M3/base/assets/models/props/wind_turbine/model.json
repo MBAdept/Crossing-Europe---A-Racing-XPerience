@@ -1,0 +1,48 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/wind_turbine",
+ "model": {
+  "kind": "furniture",
+  "object": {"width_m": 88, "height_m": 133.6, "length_m": 12},
+  "extent_m": {"left": 38.58, "right": 38.52},
+  "aabb": [-38.582, 0, -8.85, 38.522, 134, 4.76],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 744,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/wind_turbine/lod0_body.res",
+      "classes": ["vpbr"]
+     }
+    ]
+   }
+  ],
+  "lights": [
+   {
+    "role": "lights",
+    "pos": [-1.5734, 93.0892, -7.2],
+    "dir": [-1, 0, 0],
+    "size": 1.565,
+    "color": "#ff1a10"
+   },
+   {
+    "role": "lights",
+    "pos": [-1.302, 91.9166, -7.2],
+    "dir": [-1, 0, 0],
+    "size": 0.615,
+    "color": "#ff1a10"
+   }
+  ],
+  "auto_lod": false,
+  "tags": ["prop", "energy"],
+  "bytes": 9716,
+  "hash": "9af1d31968aa6478dcfe886153893f9b25a1afc5"
+ },
+ "sets": {
+  "props/wind_turbine": {"model": "props/wind_turbine"}
+ }
+}

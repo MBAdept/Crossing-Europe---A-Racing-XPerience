@@ -1,0 +1,15 @@
+Reflektor-Glanzpunkte: Mindestgröße greift wieder (abs() und Bildhöhe, Notiz 8)
+
+reflector.gdshader rechnete die Pixel je Meter im Vertex-Schritt mit dem vorzeichenbehafteten
+PROJECTION_MATRIX[1][1] und VIEWPORT_SIZE.y – im Compatibility-Renderer ist die y-Skalierung
+dort negativ und VIEWPORT_SIZE liest 0 (derselbe Fehler, den FIX-R7b im Wahrzeichen-Leuchten
+fand). Folge (gemessen): die Mindestgröße min_px griff nie, ein Reflektor bei 400 m war ein
+Punkt unter einem Pixel (0 helle Spalten), Arcades _glow_fixture zeichnet 2–2,5 px.
+- Shader: abs() und Uniform viewport_h; lights.gd sync_viewport() setzt sie, wenn sich die
+  Bildhöhe ändert.
+- Neue Render-Prüfung check_reflector_glint „reflektor_punkt“: Glanzpunkt der Lichtebene bei
+  30 / 150 / 400 m mit der Brennweite des Spiels – vorher [8, 2, 0] helle Spalten (FEHLER),
+  jetzt [8, 2, 2] (OK); Mutation „vorzeichenbehafteter Wert“ füllt das Bild (FEHLER).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

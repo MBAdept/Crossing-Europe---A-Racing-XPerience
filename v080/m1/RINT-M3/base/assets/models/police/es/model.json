@@ -1,0 +1,184 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "police/es",
+ "model": {
+  "kind": "vehicle",
+  "object": {"width_m": 1.82, "length_m": 4.7, "height_m": 1.61},
+  "extent_m": {"left": 1.07, "right": 1.07},
+  "aabb": [-1.065, 0, -2.35, 1.065, 1.61, 2.352],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 40,
+    "tris": 20678,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "police/es/lod0_body.res",
+      "classes": ["vpbr", "glass"]
+     },
+     {
+      "node": "wheel_0l",
+      "mesh": "police/es/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [-0.7665, 0.32, -1.415],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.32, "steer": true}
+     },
+     {
+      "node": "wheel_0r",
+      "mesh": "police/es/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [0.7665, 0.32, -1.415],
+      "wheel": {"radius": 0.32, "steer": true}
+     },
+     {
+      "node": "wheel_1l",
+      "mesh": "police/es/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [-0.7665, 0.32, 1.385],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.32, "steer": false}
+     },
+     {
+      "node": "wheel_1r",
+      "mesh": "police/es/wheel.res",
+      "classes": ["vpbr"],
+      "pos": [0.7665, 0.32, 1.385],
+      "wheel": {"radius": 0.32, "steer": false}
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 120,
+    "tris": 5732,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "police/es/lod1_body.res",
+      "classes": ["vpbr"]
+     }
+    ]
+   },
+   {
+    "name": "lod2",
+    "max_dist_m": 100000,
+    "tris": 1152,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "police/es/lod2_body.res",
+      "classes": ["vpbr"]
+     }
+    ]
+   }
+  ],
+  "shadow": {"mesh": "police/es/shadow.res", "tris": 1052},
+  "lights": [
+   {
+    "role": "beacon_a",
+    "pos": [-0.342, 1.601, -0.125],
+    "dir": [0, 1, 0],
+    "size": 0.537,
+    "color": "#2f5bff"
+   },
+   {
+    "role": "beacon_b",
+    "pos": [0.342, 1.601, -0.125],
+    "dir": [0, 1, 0],
+    "size": 0.537,
+    "color": "#2f5bff"
+   },
+   {
+    "role": "brake",
+    "pos": [-0.7486, 0.8864, 2.2908],
+    "dir": [-0.48, 0.25, 0.841],
+    "size": 0.237,
+    "color": "#ff2010"
+   },
+   {
+    "role": "brake",
+    "pos": [0, 1.3178, 0.9985],
+    "dir": [0, 0.839, 0.543],
+    "size": 0.168,
+    "color": "#ff2010"
+   },
+   {
+    "role": "brake",
+    "pos": [0.7488, 0.8863, 2.2909],
+    "dir": [0.48, 0.249, 0.841],
+    "size": 0.237,
+    "color": "#ff2010"
+   },
+   {
+    "role": "head",
+    "pos": [-0.6294, 0.6939, -2.2851],
+    "dir": [-0.296, 0.283, -0.912],
+    "size": 0.107,
+    "color": "#fff3d6"
+   },
+   {
+    "role": "head",
+    "pos": [0.6294, 0.6939, -2.2851],
+    "dir": [0.296, 0.283, -0.912],
+    "size": 0.107,
+    "color": "#fff3d6"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-0.8093, 0.6884, -2.1764],
+    "dir": [-0.78, 0.04, -0.625],
+    "size": 0.143,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-0.7482, 0.8256, 2.3076],
+    "dir": [-0.331, 0.039, 0.943],
+    "size": 0.119,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [0.7481, 0.8256, 2.3076],
+    "dir": [0.33, 0.038, 0.943],
+    "size": 0.119,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [0.8093, 0.6884, -2.1764],
+    "dir": [0.779, 0.043, -0.625],
+    "size": 0.143,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "tail",
+    "pos": [-0.7486, 0.8864, 2.2908],
+    "dir": [-0.48, 0.25, 0.841],
+    "size": 0.237,
+    "color": "#ff2010"
+   },
+   {
+    "role": "tail",
+    "pos": [0.7488, 0.8863, 2.2909],
+    "dir": [0.48, 0.249, 0.841],
+    "size": 0.237,
+    "color": "#ff2010"
+   }
+  ],
+  "paint": {"paint": "#d8d8d5", "paint2": "#1b3d8c", "paint3": "#1b3d8c", "metal": 0.12},
+  "auto_lod": false,
+  "tags": ["police", "es"],
+  "bytes": 311532,
+  "hash": "6b44aaf3ec9fcde1bae3faaeb3eb195a8f3030c4"
+ },
+ "sets": {
+  "police/es": {
+   "model": "police/es",
+   "paint": {"paint": "#d8d8d5", "paint2": "#1b3d8c", "paint3": "#1b3d8c", "metal": 0.12}
+  }
+ }
+}

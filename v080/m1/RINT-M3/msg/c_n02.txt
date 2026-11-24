@@ -1,0 +1,11 @@
+Tunnelausfahrt: Blendfläche deckt den ganzen Blick, sobald sie hinter dem Auto steht (N-02)
+
+In den letzten Metern vor dem Portal steht die Blendfläche jenseits des Autos (Spalt
+EXIT_CAR_GAP_M) und damit außerhalb der Röhre; die Röhre rahmt sie dort nicht mehr, ihre obere und
+rechte Kante standen als harte Linien vor der Landschaft (NACH-RINT N-02, Valík Schnee, drei
+Bilder). Dort ist sie jetzt EXIT_COVER_M (400 m) breit und hoch: tiefengeprüft bleiben Auto und
+nahe Röhre unberührt, alles dahinter wird überstrahlt – wie Arcade in diesen Bildern das ganze
+Draußen überstrahlt. Solange sie im Portal steht, bleibt sie wie bisher.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

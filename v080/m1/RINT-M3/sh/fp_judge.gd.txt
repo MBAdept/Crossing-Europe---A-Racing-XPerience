@@ -1,0 +1,82 @@
+## One drawn prop [seg, j, set, x, z, scale, flipped, kind, yaw] (attached: an entry of "attach_list", item numbers
+## beyond the track's) against the envelope: {} when it is not measured (on the road, not beside it, at most 0.5 m
+## high, unknown set), else {in, droppable, depth, cls, side, no_aabb, where}.
+static func _judge(e: Array, attached: bool, t: Track, te: TerrainProfile, lib: PropLibrary, aabbs: Dictionary) -> Dictionary:
+	var seg := int(e[0])
+	var j := int(e[1])
+	var x := float(e[3])
+	var z := float(e[4])
+	var sc := float(e[5])
+	var flipped := int(e[6]) != 0
+	var yaw := float(e[8]) if e.size() > 8 else 0.0
+	var s := t.get_segment(seg)
+	var it: Dictionary = {}
+	if not attached:
+		if j < 0 or j >= s.sprites.size():
+			return {}
+		it = s.sprites[j]
+	var side := int(it.get("side", 1)) if not attached else (1 if x >= 0.0 else -1)
+	var le: Dictionary = lib.sets.get(str(e[2]), {})
+	if side == 0 or le.is_empty() or float(le["height"]) * sc <= 0.5:
+		return {}
+	var aligned := it.has("align")
+	var edge := 0.0
+	if aligned:
+		edge = (float(le["extent_l"]) if (side > 0 or flipped) else float(le["extent_r"])) * sc
+	# the model: the union of the variants' AABBs, read from the manifest
+	var vb := [INF, INF, INF, -INF, -INF, -INF]
+	for v: Variant in le.get("variants", []):
+		var a: Array = aabbs.get(str(v), [])
+		if a.size() == 6:
+			for c in 3:
+				vb[c] = minf(float(vb[c]), float(a[c]))
+				vb[c + 3] = maxf(float(vb[c + 3]), float(a[c + 3]))
+	var near: float
+	var zl: float
+	var zh: float
+	var no_aabb := float(vb[0]) == INF
+	if no_aabb:
+		var half_w := float(le["width"]) * sc * 0.5
+		near = edge if aligned else half_w
+		zl = z - half_w
+		zh = z + half_w
+	else:
+		# the corners turned as ChunkContext.frame() turns the model: model +X = right of travel, model -Z = forward,
+		# yaw + = to the right; a mirrored model is mirrored in its own x first
+		var lat_lo := INF
+		var lat_hi := -INF
+		var f_lo := INF
+		var f_hi := -INF
+		for mx: float in [float(vb[0]), float(vb[3])]:
+			for mz: float in [float(vb[2]), float(vb[5])]:
+				var px := -mx if flipped else mx
+				var l := (px * cos(yaw) - mz * sin(yaw)) * sc
+				var f := (-px * sin(yaw) - mz * cos(yaw)) * sc
+				lat_lo = minf(lat_lo, l)
+				lat_hi = maxf(lat_hi, l)
+				f_lo = minf(f_lo, f)
+				f_hi = maxf(f_hi, f)
+		near = -lat_lo if side > 0 else lat_hi
+		if aligned:
+			near = maxf(near, edge)
+		zl = z + f_lo
+		zh = z + f_hi
+	var n := int(ceil((zh - zl) / t.seg_len))
+	var depth := -INF
+	for q in n + 1:
+		var zq := zl if n == 0 else zl + (zh - zl) * float(q) / float(n)
+		var fq := maxf(zq, 0.0) / t.seg_len
+		var k := int(floor(fq))
+		var u := fq - float(k)
+		var m := absf(x) - lerpf(te.edge(k, side), te.edge(k + 1, side), u)
+		if m <= 0.0:
+			continue
+		var cw := maxf(te.envelope_width(k, side), te.envelope_width(k + 1, side))   # as ChunkContext.bend_intrusion()
+		if cw > 0.0:
+			depth = maxf(depth, cw - (m - maxf(near, 0.0)))
+	var cls := str(le["cls"])
+	if cls == "building" and s.city:
+		cls = "city_building"
+	var droppable := attached or ((not it.has("offset") or bool(le["veg"])) and not bool(it.get("landmark", false)))
+	return {"in": depth > TOLERANCE_M, "droppable": droppable, "depth": depth, "cls": cls, "side": side, "no_aabb": no_aabb,
+		"where": "z %.1f..%.1f m, %.1f m towards the road" % [zl - z, zh - z, near]}

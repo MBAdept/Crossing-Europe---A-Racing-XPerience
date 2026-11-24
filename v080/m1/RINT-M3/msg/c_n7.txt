@@ -1,0 +1,18 @@
+Streamer: Einhängen in Schritten innerhalb eines Bausteins, Vorwärmen als eigener Teil (A-28)
+
+- ChunkBuilder.commit_steps()/commit_step() (Vorgabe ein Schritt), split_arrays() und
+  pieces_for(): road, roadside und terrain teilen ihr Netz in build() ab PIECE_VERTICES (2.000)
+  Ecken in Stücke gleicher Dreieckszahl und hängen je Schritt eines ein („Road“, „Road_2“ …);
+  dieselben Dreiecke in derselben Reihenfolge, dasselbe Material.
+- ChunkStreamer: Einheit des Einhängens ist der Schritt (commit_i, commit_k); das Stück kommt
+  erst in den Baum, wenn alle Schritte aller Bausteine hängen; flush()/sync wie bisher ganz.
+- update_ms_max: das Vorwärmen des Sichtkorridors ist der Teil „warm“ (NR7a-03).
+- Gemessen (Sonde, Xvfb, Kiel – Hamburg, Last 2): roadside 0,21 ms Median je Einhängen, in zwei
+  Stücken 0,10 ms je Schritt; road 0,02 ms und terrain 0,07 ms bleiben ganz – die 4–6 ms unter
+  Last 9–10 sind nicht die Arbeit der Bausteine (gefolgert).
+- Tests: split_arrays() erhält alle Dreiecke (1–4 Teile), Schritte des Straßenbausteins,
+  Streamer verteilt Schritte über Bilder; check_road_parity lässt „Road_N“ sichtbar.
+- Doku renderer-modern.md §18.2.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

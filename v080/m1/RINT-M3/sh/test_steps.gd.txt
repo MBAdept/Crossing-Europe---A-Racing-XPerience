@@ -1,0 +1,53 @@
+
+
+## A builder that commits in three steps (A-28), each about `ms` long.
+class SteppedCommit extends SlowCommit:
+	func commit_steps(_part: Dictionary) -> int:
+		return 3
+
+	func commit_step(_ctx: ChunkContext, _part: Dictionary, parent: Node3D, k: int) -> void:
+		var t0 := Time.get_ticks_usec()
+		while Time.get_ticks_usec() - t0 < int(ms * 1000.0):
+			pass
+		var n := Node3D.new()
+		n.name = "%s_%d" % [tag, k]
+		parent.add_child(n)
+
+
+## A-28 (RINT-M3): a builder with several commit steps is committed step by step – in threaded mode at most the frame's
+## budget of steps per frame (the steps of one builder spread over frames), the chunk enters the tree only when every
+## step of every builder is done, and flush() / sync mode commit all steps in order.
+func test_builder_steps_are_spread_over_frames() -> void:
+	var t := _syn_track(3000)
+	var b := SteppedCommit.new()
+	b.tag = "piece"
+	b.ms = 1.2
+	var m := _streamer(t, [b], false)
+	var st: ChunkStreamer = m[0]
+	var root := Node3D.new()
+	root.add_child(st)
+	var cam_z := 20.0
+	st.update(cam_z, 900.0)
+	st.reset_stats()
+	var partial := 0
+	var most := 0
+	while cam_z < 2400.0:
+		cam_z += 9.0
+		var before := _builder_commits(st)
+		st.update(cam_z, 900.0)
+		most = maxi(most, _builder_commits(st) - before)
+		for c: Variant in st.get("_chunks").values():
+			if int(c.state) == ChunkStreamer.COMMITTING:
+				assert_true((c.node as Node3D).get_parent() == null, "halb eingehängt: nicht im Baum")
+				if int(c.commit_k) > 0:
+					partial += 1
+	assert_true(partial > 0, "die Schritte eines Bausteins verteilen sich über Bilder (%d)" % partial)
+	assert_true(most >= 1 and most <= 2, "höchstens zwei Schritte zu 1,2 ms je Bild (%d)" % most)
+	st.flush()
+	for c: Variant in st.get("_chunks").values():
+		var names: Array = []
+		for ch: Node in (c.node as Node3D).get_children():
+			names.append(str(ch.name))
+		assert_eq(names, ["piece_0", "piece_1", "piece_2"], "alle drei Schritte in ihrer Reihenfolge eingehängt")
+	st.clear()
+	root.free()

@@ -1,0 +1,36 @@
+# Second Arcade identity list (tools/golden.sh, docs/dev/v080_contract.md A-6, docs/qa-v080.md): menus, the start of a
+# stage through GameFlow, the pause menu, the loading picture and the Steam Deck window (1280×800) – everything of
+# Arcade the race frames of arcade_frames.txt do not show. Generated from tag v0.7.0 like the race list.
+# One run per line:  id | window | shot time (s) | target | arguments (after "--") | mask
+#   target  main    the game as the player starts it (res://scenes/main.tscn → GameFlow); --screen=<name> opens a menu
+#                   with sample data, --stage=… starts a stage through GameFlow
+#           race    the race scene alone (res://scenes/race/race.tscn), as in arcade_frames.txt
+#           pause   tests/golden/ui_shots.gd --shot=pause (pause menu over a running stage; shot time unused)
+#           loading tests/golden/ui_shots.gd --shot=loading (loading picture as the menus show it; shot time unused)
+#   mask    rectangles x,y,w,h (window pixels, ";" between them) painted black before the picture is hashed: what
+#           follows the wall clock or the version number, not the game – the ◀▶ arrows of the vehicle and start-time
+#           screens pulse with Time.get_ticks_msec(), the title shows config/version (changes with the release)
+# Every run: --fixed-fps 60, Xvfb with the window size, its own empty XDG_DATA_HOME, --graphics=arcade (v0.7.0 ignores
+# it), no --shot-fast. A picture is one PNG <id>_00.png; the hash is the MD5 of its RGB pixels after the mask.
+# The list is frozen together with the hash list: after changing a line run "tools/golden.sh make" again.
+#
+# Menus with sample data, 1280×720
+ui_title        | 1280x720 | 1.5 | main    | --screen=title                      | 1020,676,260,44
+ui_race_select  | 1280x720 | 1.5 | main    | --screen=race_select                |
+ui_vehicle      | 1280x720 | 1.5 | main    | --screen=vehicle                    | 50,283,46,62;660,283,46,62
+ui_start_time   | 1280x720 | 1.5 | main    | --screen=start_time                 | 61,201,44,58;567,201,44,58
+ui_stage_select | 1280x720 | 1.5 | main    | --screen=stage_select               |
+ui_route_choice | 1280x720 | 1.5 | main    | --screen=route_choice               |
+ui_stage_screen | 1280x720 | 1.5 | main    | --screen=stage_screen               |
+ui_result       | 1280x720 | 1.5 | main    | --screen=result                     |
+ui_race_result  | 1280x720 | 1.5 | main    | --screen=race_result                |
+ui_leaderboards | 1280x720 | 1.5 | main    | --screen=leaderboards               |
+ui_ferry        | 1280x720 | 1.5 | main    | --screen=ferry                      |
+ui_loading      | 1280x720 | -   | loading |                                     |
+# A stage started through GameFlow (standing start, countdown, full HUD) and the pause menu over a running stage
+ui_gameflow     | 1280x720 | 6   | main    | --stage=kiel_hamburg --from=kiel --hour=12 --weather=normal --vehicle=limousine --seed=11 --autopilot --traffic-warmup |
+ui_pause        | 1280x720 | -   | pause   | --stage=kiel_hamburg --from=kiel --start-km=2 --hour=12 --weather=normal --vehicle=limousine --seed=11 --autopilot --traffic-warmup |
+# Steam Deck window: menus fill it, the race keeps 16:9 with bars (rendered without --shot-fast)
+ui_title_800    | 1280x800 | 1.5 | main    | --screen=title                      | 1020,716,260,48
+ui_stage_800    | 1280x800 | 1.5 | main    | --screen=stage_screen               |
+ui_race_800     | 1280x800 | 6   | race    | --stage=dortmund_frankfurt --from=dortmund --start-km=121 --hour=16 --weather=rain --vehicle=gran_turismo --seed=14 --autopilot --traffic-warmup |

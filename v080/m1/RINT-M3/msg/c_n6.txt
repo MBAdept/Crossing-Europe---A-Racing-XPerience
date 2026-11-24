@@ -1,0 +1,14 @@
+Wahrzeichen: der gezeichnete Knoten bleibt höchstens 12 m von Arcades Anker (A-25, N-1)
+
+Die Drehung zur Anfahrt verschiebt Modell und Form um near_shift() nach außen – der Knoten,
+nicht der Anker; bisher prüfte nichts den Knoten (NACH-R7b N-1).
+- landmarks.gd: _place() zeichnet über die reine Funktion place_model() (Drehung, Spiegelung,
+  Verschiebung), der Grundriss eines Modells kommt aus parts_box(); MAX_NODE_SHIFT_M = 12.
+- test_landmarks „drawn_node_stays_near_arcades_anchor_network_wide“: 66 Modelle und Formen
+  netzweit, größte Verschiebung 11,89 m (Kirche vor Bremen, Bremen – Amsterdam km 36,3,
+  −10,6°); Mutation „Verschiebung × 1,1“ rot.
+- Doku renderer-modern.md §19.1 nennt die Verschiebung und ihr Maximum; dazu der Absatz zu
+  A-24 in §5.3 (Abdruck aus der Modell-AABB, Netzprüfung als Gate).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

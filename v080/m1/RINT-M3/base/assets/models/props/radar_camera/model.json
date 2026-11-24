@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/radar_camera",
+ "model": {
+  "kind": "furniture",
+  "object": {"width_m": 0.9, "height_m": 3.05, "length_m": 0.8},
+  "extent_m": {"left": 0.45, "right": 0.45},
+  "aabb": [-0.45, 0, -0.4, 0.45, 3.05, 0.4],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 328,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/radar_camera/lod0_body.res",
+      "classes": ["baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/radar_camera/albedo.png"},
+  "roughness": 0.45,
+  "auto_lod": false,
+  "tags": ["prop", "road"],
+  "bytes": 24864,
+  "hash": "3fec62f09f48e58582feb3f225698a959dd4e4f1"
+ },
+ "sets": {
+  "props/radar_camera": {"model": "props/radar_camera"}
+ }
+}

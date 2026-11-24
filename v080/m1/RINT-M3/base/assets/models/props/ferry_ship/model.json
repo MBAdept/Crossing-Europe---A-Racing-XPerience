@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/ferry_ship",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 182, "height_m": 38, "length_m": 28},
+  "extent_m": {"left": 91, "right": 91},
+  "aabb": [-91, -1, -14, 91, 37.85, 14],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 1449,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/ferry_ship/lod0_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/ferry_ship/albedo.png", "emit": "props/ferry_ship/emit.png"},
+  "roughness": 0.55,
+  "auto_lod": false,
+  "tags": ["prop", "ship"],
+  "bytes": 482439,
+  "hash": "4667cb7e618d6a4183164a09d0990f922f19ea3e"
+ },
+ "sets": {
+  "props/ferry_ship": {"model": "props/ferry_ship"}
+ }
+}

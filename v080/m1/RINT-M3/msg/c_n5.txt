@@ -1,0 +1,18 @@
+LOD-Band: Breite folgt der Kamerageschwindigkeit (A-26, NR7c-01/-02/-03)
+
+ce_lod_still (binär: steht / fährt ab 1,5 m/s) ersetzt durch ein globales ce_lod_band_m =
+Geschwindigkeit × 0,4 s: lod_band.gdshaderinc verengt jedes Band zum fernen Ende auf
+w' = min(w, ce_lod_band_m). Im Stand harter Wechsel am Bandende, beim Anfahren und im
+Kriechgang kein Raster über Sekunden, beim Überqueren des fernen Endes Überblenden in etwa
+0,4 s bei jeder Geschwindigkeit; beim Anhalten schrumpft die Breite in höchstens 0,4 s.
+- ModernMaterials.global_value(): letzter Wert von set_global() (Tests).
+- NR7c-02: Tests für die Schwellen nach quality_lowered (b), die Schwelle der Schattenwerfer
+  (c), box_span() gegen die acht Ecken (d) und das wirklich gesetzte Globale (a); die
+  Mutationen N1, N3, N4, N5 (und Shader ignoriert das Band, binäre Breite) sind rot.
+- NR7c-03: Kommentar beschreibt das ferne Ende.
+- Notiz 10: renderer-modern-gelaende.md §8 „Kurveninnenseiten“ mit dem Text von FIX-R7a (und A-24);
+  Kopf von terrain_profile.gd nennt in_sight_envelope() / bend_intrusion() (NR7a-04).
+- check_lod_band „…_stand“ mit ce_lod_band_m = 0 grün; Doku renderer-modern-gelaende §9.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

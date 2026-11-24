@@ -1,0 +1,179 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "traffic/sports",
+ "model": {
+  "kind": "vehicle",
+  "object": {"width_m": 1.95, "length_m": 4.45, "height_m": 1.26},
+  "extent_m": {"left": 1.13, "right": 1.13},
+  "aabb": [-1.13, 0, -2.225, 1.13, 1.26, 2.227],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 40,
+    "tris": 17751,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "traffic/sports/lod0_body.res",
+      "classes": ["vpbr", "glass"]
+     },
+     {
+      "node": "wheel_0l",
+      "mesh": "traffic/sports/wheel_f.res",
+      "classes": ["vpbr"],
+      "pos": [-0.8165, 0.34, -1.26],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.34, "steer": true}
+     },
+     {
+      "node": "wheel_0r",
+      "mesh": "traffic/sports/wheel_f.res",
+      "classes": ["vpbr"],
+      "pos": [0.8165, 0.34, -1.26],
+      "wheel": {"radius": 0.34, "steer": true}
+     },
+     {
+      "node": "wheel_1l",
+      "mesh": "traffic/sports/wheel_r.res",
+      "classes": ["vpbr"],
+      "pos": [-0.794, 0.34, 1.24],
+      "yaw_deg": 180,
+      "wheel": {"radius": 0.34, "steer": false}
+     },
+     {
+      "node": "wheel_1r",
+      "mesh": "traffic/sports/wheel_r.res",
+      "classes": ["vpbr"],
+      "pos": [0.794, 0.34, 1.24],
+      "wheel": {"radius": 0.34, "steer": false}
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 120,
+    "tris": 5741,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "traffic/sports/lod1_body.res",
+      "classes": ["vpbr"]
+     }
+    ]
+   },
+   {
+    "name": "lod2",
+    "max_dist_m": 100000,
+    "tris": 1164,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "traffic/sports/lod2_body.res",
+      "classes": ["vpbr"]
+     }
+    ]
+   }
+  ],
+  "shadow": {"mesh": "traffic/sports/shadow.res", "tris": 972},
+  "lights": [
+   {
+    "role": "brake",
+    "pos": [-0.7681, 0.7305, 2.1707],
+    "dir": [-0.459, 0.096, 0.883],
+    "size": 0.231,
+    "color": "#ff2010"
+   },
+   {
+    "role": "brake",
+    "pos": [0.7584, 0.7304, 2.1731],
+    "dir": [0.448, 0.093, 0.889],
+    "size": 0.233,
+    "color": "#ff2010"
+   },
+   {
+    "role": "head",
+    "pos": [-0.7006, 0.5493, -2.1218],
+    "dir": [-0.38, 0.356, -0.854],
+    "size": 0.105,
+    "color": "#fff3d6"
+   },
+   {
+    "role": "head",
+    "pos": [0.6994, 0.5489, -2.1226],
+    "dir": [0.377, 0.353, -0.856],
+    "size": 0.106,
+    "color": "#fff3d6"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-0.8707, 0.673, 2.1315],
+    "dir": [-0.663, -0.014, 0.749],
+    "size": 0.116,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_l",
+    "pos": [-0.8508, 0.5391, -2.0375],
+    "dir": [-0.717, 0.159, -0.679],
+    "size": 0.131,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [0.8506, 0.5392, -2.0377],
+    "dir": [0.715, 0.161, -0.68],
+    "size": 0.131,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "ind_r",
+    "pos": [0.8705, 0.673, 2.1315],
+    "dir": [0.663, -0.015, 0.749],
+    "size": 0.116,
+    "color": "#ffa01a"
+   },
+   {
+    "role": "tail",
+    "pos": [-0.7681, 0.7305, 2.1707],
+    "dir": [-0.459, 0.096, 0.883],
+    "size": 0.231,
+    "color": "#ff2010"
+   },
+   {
+    "role": "tail",
+    "pos": [0.7584, 0.7304, 2.1731],
+    "dir": [0.448, 0.093, 0.889],
+    "size": 0.233,
+    "color": "#ff2010"
+   }
+  ],
+  "paint": {"paint": "#d01f1f", "metal": 0.3},
+  "auto_lod": false,
+  "tags": ["traffic", "car"],
+  "bytes": 287170,
+  "hash": "cf0e0e3febac32fa5aa81b288f76f1e00df64fd4"
+ },
+ "sets": {
+  "traffic/sports_red": {
+   "model": "traffic/sports",
+   "paint": {"paint": "#d01f1f", "metal": 0.3}
+  },
+  "traffic/sports_yellow": {
+   "model": "traffic/sports",
+   "paint": {"paint": "#f2c30f", "metal": 0.15}
+  },
+  "traffic/sports_orange": {
+   "model": "traffic/sports",
+   "paint": {"paint": "#ec6a12", "metal": 0.2}
+  },
+  "traffic/sports_black": {
+   "model": "traffic/sports",
+   "paint": {"paint": "#18191b", "metal": 0.35}
+  },
+  "traffic/sports_blue": {
+   "model": "traffic/sports",
+   "paint": {"paint": "#2350c8", "metal": 0.45}
+  }
+ }
+}
