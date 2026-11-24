@@ -2306,7 +2306,13 @@ vorher 0,638, jetzt 0,717; mittlere Sättigung Arcade 0,43, Modern vorher 0,20, 
 grundsätzlich weniger grell als Arcades Palette). Ist das
 Spielerauto schon draußen, die Kamera aber noch drin, steht das Viereck 1,5 m vor seiner Front (`EXIT_CAR_GAP_M`):
 das Draußen dahinter ist überstrahlt, das Auto nicht verschleiert – wie Arcades Sprite (das Portal rahmt das Viereck
-von innen weiter ein). Nur bei Tag (Leuchtdichte des Umgebungslichts 0,35 … 0,75), nur mit einem Tunnel-Builder
+von innen weiter ein). **Weißabgleich** (QA-mid, Q-04): das Draußen hinter dem Viereck ist im Licht der Röhre
+gezeichnet – das Rig mischt das Licht, solange die Kamera drinnen ist, zu `Palette.TUNNEL_AMBIENT` (Bernstein) –, und
+eine verschneite Landschaft las sich durch die Öffnung beige-gelb (Tunnel Valík, Elbtunnel), wo Arcade sie in der
+Außenpalette weiß zeichnet. Das Viereck nimmt vor Arcades Gesetz den Farbstich heraus: `exit_white_balance(außen,
+jetzt)` ist das Verhältnis der Farbwerte (Farbe / Leuchtdichte) von Außenlicht und gemischtem Licht, je Kanal 0,5 … 2,
+bei gleicher Helligkeit; außerhalb der Röhre 1 (Test `test_exit_white_balance`). Nur bei Tag (Leuchtdichte des
+Umgebungslichts 0,35 … 0,75), nur mit einem Tunnel-Builder
 (seine Röhre muss das Viereck verdecken), eine Funktion der Kameraposition und der Spielzeit `view.time` – keine
 Wanduhr. Das Viereck wird als **erstes** aller durchsichtigen Dinge gezeichnet (`render_priority` −128, FIX-R4, Befund
 B8): es ersetzt, was hinter ihm liegt, durch die überstrahlte Kopie des undurchsichtigen Bildes; nach der Tiefe sortiert
