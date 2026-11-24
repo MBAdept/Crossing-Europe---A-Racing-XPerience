@@ -40,6 +40,7 @@ render_mode cull_back, depth_draw_opaque, ambient_light_disabled;
 #include "res://assets/shaders/modern/inc/pools.gdshaderinc"
 #include "res://assets/shaders/modern/inc/headlight.gdshaderinc"
 #include "res://assets/shaders/modern/inc/ground.gdshaderinc"
+#include "res://assets/shaders/modern/inc/cloud_shadow.gdshaderinc"
 
 uniform float detail = 1.0;                   // strength of everything painted here (0 = the flat vertex tones)
 uniform float field_from_m = 16.0;            // the field structure fades in between these distances beyond the shoulder
@@ -133,4 +134,8 @@ void fragment() {
 	// pale band that read as a lake (T4). FOG replaces the engine fog for this material and is mixed in linear light.
 	float fog_t = clamp((dist - ce_fog_range.x) / max(ce_fog_range.y - ce_fog_range.x, 1.0), 0.0, 1.0);
 	FOG = vec4(ce_ground_unshow(min(ALBEDO * ce_fog_color.rgb * 1.25, vec3(1.0))), 0.7 * fog_t);
+	// R7d: the cloud shadow – base pass and sun pass by the display factor (ALBEDO and EMISSION are display-encoded)
+	float cs = ce_cloud_shade(v_world, ce_sun_dir);
+	ALBEDO *= cs;
+	EMISSION *= cs;
 }

@@ -27,6 +27,7 @@ render_mode unshaded, cull_disabled, depth_draw_opaque, fog_disabled;
 #include "res://assets/shaders/modern/inc/pools.gdshaderinc"
 #include "res://assets/shaders/modern/inc/headlight.gdshaderinc"
 #include "res://assets/shaders/modern/inc/ground.gdshaderinc"
+#include "res://assets/shaders/modern/inc/cloud_shadow.gdshaderinc"
 
 uniform float debug_flat = 0.0;
 uniform float rim_rows = 0.0;          // logical rows above the horizon row the rim's top edge stands on
@@ -65,7 +66,7 @@ void fragment() {
 	tone *= 1.0 - 0.16 * ce_wet * (1.0 - snow);
 	tone = clamp(tone, vec3(0.0), vec3(1.0));
 	// Arcade's colour of level ground, then Arcade's fog of things on the ground (at most 70 % of the way)
-	vec3 shown = tone * ce_ambient_display.rgb;
+	vec3 shown = tone * ce_ambient_display.rgb * ce_cloud_shade(v_world, ce_sun_dir);   // R7d: under its cloud
 	float t = clamp((dist - ce_fog_range.x) / max(ce_fog_range.y - ce_fog_range.x, 1.0), 0.0, 1.0);
 	shown = mix(shown, tone * ce_fog_color.rgb * 1.25, 0.7 * t);
 	vec3 x = ce_ground_unshow(min(shown, vec3(1.0)))

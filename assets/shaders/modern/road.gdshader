@@ -38,6 +38,7 @@ render_mode cull_back, ambient_light_disabled;
 #include "res://assets/shaders/modern/inc/pools.gdshaderinc"
 #include "res://assets/shaders/modern/inc/headlight.gdshaderinc"
 #include "res://assets/shaders/modern/inc/ground_law.gdshaderinc"
+#include "res://assets/shaders/modern/inc/cloud_shadow.gdshaderinc"
 
 // display colours (Palette), set by the builder
 uniform vec3 col_road_a = vec3(0.337, 0.345, 0.369);
@@ -78,6 +79,8 @@ uniform float tunnel_out = 0.0;
 uniform vec3 tunnel_ambient = vec3(0.46, 0.36, 0.24);
 uniform vec3 tunnel_fog = vec3(0.07, 0.05, 0.03);
 uniform float tunnel_darkness_m = 260.0;
+// R7d: the road takes the cloud shadow softened – at most this much darker (the road stays at >= 0.85 of its light)
+const float CLOUD_ROAD_MAX = 0.12;
 
 global uniform float ce_wet;
 global uniform float ce_snow;
@@ -424,5 +427,10 @@ void fragment() {
 		EMISSION = ce_pools_encode(ce_ground_unshow(mix(base * tunnel_ambient, tunnel_fog, tf)) + ce_pools_to_lin(lit) * extra);
 	} else {
 		EMISSION = ce_pools_encode(ce_ground_base_lin(base) + ce_pools_to_lin(lit) * extra);
+		// R7d: the cloud shadow, softened on the road (at most CLOUD_ROAD_MAX darker): asphalt and paint by the same
+		// factor, so the marking contrast stays (contract A-27, Rule 9); none at night, under overcast, in a tunnel
+		float cs = max(ce_cloud_shade(v_world, ce_sun_dir), 1.0 - CLOUD_ROAD_MAX);
+		ALBEDO *= cs;
+		EMISSION *= cs;
 	}
 }

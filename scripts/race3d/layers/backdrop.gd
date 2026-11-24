@@ -32,8 +32,12 @@ extends CanvasLayer
 ##    render.skyline_distance_m in size. A sprite silhouette is the "c" cell of its sheet (and its light layer at night),
 ##    a procedural one Arcade's own 2D drawing (RoadRenderer._draw_landmark_proc through a RoadRenderer instance that is
 ##    never in the tree, drawing into this canvas through its GeoBatch). Sheets are resolved in prepare().
-## Duck-typed layer: setup(renderer), prepare(ctx), update(view, dt), snapshot(). Owner: renderer core (R1); the
-## skyline: package R7 (wave 5: R7b).
+##  * R7d (A-27): the SKY itself is assets/shaders/modern/sky2d.gdshader on its own node behind the canvas (Arcade's
+##    gradient, glow, stars, moon and sun at Arcade's places, and the cloud layer of CloudField instead of Arcade's
+##    cloud sprites); the canvas keeps the silhouettes, skylines, landmarks, the fog below the horizon row, the tunnel
+##    darkness and the debug cover in front of it. graphics.modern.sky2d false draws Arcade's sky again.
+## Duck-typed layer: setup(renderer), prepare(ctx), update(view, dt), rebased(shift), snapshot(). Owner: renderer core
+## (R1); the skyline: package R7 (wave 5: R7b); the sky: R7d.
 
 const BACKDROP_LAYER := -10
 const COVER := Color(1.0, 0.0, 1.0)
@@ -53,6 +57,20 @@ class Canvas extends Node2D:
 	func _draw() -> void:
 		if layer_node != null:
 			layer_node.call(&"paint", self)
+
+
+## R7d: the node of the sky shader – one rectangle over the canvas' area, in the canvas' own coordinates.
+class SkyNode extends Node2D:
+	var rect := Rect2(0.0, -48.0, 1376.0, 816.0)
+
+	func _draw() -> void:
+		draw_rect(rect, Color.WHITE)
+
+
+const SKY_SHADER := "res://assets/shaders/modern/sky2d.gdshader"
+const CLOUD_SHADER := "res://assets/shaders/modern/clouds2d.gdshader"
+const CLOUD_SCALE := 2.0                ## canvas pixels per pixel of the cloud viewport (half resolution)
+const SKY_STEPS := 16                   ## sky_steps without a Gfx level
 
 
 var canvas: Canvas
@@ -91,10 +109,24 @@ var _sky_dist := 1800.0                 ## render.skyline_distance_m
 var _lm_law := Vector2(2.0, 1900.0)     ## render.landmark_range_factor, render.landmark_far_m
 var _sky_sig: Array = []
 var _sky_list: Array = []               ## this frame's silhouettes (snapshot)
+# R7d: the sky shader
+var sky_node: SkyNode
+var _sky_mat: ShaderMaterial
+var cloud_vp: SubViewport               ## the cloud layer at half resolution (clouds2d.gdshader), read by the sky shader
+var _cloud_node: SkyNode                ## its rectangle
+var _cloud_mat: ShaderMaterial
+var _sky2d := true                      ## graphics.modern.sky2d
+var _sky_steps := SKY_STEPS             ## most samples of a view ray through the clouds (Gfx level "sky_steps")
+var _shift_total := Vector2.ZERO        ## sum of the floating origin's shifts (x, z): the cloud field stays in the world
+var _cloud: Dictionary = {}             ## this frame's cloud values (snapshot)
+var _tunnel01 := 0.0                    ## the environment rig's tunnel ramp of this frame
 
 
 func _init() -> void:
 	layer = BACKDROP_LAYER
+	sky_node = SkyNode.new()
+	sky_node.name = "Sky"
+	add_child(sky_node)
 	canvas = Canvas.new()
 	canvas.name = "Canvas"
 	canvas.layer_node = self
@@ -117,6 +149,16 @@ func setup(renderer: Node) -> void:
 		_sky_dist = maxf(200.0, float(ConfigLoader.lookup(cfg, "render.skyline_distance_m", _sky_dist)))
 		_lm_law = Vector2(float(ConfigLoader.lookup(cfg, "render.landmark_range_factor", 2.0)),
 			float(ConfigLoader.lookup(cfg, "render.landmark_far_m", 1900.0)))
+		_sky2d = bool(ConfigLoader.lookup(cfg, "graphics.modern.sky2d", true))
+	sky_node.visible = _sky2d
+	if _sky2d and _sky_mat == null:
+		_sky_mat = ShaderMaterial.new()
+		_sky_mat.shader = load(SKY_SHADER) as Shader
+		sky_node.material = _sky_mat
+		_build_clouds()
+		ModernMaterials.set_global("ce_cloud_tex", CloudField.texture())
+	if not _sky2d:
+		ModernMaterials.set_global("ce_cloud", Vector4(1.0, CloudField.SOFT, 0.0, 0.0))
 	if proj != null:
 		_horizon_frac = proj.horizon_y / maxf(1.0, proj.screen.y)
 		sky_proj.focal = proj.focal
@@ -127,6 +169,18 @@ func setup(renderer: Node) -> void:
 	_fit(_size)
 	backdrop.setup(sky_proj, batch, blend_s)
 	backdrop.sprite_cb = _draw_skyline_landmark
+
+
+## R7d: the samples of a view ray through the clouds (Gfx level "sky_steps" of the effects level).
+func apply_quality(levels: Dictionary) -> void:
+	_sky_steps = clampi(int(levels.get("sky_steps", SKY_STEPS)), 4, 64)
+	if _cloud_mat != null:
+		_cloud_mat.set_shader_parameter("steps", _sky_steps)
+
+
+## The slowness watchdog lowered the preset during the countdown: the sky takes the lower level's samples too.
+func quality_lowered(levels: Dictionary) -> void:
+	apply_quality(levels)
 
 
 ## R7b: the skyline's pictures are resolved (and their sheets loaded) behind the loading cover, not in the race.
@@ -173,6 +227,7 @@ func update(view: Dictionary, _dt: float) -> void:
 		var st: Variant = env.get("state")
 		if st is Dictionary and not (st as Dictionary).is_empty():
 			tunnel01 = float((st as Dictionary).get("tunnel01", tunnel01))
+			_tunnel01 = tunnel01
 			fog = (st as Dictionary).get("fog_color", fog)
 			road_heading = float((st as Dictionary).get("heading", 0.0))
 	_pal = pal
@@ -196,6 +251,21 @@ func update(view: Dictionary, _dt: float) -> void:
 	else:
 		_flat = 0.0
 	canvas.position = Vector2(-MARGIN, 0.0) + (view.get("shake", Vector2.ZERO) as Vector2)
+	if _sky2d:
+		sky_node.position = canvas.position
+		var cam_xz := Vector2.ZERO
+		var cam_heading := 0.0
+		if cam != null:
+			var ct := cam.global_transform if cam.is_inside_tree() else cam.transform
+			cam_xz = Vector2(ct.origin.x, ct.origin.z)
+			var f := -ct.basis.z
+			cam_heading = atan2(f.x, -f.z)
+		var to_sun := Vector3.UP
+		if env != null:
+			var st2: Variant = env.get("state")
+			if st2 is Dictionary:
+				to_sun = (st2 as Dictionary).get("to_sun", to_sun)
+		_update_sky(pal, cam_xz, cam_heading, to_sun)
 	backdrop.landmarks = skyline(view, heading)
 	var lift := crest_lift(view)
 	if absf(lift - _drawn_lift) >= LIFT_STEP or (lift == 0.0 and _drawn_lift != 0.0):
@@ -225,7 +295,8 @@ func paint(item: CanvasItem) -> void:
 		return
 	if _flat < 0.999:
 		var base_y := sky_proj.horizon_y - lift_rows
-		backdrop.draw_sky(_pal, _heading, _time)
+		if not _sky2d:
+			backdrop.draw_sky(_pal, _heading, _time)
 		backdrop.draw_background(_pal, _scen_id, _bg, _heading, _time, _haze, base_y)
 		batch.rect(Rect2(0.0, base_y, w, h - base_y + MARGIN), _fog)
 	if _flat > 0.001:
@@ -253,7 +324,7 @@ func snapshot() -> Dictionary:
 		"horizon_frac": _horizon_frac, "horizon_row": snappedf(sky_proj.horizon_y, 0.01), "size": [_size.x, _size.y],
 		"heading": snappedf(_heading, 0.00001), "scenery": _scen_id, "redraws": _redraws, "frames": _frames,
 		"lift_rows": snappedf(lift_rows, 0.01), "base_row": snappedf(sky_proj.horizon_y - lift_rows, 0.01),
-		"skyline": _sky_list.duplicate(true)}}
+		"skyline": _sky_list.duplicate(true), "sky2d": _sky2d, "clouds": _cloud.duplicate(true)}}
 
 
 ## True when the camera is in a tunnel whose exit lies within the sight (view.visibility_m), or not in a tunnel.
@@ -317,6 +388,109 @@ func _fit(size: Vector2) -> void:
 	sky_proj.screen = Vector2(size.x + 2.0 * MARGIN, size.y)
 	sky_proj.horizon_y = size.y * _horizon_frac
 	_drawn_sig = []
+	sky_node.rect = Rect2(0.0, -MARGIN, sky_proj.screen.x, size.y + 2.0 * MARGIN)
+	sky_node.queue_redraw()
+	if cloud_vp != null:
+		var r := sky_node.rect
+		var vs := Vector2i(int(ceil(r.size.x / CLOUD_SCALE)), int(ceil(r.size.y / CLOUD_SCALE)))
+		cloud_vp.size = vs
+		_cloud_node.rect = Rect2(Vector2.ZERO, Vector2(vs))
+		_cloud_node.queue_redraw()
+		_cloud_mat.set_shader_parameter("px_scale", r.size / Vector2(vs))
+		_cloud_mat.set_shader_parameter("origin", r.position)
+		_sky_mat.set_shader_parameter("clouds_rect", Vector4(r.position.x, r.position.y, r.size.x, r.size.y))
+
+
+## R7d: the cloud layer – a viewport of its own at 1 / CLOUD_SCALE of the canvas' resolution, drawn every frame by
+## clouds2d.gdshader (premultiplied colour and coverage, transparent where there is no cloud) and laid over the sky by
+## sky2d.gdshader. A view ray through the clouds costs more than the rest of the sky; the clouds are soft.
+func _build_clouds() -> void:
+	cloud_vp = SubViewport.new()
+	cloud_vp.name = "Clouds"
+	cloud_vp.disable_3d = true
+	cloud_vp.transparent_bg = true
+	cloud_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	cloud_vp.render_target_clear_mode = SubViewport.CLEAR_MODE_ALWAYS
+	cloud_vp.size = Vector2i(688, 408)
+	_cloud_node = SkyNode.new()
+	_cloud_node.name = "CloudRect"
+	_cloud_mat = ShaderMaterial.new()
+	_cloud_mat.shader = load(CLOUD_SHADER) as Shader
+	_cloud_mat.set_shader_parameter("cloud_tex", CloudField.texture())
+	_cloud_mat.set_shader_parameter("field", Vector4(CloudField.TILE_M, CloudField.HEIGHT_M, CloudField.DETAIL.x, CloudField.DETAIL.y))
+	_cloud_mat.set_shader_parameter("weights", CloudField.W)
+	_cloud_mat.set_shader_parameter("thick", CloudField.THICK_M)
+	_cloud_mat.set_shader_parameter("column_k", CloudField.COLUMN_K)
+	_cloud_mat.set_shader_parameter("n_max", CloudField.n_max())
+	_cloud_mat.set_shader_parameter("steps", _sky_steps)
+	_cloud_node.material = _cloud_mat
+	cloud_vp.add_child(_cloud_node)
+	add_child(cloud_vp)
+	_sky_mat.set_shader_parameter("clouds", cloud_vp.get_texture())
+	_sky_mat.set_shader_parameter("clouds_on", 1.0)
+
+
+## R7d: the values of the sky shader for this frame – the projection, the camera in the cloud field, the light, and
+## Arcade's places of sun, moon and stars (RaceBackdrop.draw_sky's formulas), the palette's colours, the cover.
+func _update_sky(pal: Dictionary, cam_xz: Vector2, cam_heading: float, to_sun: Vector3) -> void:
+	if _sky_mat == null or pal.is_empty():
+		return
+	var w := sky_proj.screen.x
+	var hy := sky_proj.horizon_y
+	var f := sky_proj.focal
+	var m := _sky_mat
+	var cm := _cloud_mat
+	var overcast := clampf(float(pal.get("overcast", 0.0)), 0.0, 1.0)
+	var cover := CloudField.cover_for(pal)
+	var field := CloudField.field_pos(cam_xz, _shift_total, _time)
+	var sc: Color = pal.get("sun", Color.WHITE)
+	var sun_pos: Vector2 = pal.get("sun_pos", Vector2(0.0, 0.5))
+	var sun_x := w * 0.5 + RaceBackdrop.wrap_angle(sun_pos.x * 1.1 - _heading) * f
+	var sun_y := hy - (hy - 30.0) * pow(maxf(sun_pos.y, 0.0), 0.8) + 6.0
+	var sun_on := bool(pal.get("sun_visible", false)) and sun_x > -120.0 and sun_x < w + 120.0
+	var sun_disc := Vector3(sun_x, sun_y, 1.0 if sun_on else 0.0)
+	var mp: Vector2 = pal.get("moon_pos", Vector2(0.0, 0.5))
+	var mx := w * 0.5 + RaceBackdrop.wrap_angle(mp.x * 1.1 + 0.4 - _heading) * f
+	var mz := hy - (hy - 50.0) * mp.y - 20.0
+	var moon_on := bool(pal.get("moon_visible", false)) and mx > -60.0 and mx < w + 60.0
+	# what both draw
+	for mat: ShaderMaterial in [m, cm]:
+		mat.set_shader_parameter("screen", sky_proj.screen)
+		mat.set_shader_parameter("horizon_y", hy)
+		mat.set_shader_parameter("focal", f)
+		mat.set_shader_parameter("sky_top", pal.get("sky_top", Color.BLACK))
+		mat.set_shader_parameter("sky_bottom", pal.get("sky_bottom", Color.BLACK))
+		mat.set_shader_parameter("cloud_shade", pal.get("cloud_dark", Color.GRAY))
+		mat.set_shader_parameter("overcast", overcast)
+		mat.set_shader_parameter("sun_disc", sun_disc)
+	# the sky: Arcade's gradient, glow, stars, moon and sun
+	m.set_shader_parameter("pan", _heading)
+	m.set_shader_parameter("time", _time)
+	m.set_shader_parameter("sky_mid", pal.get("sky_mid", Color.BLACK))
+	m.set_shader_parameter("glow", pal.get("glow", Color.BLACK))
+	m.set_shader_parameter("sun", Vector3(sc.r, sc.g, sc.b))
+	m.set_shader_parameter("moon_disc", Vector3(mx, mz, 1.0 if moon_on else 0.0))
+	m.set_shader_parameter("stars", float(pal.get("stars", 0.0)))
+	# the cloud layer
+	cm.set_shader_parameter("cam_heading", cam_heading)
+	cm.set_shader_parameter("cam_field", field)
+	cm.set_shader_parameter("to_sun", to_sun)
+	cm.set_shader_parameter("cloud_lit", pal.get("cloud", Color.WHITE))
+	cm.set_shader_parameter("threshold", CloudField.threshold(cover))
+	cm.set_shader_parameter("cover", cover)
+	cm.set_shader_parameter("night", clampf(float(pal.get("night", 0.0)), 0.0, 1.0))
+	# the cloud shadows on the land: the same field (inc/cloud_shadow.gdshaderinc)
+	var strength := CloudField.shadow_strength(pal, _tunnel01)
+	var origin_field := CloudField.field_pos(Vector2.ZERO, _shift_total, _time)
+	ModernMaterials.set_global("ce_cloud", Vector4(CloudField.threshold(cover), CloudField.SOFT, strength, 0.0))
+	ModernMaterials.set_global("ce_cloud_pos", Vector4(origin_field.x, origin_field.y, CloudField.TILE_M, CloudField.HEIGHT_M))
+	_cloud = {"cover": snappedf(cover, 0.001), "field": [snappedf(field.x, 0.1), snappedf(field.y, 0.1)], "shadow": snappedf(strength, 0.0001),
+		"heading": snappedf(cam_heading, 0.0001), "sun": sun_on, "moon": moon_on}
+
+
+## The floating origin moved: the cloud field stays where it is in the world.
+func rebased(shift: Vector3) -> void:
+	_shift_total += Vector2(shift.x, shift.z)
 
 
 ## Scenery background with the per-city overrides (cities.json "background") inside the City Limits – the rule of

@@ -57,6 +57,11 @@ const GLOBALS: Array = [
 	# (inc/lod_band.gdshaderinc) – camera speed × 0.4 s, set by builders/props.gd; 0 = a hard swap (a standing camera);
 	# the default is wider than any band: the full band (every scene without that builder)
 	["ce_lod_band_m", RenderingServer.GLOBAL_VAR_TYPE_FLOAT, 1.0e4],
+	# R7d (A-27): the cloud layer of CloudField for the cloud shadows (inc/cloud_shadow.gdshaderinc) – threshold, soft
+	# edge, strength (0: no shadow – night, overcast, tunnel, sky shader off), and the field position of the origin-
+	# relative point (0, 0), TILE_M, HEIGHT_M; set by layers/backdrop.gd. The texture ce_cloud_tex: ensure_globals()
+	["ce_cloud", RenderingServer.GLOBAL_VAR_TYPE_VEC4, Vector4(0.6, 0.035, 0.0, 0.0)],
+	["ce_cloud_pos", RenderingServer.GLOBAL_VAR_TYPE_VEC4, Vector4(0.0, 0.0, 9000.0, 1600.0)],
 ]
 
 ## The vehicle LOOK in one place (A-13): the class parameters a scene puts on the shared vehicle materials – [class,
@@ -192,6 +197,12 @@ static func ensure_globals() -> void:
 	_globals_added = true
 	for g: Array in GLOBALS:
 		RenderingServer.global_shader_parameter_add(StringName(str(g[0])), g[1], g[2])
+	# R7d: the cloud field's texture – a white texel until the backdrop sets CloudField.texture() (a texture cannot be
+	# a constant of GLOBALS, and generating the field here would cost every process that only registers the globals)
+	var white := Image.create(1, 1, false, Image.FORMAT_RGBA8)
+	white.fill(Color.WHITE)
+	RenderingServer.global_shader_parameter_add(&"ce_cloud_tex", RenderingServer.GLOBAL_VAR_TYPE_SAMPLER2D,
+		ImageTexture.create_from_image(white))
 
 
 ## Sets a ce_* global (convenience for small rigs; EnvironmentRig may call the RenderingServer directly).

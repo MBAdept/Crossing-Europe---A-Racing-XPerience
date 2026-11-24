@@ -41,6 +41,9 @@ global uniform vec4 ce_fog_color;
 
 #include "res://assets/shaders/modern/inc/fog_law.gdshaderinc"
 #include "res://assets/shaders/modern/inc/lod_band.gdshaderinc"
+global uniform vec3 ce_sun_dir;
+#include "res://assets/shaders/modern/inc/cloud_shadow.gdshaderinc"
+varying float v_cloud;     // R7d: the cloud shadow on this object's direct light (ce_cloud_sun_v, its origin)
 
 varying float v_bright;
 varying vec3 v_tint;     // RINT-M2 (A-19): placement tint (MultiMesh custom data r, g, b, 1); white without
@@ -69,6 +72,7 @@ void vertex() {
 		VERTEX = vec3(0.0);
 	}
 	v_lod_depth = -(MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).z;
+	v_cloud = ce_cloud_sun_v((MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz, ce_sun_dir);
 }
 
 void fragment() {
@@ -98,7 +102,7 @@ void fragment() {
 }
 
 void light() {
-	float att = LIGHT_IS_DIRECTIONAL ? mix(1.0, ce_far_attenuation(ATTENUATION, true, v_lod_depth), shadow_part) : ATTENUATION;
+	float att = LIGHT_IS_DIRECTIONAL ? mix(1.0, ce_far_attenuation(ATTENUATION, true, v_lod_depth), shadow_part) * v_cloud : ATTENUATION;
 	float ndl = dot(NORMAL, LIGHT);
 	float diff = max((ndl + wrap) / (1.0 + wrap), 0.0);
 	float through = max(-ndl, 0.0) * backlight;
