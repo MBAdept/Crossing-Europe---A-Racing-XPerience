@@ -45,7 +45,7 @@ render_mode cull_back, ambient_light_disabled;
 uniform vec3 col_road_a = vec3(0.337, 0.345, 0.369);
 uniform vec3 col_road_l = vec3(0.373, 0.376, 0.4);
 uniform vec3 col_road_c = vec3(0.31, 0.318, 0.337);
-uniform vec3 col_concrete = vec3(0.362, 0.355, 0.335);   // R7d: concrete slabs – warmer, at most 2–3 % lighter than col_road_a
+uniform vec3 col_concrete = vec3(0.352, 0.346, 0.326);   // R7d: concrete slabs – warmer, as light as col_road_a (luminance 0.345)
 uniform float slab_m = 5.0;                        // R7d: length of a concrete slab (the audio's joints: 5 m)
 uniform vec3 col_paved = vec3(0.42, 0.424, 0.439);
 uniform vec3 col_gravel = vec3(0.541, 0.502, 0.392);
@@ -69,6 +69,7 @@ uniform float asphalt_reflect = 0.9;               // how much of the low beam a
 uniform float paint_reflect = 1.6;                 // (Arcade's factors: asphalt 0.9, lines 1.6, hatch and crosswalk 1.4, checker 1.2)
 
 uniform float wet_mirror = 0.42;                   // R4: share of the Fresnel reflection of the sky on wet asphalt
+uniform vec2 mirror_from = vec2(110.0, 220.0);     // R7d: … growing in between these distances (m), none nearer
 // R4 night calibration (contract §6 R4: the mean road luminance at N1 within +15 % of Arcade and never darker): the
 // fine detail of the asphalt (polished tracks, oil, joints, patches) darkens its mean by a few per cent – measured at
 // N1 3–4 % below Arcade before; at night (outside tunnels, which have their own light) the base is lifted by this
@@ -198,26 +199,27 @@ void fragment() {
 			float sz = floor(z / slab_m);
 			float sx = floor(lane_c);
 			float f_slab = detail * (1.0 - smoothstep(1.5, 6.0, wz));
-			tone = 1.0 + grain * 0.07 + streak * 0.03 + (h21(vec2(sx + 31.0, sz)) - 0.5) * 0.05 * f_slab;
+			tone = 1.0 + grain * 0.07 + streak * 0.03 - h21(vec2(sx + 31.0, sz)) * 0.045 * f_slab;   // never lighter
 			// sealed joints across (every slab_m) and along (the lane boundaries); a little spalling at some of them
 			float jz = cover(fract(z / slab_m) * slab_m, -0.03, 0.03, wz) + cover(fract(z / slab_m) * slab_m, slab_m - 0.03, slab_m + 0.03, wz);
 			float jx = x > la + 0.3 && x < ma - 0.3 ? cover(fract(lane_c + 0.5) - 0.5, -0.025 / lane_w, 0.025 / lane_w, wx / lane_w) : 0.0;
 			float spall = smoothstep(0.75, 0.95, vnoise(vec2(x * 3.1, z * 2.3))) * (1.0 - smoothstep(0.02, 0.08, foot));
 			tone -= max(jz, jx) * (0.28 + 0.15 * spall) * detail;
 		} else if (road == 0 && detail > 0.0) {
-			// R7d: the asphalt's age changes in stretches of 240 m – a resurfaced stretch darker and finer, an old one
-			// lighter, now and then only the right lane renewed – with a thin seam where two ages meet
+			// R7d: the asphalt's age changes in stretches of 240 m – a resurfaced stretch darker and finer, an old one a
+			// little darker and coarser (never lighter: the paint keeps its contrast), now and then only the right lane
+			// renewed – with a thin seam where two ages meet
 			float sc = floor(z / 240.0);
 			float ha = h21(vec2(sc, 7.0));
 			float hb = h21(vec2(sc - 1.0, 7.0));
-			float age_a = ha < 0.28 ? -0.045 : (ha < 0.46 ? 0.03 : 0.0);
-			float age_b = hb < 0.28 ? -0.045 : (hb < 0.46 ? 0.03 : 0.0);
+			float age_a = ha < 0.28 ? -0.045 : (ha < 0.46 ? -0.015 : 0.0);
+			float age_b = hb < 0.28 ? -0.045 : (hb < 0.46 ? -0.015 : 0.0);
 			bool lane_only = h21(vec2(sc, 11.0)) < 0.35;
 			float right_lane = smoothstep(ma - lane_w - 0.02, ma - lane_w + 0.02, x);
 			float f_age = 1.0 - smoothstep(30.0, 120.0, wz);
 			float here = lane_only ? age_a * right_lane : age_a;
 			tone += here * f_age;
-			tone -= grain * 0.04 * step(here, -0.01);
+			tone += grain * (here < -0.03 ? -0.04 : (here < -0.005 ? 0.05 : 0.0));   // new: finer, old: coarser
 			float seam_z = cover(z - sc * 240.0, -0.02, 0.02, wz) * step(0.001, abs(age_a - age_b));
 			float seam_x = lane_only && abs(age_a) > 0.0 ? cover(x, ma - lane_w - 0.02, ma - lane_w + 0.02, wx) : 0.0;
 			tone -= max(seam_z, seam_x) * 0.18 * f_age;
@@ -280,18 +282,22 @@ void fragment() {
 		// ---------------------------------------------------------------- paint
 		float paint = 0.0;
 		float el = edge_line_w;
+		// R7d (A-27): a line far ahead is as strong as Arcade's – Arcade's strips land on whole pixels and look about
+		// half a pixel wider than the exact width the box filter here covers; a quarter pixel more on each side
+		// (nothing near the car, where a pixel is a few millimetres)
+		float pw = 0.25 * wx;
 		if ((flags & 1) != 0) {
-			paint = max(paint, cover(x, la + 0.15, la + 0.15 + el, wx));
+			paint = max(paint, cover(x, la + 0.15 - pw, la + 0.15 + el + pw, wx));
 			float sep = el * ((flags & 2) != 0 ? 1.6 : 1.0);
-			paint = max(paint, cover(x, ma - 0.15 - 0.5 * sep, ma - 0.15 + 0.5 * sep, wx));
+			paint = max(paint, cover(x, ma - 0.15 - 0.5 * sep - pw, ma - 0.15 + 0.5 * sep + pw, wx));
 			if ((flags & 4) != 0) {
-				paint = max(paint, cover(x, ra - 0.15 - el, ra - 0.15, wx));
+				paint = max(paint, cover(x, ra - 0.15 - el - pw, ra - 0.15 + pw, wx));
 			}
 		}
 		if (v_data.x > 0.5) {
 			float n = clamp(floor(lane_u + 0.5), 1.0, v_data.x);
 			float lc = la + n * lane_w;
-			float across = cover(x, lc - 0.5 * lane_line_w, lc + 0.5 * lane_line_w, wx);
+			float across = cover(x, lc - 0.5 * lane_line_w - pw, lc + 0.5 * lane_line_w + pw, wx);
 			if (across > 0.0) {
 				float don = road == 0 ? dash_on.x : (road == 1 ? dash_on.y : dash_on.z);
 				float dcy = road == 0 ? dash_cycle.x : (road == 1 ? dash_cycle.y : dash_cycle.z);
@@ -334,11 +340,16 @@ void fragment() {
 			vec3 sky = mix(ce_sky_horizon.rgb, ce_sky_top.rgb, smoothstep(0.0, 0.45, cos_i));
 			vec3 sky_k = sky / max(ce_ambient_display.rgb, vec3(0.2));
 			float sheen = clamp(-VERTEX.z / max(80.0, ce_fog_range.y), 0.0, 1.0);
-			float mirror = max(fres * wet_mirror, 0.28 * sheen) * wet;
+			// R7d (A-27): the paint stays as readable as Arcade's – the mirror of the sky grows in only beyond
+			// mirror_from.x and is whole at mirror_from.y (the edge lines keep at least 0.9 × Arcade's contrast at 20, 60
+			// and 120 m, tests/race3d/render/check_freie_strecke.gd); near the car the rain shows in the darker
+			// asphalt, the spray and the reflections of the lamps
+			float reach = smoothstep(mirror_from.x, mirror_from.y, -VERTEX.z);
+			float mirror = max(fres * wet_mirror * reach, 0.28 * sheen) * wet;
 			asph = mix(asph, sky_k, mirror);
-			line = mix(line * (1.0 - 0.07 * wet), sky_k, mirror * 0.35);
+			line = mix(line, sky_k, mirror * 0.35);
 			asph_lit *= 1.0 - mirror;
-			line_lit *= (1.0 - 0.07 * wet) * (1.0 - mirror * 0.35);
+			line_lit *= 1.0 - mirror * 0.35;      // R7d: wet paint no longer 7 % darker (its contrast, A-27)
 		}
 		asph = mix(asph, col_road_snow, 0.3 * snow);
 		asph_lit = mix(asph_lit, col_road_snow, 0.3 * snow);

@@ -102,7 +102,8 @@ void fragment() {
 }
 
 void light() {
-	float att = LIGHT_IS_DIRECTIONAL ? mix(1.0, ce_far_attenuation(ATTENUATION, true, v_lod_depth), shadow_part) * v_cloud : ATTENUATION;
+	float att = LIGHT_IS_DIRECTIONAL ? mix(1.0, ce_far_attenuation(ATTENUATION, true, v_lod_depth), shadow_part) : ATTENUATION;
+	att *= LIGHT_IS_DIRECTIONAL ? v_cloud : 1.0;          // R7d: under a cloud
 	float ndl = dot(NORMAL, LIGHT);
 	float diff = max((ndl + wrap) / (1.0 + wrap), 0.0);
 	float through = max(-ndl, 0.0) * backlight;

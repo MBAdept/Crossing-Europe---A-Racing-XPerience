@@ -120,6 +120,7 @@ var _sky_steps := SKY_STEPS             ## most samples of a view ray through th
 var _shift_total := Vector2.ZERO        ## sum of the floating origin's shifts (x, z): the cloud field stays in the world
 var _cloud: Dictionary = {}             ## this frame's cloud values (snapshot)
 var _tunnel01 := 0.0                    ## the environment rig's tunnel ramp of this frame
+var debug_shadow_cover := -1.0          ## render checks: >= 0 sets the cover of the cloud SHADOWS (0 none, 1 all)
 
 
 func _init() -> void:
@@ -482,7 +483,8 @@ func _update_sky(pal: Dictionary, cam_xz: Vector2, cam_heading: float, to_sun: V
 	# the cloud shadows on the land: the same field (inc/cloud_shadow.gdshaderinc)
 	var strength := CloudField.shadow_strength(pal, _tunnel01)
 	var origin_field := CloudField.field_pos(Vector2.ZERO, _shift_total, _time)
-	ModernMaterials.set_global("ce_cloud", Vector4(CloudField.threshold(cover), CloudField.SOFT, strength, 0.0))
+	var shadow_cover := cover if debug_shadow_cover < 0.0 else debug_shadow_cover
+	ModernMaterials.set_global("ce_cloud", Vector4(CloudField.threshold(shadow_cover), CloudField.SOFT, strength, 0.0))
 	ModernMaterials.set_global("ce_cloud_pos", Vector4(origin_field.x, origin_field.y, CloudField.TILE_M, CloudField.HEIGHT_M))
 	_cloud = {"cover": snappedf(cover, 0.001), "field": [snappedf(field.x, 0.1), snappedf(field.y, 0.1)], "shadow": snappedf(strength, 0.0001),
 		"heading": snappedf(cam_heading, 0.0001), "sun": sun_on, "moon": moon_on}

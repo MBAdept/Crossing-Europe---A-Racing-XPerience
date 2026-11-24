@@ -60,11 +60,11 @@ const DEFAULT_LEVELS := {
 	"aa": [0, 2, 4],
 	"effects": [
 		{"glow": false, "particles": 300, "spray": false, "wet_reflections": false, "ssao": false, "ssao_quality": 0,
-			"sky_reflections": false, "omni_pool": 2},
+			"sky_reflections": false, "omni_pool": 2, "sky_steps": 12},
 		{"glow": true, "particles": 1500, "spray": true, "wet_reflections": false, "ssao": false, "ssao_quality": 0,
-			"sky_reflections": true, "omni_pool": 4},
+			"sky_reflections": true, "omni_pool": 4, "sky_steps": 16},
 		{"glow": true, "particles": 4000, "spray": true, "wet_reflections": true, "ssao": true, "ssao_quality": 1,
-			"sky_reflections": true, "omni_pool": 8},
+			"sky_reflections": true, "omni_pool": 8, "sky_steps": 24},
 	],
 }
 ## Start values of config graphics.watchdog. slow_factor / too_slow_factor: watchdog_verdict() below.
@@ -250,7 +250,8 @@ static func with_cli(q: Dictionary, preset_arg: String, set_arg: String, presets
 ## plus the entries of config graphics.levels for its steps, flat – shadow_casters, shadow_splits, shadow_blend,
 ## shadow_atlas, shadow_distance_m, shadow_filter, blob_shadows, vehicle_lod0_m, vehicle_lod1_m, prop_lod0_m,
 ## prop_lod1_m, deco_density, terrain_outer_m, glow, particles, spray, wet_reflections, ssao, ssao_quality,
-## sky_reflections, omni_pool, msaa (0, 2, 4), scale_3d (0.5 … 1.5). `gfx_cfg` = config section "graphics".
+## sky_reflections, omni_pool, sky_steps (R7d: samples of a view ray through the clouds), msaa (0, 2, 4), scale_3d
+## (0.5 … 1.5). `gfx_cfg` = config section "graphics".
 static func levels(q: Dictionary, gfx_cfg: Dictionary) -> Dictionary:
 	var s := sanitized(q)
 	var presets: Variant = gfx_cfg.get("presets", {})

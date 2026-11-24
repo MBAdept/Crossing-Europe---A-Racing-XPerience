@@ -235,7 +235,7 @@ func test_levels_are_flat_typed_renderer_parameters() -> void:
 	var want_keys := ["preset", "shadows", "details", "scale", "aa", "effects", "shadow_casters", "shadow_splits", "shadow_blend",
 		"shadow_atlas", "shadow_distance_m", "shadow_filter", "blob_shadows", "vehicle_lod0_m", "vehicle_lod1_m", "prop_lod0_m",
 		"prop_lod1_m", "deco_density", "terrain_outer_m", "glow", "particles", "spray", "wet_reflections", "ssao", "ssao_quality",
-		"sky_reflections", "omni_pool", "msaa", "scale_3d"]
+		"sky_reflections", "omni_pool", "sky_steps", "msaa", "scale_3d"]
 	for id: String in ["deck", "low", "medium", "high"]:
 		var lv := Gfx.levels(Gfx.quality(id, {}, g.get("presets", {})), g)
 		for k: String in want_keys:
@@ -243,7 +243,7 @@ func test_levels_are_flat_typed_renderer_parameters() -> void:
 		assert_eq(str(lv["preset"]), id, "Name der Voreinstellung")
 		assert_true(lv["shadow_atlas"] is int and lv["shadow_blend"] is bool and lv["shadow_distance_m"] is float
 			and lv["particles"] is int and lv["glow"] is bool and lv["deco_density"] is float and lv["msaa"] is int
-			and lv["scale_3d"] is float, "%s: Typen (JSON-Zahlen umgewandelt)" % id)
+			and lv["scale_3d"] is float and lv["sky_steps"] is int, "%s: Typen (JSON-Zahlen umgewandelt)" % id)
 		assert_eq(lv, Gfx.levels(Gfx.quality(id, {}, {}), {}), "%s: Konfiguration = eingebaute Startwerte" % id)
 	# the tables of the contract (§4.10)
 	var low := Gfx.levels(Gfx.quality("low", {}, {}), g)

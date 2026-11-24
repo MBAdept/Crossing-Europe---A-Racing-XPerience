@@ -197,6 +197,7 @@ var _sky_reflections := true
 var _heading := 0.0                ## road heading at the car, of the last update() inside the integrated path
 var _light_sig: Array = []         ## what the light of the last frame was computed from (the split is only redone on a change)
 var _sent: Dictionary = {}         ## ce_* globals as they were set last (only changes are sent)
+var debug_fog_color: Variant = null ## render checks (R7d, F4): a Color sent as ce_fog_color instead of the palette's
 var _cover := false
 var _nolight := false
 ## set_zone(): kind -> amount 0..1 as the owner of the zone set it last (a kind nobody set is absent)
@@ -413,7 +414,7 @@ func update(view: Dictionary, _dt: float) -> void:
 	_send("ce_wet", float(pal.get("wet", 0.0)))
 	_send("ce_snow", float(pal.get("snow", 0.0)))
 	_send("ce_wind", wind(t, overcast, tunnel01, zone("bridge")))
-	_send("ce_fog_color", fog_color)
+	_send("ce_fog_color", fog_color if debug_fog_color == null else debug_fog_color)
 	_send("ce_fog_range", Vector2(begin, end))
 	_send("ce_sun_dir", to_sun)
 	_send("ce_sun_color", st["sun"])

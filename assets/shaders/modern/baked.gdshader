@@ -152,7 +152,8 @@ float ce_v_ggx(float ndl, float ndv, float a) {
 }
 
 void light() {
-	float att = ce_far_attenuation(ATTENUATION, LIGHT_IS_DIRECTIONAL, v_lod_depth) * (LIGHT_IS_DIRECTIONAL ? v_cloud : 1.0);
+	float att = ce_far_attenuation(ATTENUATION, LIGHT_IS_DIRECTIONAL, v_lod_depth);
+	att *= LIGHT_IS_DIRECTIONAL ? v_cloud : 1.0;          // R7d: under a cloud
 	float ndl = clamp(dot(NORMAL, LIGHT), 0.0, 1.0);
 	DIFFUSE_LIGHT += LIGHT_COLOR * att * ndl * (1.0 / PI);
 	if (ROUGHNESS > 0.0 && v_spec > 0.5) {

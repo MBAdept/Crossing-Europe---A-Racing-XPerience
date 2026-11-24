@@ -2836,3 +2836,109 @@ erst, wenn die Etappe vorbereitet ist (vorher steht die Kamera noch nicht im Sta
 
 Offen: Modelle der Wahrzeichen (AS6); Wahrzeichen-Modelle mit Glas- oder Laubflächen blenden diese Flächen nicht
 weich aus.
+
+## 20. Freie Strecke: Himmel, Wolken, Felder, Fahrbahn (Bauabschnitt R7d)
+
+Ziel (Vertrag A-27): Auf der offenen Autobahn erkennt man Modern auf den ersten Blick und findet es deutlich schöner
+als Arcade – bei Tag, Dämmerung, Nacht, Regen und Schnee –, ohne dass etwas, worauf der Spieler reagiert, schlechter
+zu sehen ist. Fahrzeuge, Lichter, Schilder, der Sichtkorridor und die Fairness-Schwellen bleiben unberührt.
+
+### 20.1 Der Himmel (`assets/shaders/modern/sky2d.gdshader`, `clouds2d.gdshader`)
+
+- Der Hintergrund (`layers/backdrop.gd`) zeichnet den Himmel nicht mehr mit `RaceBackdrop.draw_sky`, sondern mit einem
+  eigenen Shader auf einem Rechteck hinter der Leinwand (`SkyNode`). An Arcades Stellen: Verlauf der Palette
+  (`sky_top` → `sky_mid` bei 0,52 der Horizontzeile → `sky_bottom`), Morgen- und Abendglühen um den Sonnenazimut,
+  Sterne (funkeln), Mond mit Sichel, Sonne mit Hof, die dunklere Oberkante unter geschlossener Decke. Die Formeln für
+  Sonne und Mond sind Arcades (`sun_pos.x × 1,1`, `moon_pos.x × 1,1 + 0,4`, `RaceBackdrop.wrap_angle`).
+- Statt Arcades 16 Wolkenbildern und den Ellipsen bei Bedeckung: eine **Wolkenschicht** in halber Auflösung in einem
+  eigenen `SubViewport` (`cloud_vp`, `CLOUD_SCALE` 2), die der Himmelsshader vormultipliert über alles legt – Wolken
+  verdecken Sterne, Mond und, wo sie dicht sind, die Sonne. Gemessen (llvmpipe, nur die Shader, 1376 × 816):
+  Himmel ohne Wolken 6,3 ms über einem leeren Bild, Wolken in voller Auflösung 122 ms, in halber 39 ms (16 Proben)
+  bzw. 49 ms (24 Proben) – die halbe Auflösung spart zwei Drittel, die Wolken sind weich.
+- **Haufenwolken**: Eine Schicht mit flacher Basis in `CloudField.HEIGHT_M` (1.600 m); jeder Haufen ist eine Kuppel bis
+  `THICK_M` (450 m) darüber, deren Höhe dem Überschuss des Feldes über der Schwelle folgt (Wurzel: runde Kuppen,
+  steile Flanken; in dünnen Gruppen flacher). Der Blickstrahl wird von der Basis aufwärts in `sky_steps` Proben auf
+  **festen Höhen** verfolgt – in jeder Bildzeile dieselben, darum keine Streifen zwischen den Zeilen; die erste Probe
+  unter einer Kuppel ist der Treffer, die Oberfläche liegt zwischen ihr und der Probe davor (drei Schritte Regula
+  falsi). Licht: die Höhe im Haufen (Basis grau, Kuppen hell) und die Neigung zur Lichtquelle (`to_sun`: die
+  zugewandte Seite hell, die abgewandte grau). Ein Strahl, der knapp vorbeigeht, gibt einen weichen Rand. Ein dünner
+  Rand vor der Sonne leuchtet; ferne Haufen werden zum Horizont hin dunstig und gehen jenseits `far_m` (34 km) in ein
+  Band der erwarteten Bedeckung über. Nachts sind die Wolken dunkle Silhouetten in den Palettenfarben.
+- Regen und Schnee (Palette `overcast` 1): Bedeckung 1, eine geschlossene graue Decke, deren Unterseite dort heller
+  ist, wo sie dünn ist.
+- `sky_steps` je Effektstufe (`graphics.levels.effects`): 12 / 16 / 24 (Aus / Einfach / Voll) – Steam Deck und
+  „Mittel“ 16. Der Langsamkeits-Wächter nimmt die Proben der niedrigeren Stufe mit (`quality_lowered`).
+- `graphics.modern.sky2d` = false zeichnet wieder Arcades Himmel (und schaltet die Wolkenschatten ab).
+
+### 20.2 Ein Wolkenfeld für Himmel und Boden (`scripts/race3d/cloud_field.gd`)
+
+- `CloudField` erzeugt einmal je Prozess eine kachelnde Rauschtextur (FastNoiseLite, feste Samen, 256², Mipmaps):
+  r = Kuppeln (1 − Abstand zum Zellpunkt, eine Wolke je Zelle, `TILE_M` 18 km je Kachel – ein Haufen etwa alle
+  2,3 km), g = Beulen auf den Kuppeln (`DETAIL.x` 2,3), b = Gruppen von Haufen und klare Flecken (`DETAIL.y` 0,37).
+  n = W · (r, g, b) mit W = (0,55; 0,18; 0,27).
+- Bedeckung `cover_for(palette)`: 0,12 an einem klaren Tag (+0,05 in Morgen- und Abendglühen), 1 unter Regen und
+  Schnee; `threshold(cover)` ist ein Quantil von n über eine Kachel, damit die Bedeckung der Anteil ist, was immer die
+  Textur hergibt. `n_max()` ist das höchste n (die Kuppelhöhe ist auf den Überschuss bis dorthin bezogen).
+- Das Feld steht in der Welt still: `field_pos()` = ursprungsbezogene Position − Summe der Verschiebungen des
+  schwimmenden Ursprungs (`rebased()`) + die Drift mit dem Wind (7 m/s, Richtung von `EnvironmentRig.wind()`, über
+  die Sichtzeit – keine Wanduhr, Regel 10).
+- Die Shader tragen Kopien der Konstanten (`clouds2d.gdshader`, `inc/cloud_shadow.gdshaderinc`);
+  `tests/unit/race3d/test_cloud_field.gd` prüft, dass sie übereinstimmen.
+
+### 20.3 Wolkenschatten (`inc/cloud_shadow.gdshaderinc`)
+
+- Der Strahl eines Bodenpunkts zur Sonne trifft die Schicht in `HEIGHT_M`; die Dichte des Feldes dort (mit einem
+  breiteren Rand als die Wolke am Himmel) nimmt höchstens `CloudField.SHADOW` (0,22) des Lichts weg – als
+  Anzeigefaktor auf Grund- und Sonnendurchgang (ALBEDO und EMISSION). Stärke 0 nachts, unter geschlossener Decke
+  (diffuses Licht), im Tunnel und mit `sky2d` = false.
+- Wer ihn bekommt: das Gelände, der ferne Boden, die Fahrbahn (höchstens `CLOUD_ROAD_MAX` 0,12, Farbe und Markierung
+  gleich – der Kontrast der Linien bleibt), die Requisiten aus `baked` und `leaves` (der direkte Sonnenanteil, ein
+  Wert je Objekt im Vertex-Schritt) und die Baum-Vertretungen (`billboard.gdshader` `cloud_shadow` = 1, nur bei den
+  Impostoren). **Nie** Fahrzeuge, Schilder, Lampen, Lichthöfe.
+- Ein Schatten ist so groß wie ein Haufen (rund 1 km): Meist liegt das ganze sichtbare Land im Licht oder im
+  Schatten, und beim Fahren wandert die Grenze über die Felder.
+- Der Spiegel-Himmel (`EnvironmentRig._update_sky`) bleibt der Verlauf der Palette: An einem klaren Tag sind 12–17 %
+  des Feldes Wolke, unter geschlossener Decke ist die Palette ohnehin grau.
+
+### 20.4 Felder, Bankett, Gras (`inc/ground.gdshaderinc`, `terrain.gdshader`)
+
+- Felder (Voronoi, jetzt rund 230 × 135 m) tragen eine **Frucht**: ein Anteil `amount` die Akzentfrucht der Landschaft,
+  der Rest Wiese (46 %), junges Getreide (22 %), dunkle Reihenkultur (17 %) und offener Boden (15 %: Acker oder
+  Stoppel). Darin Saatreihen entlang einer Feldseite, Fahrgassen im Getreide (zwei Spuren alle 21 m), auf der Hälfte
+  der Wiesen breite Mähstreifen; am Rand ein Grasstreifen (Vorgewende) und an rund 38 % der Grenzen eine Hecke
+  (Knick). Gepflasterter Boden (nature 0) behält seine zwei Töne mit Fugen.
+- Die Farben der Felder bleiben stehen, bis ein Feld nur noch ein, zwei Pixel misst (Fußabdruck 35–110 m, Entfernung
+  1.500–2.300 m; vorher 9–30 m und 800–1.400 m – jenseits von etwa 200 m zeigten alle Felder ihr Mittel). Feine
+  Muster (Reihen, Fahrgassen, Hecken) gehen wie bisher nach dem Fußabdruck eines Pixels in ihr Mittel über.
+- Gras nah an der Straße: trockenere und frischere Büschel über einige Meter, im Bankett und im Graben blühende Flecken
+  (ein Hauch Gelb, Weiß oder Lila über Meter, keine Punkte – sie würden beim Vorbeifahren nur flimmern).
+- Relief und Luftperspektive bleiben, wie sie sind: Das Gelände hat schon sanftes Relief außerhalb des Sichtkorridors
+  (A-17); jede Änderung würde die Verdeckungsprüfung berühren. Mehr Dunst wäre mehr Nebel als Arcade (F4).
+
+### 20.5 Fahrbahn (`road.gdshader`, `builders/road.gd`)
+
+- **Betonabschnitte**: Die Autobahnabschnitte, die der Klang als Beton spielt (`AudioFeed._concrete_section`: Anteil je
+  Land, kalibrierte Schwellen aus `audio.modern.feed`), tragen das Flag 2048 (`F_CONCRETE`; nie in der Stadt, im Tunnel
+  oder auf einem Brückendeck). Der Shader zeichnet dort Platten von 5 m Länge (die Fugen des Klangs) und einer Spur
+  Breite, jede in ihrem Ton, mit dunklen Fugen quer und längs, etwas Abplatzung; die Radspuren sind heller poliert.
+  Der Beton ist höchstens 2–3 % heller als Arcades Asphalt (`col_concrete`), damit die Markierungen ihren Kontrast
+  behalten. `RoadBuilder.is_concrete()` entscheidet wie `AudioFeed` (Test „concrete_sections_follow_the_audio“).
+- **Asphaltalter**: In Abschnitten von 240 m ist der Belag erneuert (dunkler, feiner), älter (heller) oder unverändert,
+  manchmal nur auf der rechten Spur, mit einer dünnen Naht, wo zwei Alter aneinanderstoßen. z_period (1.440 m) ist ein
+  Vielfaches von 5 m und 240 m.
+
+### 20.6 Bäume
+
+- Jede Pflanze (Modell mit `veg`) bekommt einen eigenen, stabilen Ton (`Props.veg_variation`: ±6 % heller oder
+  dunkler, ±3 % gelber oder blauer) als Faktor auf die Platzierungstönung – das nahe Modell und seine Vertretung
+  lesen dieselben Instanzdaten. Gedreht waren sie schon (`place_yaw`).
+
+### 20.7 Prüfungen
+
+- `tests/unit/race3d/test_cloud_field.gd`: Textur, Bedeckung und Schwelle (der Anteil über der Schwelle ist die
+  Bedeckung), Feldposition über Verschiebungen des Ursprungs, Schattenstärke, Konstanten der Shader.
+- `tests/race3d/render/check_freie_strecke.gd`: Markierungskontrast Modern/Arcade bei 20, 60 und 120 m (Asphalt Tag,
+  Nacht, nass Tag, nass Nacht; Beton Tag und nass Nacht) mindestens 0,9; Wolkenschatten (überall gegen nirgends): das
+  eigene Auto unverändert, Asphalt mindestens 0,85 so hell, Linienkontrast mindestens 0,95, Gras dunkler, bei Regen
+  keine Änderung; F4: der Nebelanteil im fernen Boden, gemessen mit weißer gegen schwarze Nebelfarbe, höchstens
+  Arcades 0,7.
