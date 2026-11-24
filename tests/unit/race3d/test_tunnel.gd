@@ -404,3 +404,36 @@ func test_portal_on_the_ground_layer_out_of_the_low_beam() -> void:
 				assert_eq((n as GeometryInstance3D).layers, 1, "die Röhre bleibt auf Renderlayer 1")
 		holder.free()
 	assert_eq(portals, 1, "ein Portal am Gotthard gebaut und übergeben")
+
+
+## QA-mid: the hill's bumps (Arcade's outline, one draw per column) are smoothed over the neighbours. As independent
+## heights two columns 6 m apart differed by up to 3.2 m – every column a rib from the front edge to the ridge, and the
+## lowest sun (environment_rig.gd ELEV_MIN_DEG) laid their shadows on the face as regular stripes at dusk. Smoothed, no
+## column stands so far over its neighbour that it shades it at the lowest sun, and the outline keeps bumps.
+func test_hill_bumps_without_ribs() -> void:
+	var rng := RandomNumberGenerator.new()
+	var col_m := (Tunnel.HILL_SPAN * 2.0) / float(Tunnel.HILL_COLS)
+	var rig: GDScript = load("res://scripts/race3d/environment_rig.gd")
+	var shade_m := col_m * tan(deg_to_rad(float(rig.get_script_constant_map()["ELEV_MIN_DEG"])))
+	var worst_raw := 0.0
+	var worst := 0.0
+	var spread := 0.0
+	for seed_i in 300:
+		rng.seed = seed_i * 31 + 7
+		var raw: Array[float] = []
+		for c in Tunnel.HILL_COLS + 1:
+			var tt := float(c) / float(Tunnel.HILL_COLS) * 2.0 - 1.0
+			raw.append(rng.randf_range(-0.7, 0.9) * (1.0 - absf(tt)) * 2.0)
+		var sm := Tunnel.smooth_bumps(raw)
+		assert_eq(sm.size(), raw.size(), "eine Höhe je Spalte")
+		var mean := 0.0
+		for c in sm.size():
+			mean += sm[c] / float(sm.size())
+			if c > 0:
+				worst_raw = maxf(worst_raw, absf(raw[c] - raw[c - 1]))
+				worst = maxf(worst, absf(sm[c] - sm[c - 1]))
+		for c in sm.size():
+			spread = maxf(spread, absf(sm[c] - mean))
+	assert_true(worst_raw > shade_m, "ohne Glätten beschatten sich Nachbarspalten (%.2f m > %.2f m)" % [worst_raw, shade_m])
+	assert_true(worst < shade_m, "geglättet beschattet keine Spalte die nächste (%.2f m < %.2f m)" % [worst, shade_m])
+	assert_true(spread > 0.4, "der Umriss behält Buckel (%.2f m)" % spread)
