@@ -1581,3 +1581,27 @@ func test_albedo_bias_per_model() -> void:
 		assert_true(n >= 1, "%s: baked-Material geprüft" % mid.get_file())
 	parent.free()
 	_cleanup()
+
+
+## R7d (A-27): every plant model instance in a shade of its own – a stable factor on the placement tint, at most ±6 %
+## lighter or darker and ±3 % yellower or bluer; the same place always gets the same shade (near model and impostor
+## read the same custom data).
+func test_plant_shade_variation() -> void:
+	var lo := 9.0
+	var hi := 0.0
+	var differ := 0
+	var last := Color.WHITE
+	for seg in 200:
+		for item in 3:
+			var v: Color = Props.veg_variation(seg, item)
+			assert_eq(v, Props.veg_variation(seg, item), "derselbe Ort, derselbe Ton")
+			for ch: float in [v.r, v.g, v.b]:
+				lo = minf(lo, ch)
+				hi = maxf(hi, ch)
+			assert_near(v.a, 1.0, 1.0e-6)
+			if not v.is_equal_approx(last):
+				differ += 1
+			last = v
+	assert_true(lo >= 0.9 and hi <= 1.1, "Faktor in 0,9 … 1,1 (%.3f … %.3f)" % [lo, hi])
+	assert_true(hi - lo > 0.08, "die Töne unterscheiden sich sichtbar (%.3f)" % (hi - lo))
+	assert_true(differ > 550, "fast jede Pflanze hat ihren eigenen Ton (%d von 600)" % differ)

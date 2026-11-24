@@ -35,6 +35,8 @@
 // inc/lod_band.gdshaderinc (lod_band, set by builders/props.gd; stand-ins keep the default: always). Its picture carries
 // the sprite rig's relief of light and shade (A-16): relief_night (> 0 on impostors, PropLibrary) flattens that relief
 // towards the picture's mean colour with the night (ce_night) – there is no sun at night to cast it.
+// R7d: cloud_shadow (1 on impostors, PropLibrary) takes the sun of a far tree under a cloud shadow, as leaves.gdshader
+// does for the near tree (inc/cloud_shadow.gdshaderinc) – never on the other stand-ins (signs, objects).
 // Load only through ModernMaterials - never with preload().
 shader_type spatial;
 render_mode unshaded, cull_disabled, depth_draw_opaque;
@@ -55,6 +57,7 @@ uniform vec3 headlight_color = vec3(1.0, 0.95, 0.84);   // linear, at intensity 
 // begin to L. x = render.landmark_range_factor (2), y = render.landmark_far_m (1900); x <= 0: an ordinary prop.
 uniform vec2 landmark_law = vec2(0.0, 1900.0);
 uniform float relief_night = 0.0;             // R7c: share of the picture's relief that the night takes away
+uniform float cloud_shadow = 0.0;             // R7d: 1 on the impostors of trees – their sun lies under the cloud shadows
 
 global uniform float ce_night;
 global uniform float ce_snow;                  // R4: Arcade tints its scenery sprites in snow (RoadRenderer: 15 % towards #bfccd6)
@@ -69,6 +72,7 @@ global uniform vec4 ce_fog_color;
 
 #include "res://assets/shaders/modern/inc/fog_law.gdshaderinc"
 #include "res://assets/shaders/modern/inc/lod_band.gdshaderinc"
+#include "res://assets/shaders/modern/inc/cloud_shadow.gdshaderinc"
 
 varying float v_sun;
 varying float v_head;
@@ -95,6 +99,10 @@ void vertex() {
 	// how much of the sun falls on the side the camera sees (a lit model would show the same)
 	float facing = dot(normalize(CAMERA_POSITION_WORLD - origin), normalize(ce_sun_dir)) * 0.5 + 0.5;
 	v_sun = mix(sun_min, sun_max, facing * facing);
+	if (cloud_shadow > 0.5) {
+		// R7d: a far tree under a cloud loses its sun as the near tree does (leaves.gdshader, one value per tree)
+		v_sun *= ce_cloud_sun_v(origin, ce_sun_dir);
+	}
 	if (baked_light > 0.5) {
 		// a picture with baked light gets the sun as level ground does (Arcade lights sprite and ground alike),
 		// a little less against the sun and a little more with it

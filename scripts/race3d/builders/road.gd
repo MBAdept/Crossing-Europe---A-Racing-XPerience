@@ -41,6 +41,7 @@ const F_DECK := 128                ## bridge deck outside the City Limits
 const F_RAIL_L := 256              ## guardrail on the left / right outer edge (contact shadow)
 const F_RAIL_R := 512
 const F_CITY := 1024               ## curbs beside the asphalt
+const F_CONCRETE := 2048           ## R7d: a concrete section – the paving the audio plays there (AudioFeed._paving)
 const KIND_BAND := 0.0
 const KIND_SIDEWALK := 1.0
 const KIND_CURB_TOP := 2.0
@@ -55,6 +56,11 @@ var detail := 1.0                  ## strength of the fine detail of the shader
 
 var _configured := false
 var _crosswalk_every := 330.0
+# R7d: the concrete sections of the audio (audio.modern.feed): road types, share per country, calibrated thresholds
+var _concrete_roads: Array = ["autobahn"]
+var _concrete_share: Dictionary = {}
+var _concrete_threshold: Dictionary = {}
+var _concrete_cache: Dictionary = {}    ## main thread (collect): "stage|section index" -> bool
 var _edge_line := 0.3
 var _lane_line := 0.15
 var _dash := {"autobahn": Vector2i(2, 4), "landstrasse": Vector2i(2, 4), "city": Vector2i(1, 2)}
@@ -200,6 +206,15 @@ func configure(cfg: Dictionary) -> void:
 		var d: Array = dashes.get(road, [int(stripes.get("dash_on", 2)), int(stripes.get("dash_off", 4))])
 		_dash[road] = Vector2i(maxi(1, int(d[0])), maxi(0, int(d[1])))
 	_crosswalk_every = float(ConfigLoader.lookup(cfg, "road.crosswalk_every_m", 330.0))
+	var feed: Variant = ConfigLoader.lookup(cfg, "audio.modern.feed", {})
+	if feed is Dictionary:
+		var fd: Dictionary = feed
+		if fd.get("concrete_roads", null) is Array:
+			_concrete_roads = (fd["concrete_roads"] as Array).duplicate()
+		if fd.get("concrete_share", null) is Dictionary:
+			_concrete_share = (fd["concrete_share"] as Dictionary).duplicate()
+		if fd.get("concrete_threshold", null) is Dictionary:
+			_concrete_threshold = (fd["concrete_threshold"] as Dictionary).duplicate(true)
 	var seg_len := float(r.get("segment_length_m", 3.0))
 	# the paint's z coordinate wraps where every dash cycle, the post spacing and the 72 m cells of the detail end
 	var cycle := 24
@@ -225,14 +240,43 @@ static func _lcm(a: int, b: int) -> int:
 func collect(ctx: ChunkContext) -> Variant:
 	if not _configured:
 		configure(ctx.cfg)
-	var out := {"center_z": -1.0, "outskirts": "", "center": ""}
+	var out := {"center_z": -1.0, "outskirts": "", "center": "", "concrete": PackedByteArray()}
 	if ctx.track != null and ctx.track.plan != null:
 		var plan: StagePlan = ctx.track.plan
 		if plan.city_scenery_center != "":
 			out["center_z"] = ctx.track.km_to_z(plan.city_center_km)
 			out["outskirts"] = plan.city_scenery_outskirts
 			out["center"] = plan.city_scenery_center
+		# R7d: which segments lie in a concrete section – the audio's decision (AudioFeed._concrete_section)
+		var conc := PackedByteArray()
+		conc.resize(ctx.segs.size())
+		for i in ctx.segs.size():
+			var sd: Dictionary = ctx.segs[i]
+			conc[i] = 1 if _concrete_roads.has(str(sd.get("road", ""))) and is_concrete(plan, float(sd.get("km", 0.0))) else 0
+		out["concrete"] = conc
 	return out
+
+
+## R7d: the section of `plan` at km is concrete – the same decision as the audio's (AudioFeed._concrete_section: a
+## hash of what identifies the section in both driving directions against the share of its country, or its
+## calibrated threshold), so the slabs the player sees are the slabs the player hears. Main thread (reads the plan).
+func is_concrete(plan: StagePlan, km: float) -> bool:
+	if plan == null or plan.sections.is_empty():
+		return false
+	var i := plan.section_index_at(km)
+	var key := "%s|%d" % [plan.stage_id, i]
+	if _concrete_cache.has(key):
+		return bool(_concrete_cache[key])
+	var d: Dictionary = plan.sections[i]
+	var country := str(d.get("country", ""))
+	var share := float(_concrete_share.get(country, _concrete_share.get("_", 0.0)))
+	var th := share
+	var cal: Variant = _concrete_threshold.get(country, null)
+	if cal is Array and (cal as Array).size() >= 2 and absf(float(cal[0]) - share) < 1.0e-6:
+		th = float(cal[1])
+	var yes := AudioFeed.unit_hash(AudioFeed.section_key(plan.stage_id, d)) < th
+	_concrete_cache[key] = yes
+	return yes
 
 
 ## WORKER THREAD. Returns the vertex arrays of the chunk ({"arrays": Array for ArrayMesh, …}) and plain counters.
@@ -301,6 +345,9 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 			city_segments += 1
 		elif water and not tunnel:
 			flags |= F_DECK
+		var conc: PackedByteArray = blend.get("concrete", PackedByteArray())
+		if not curbs and not tunnel and not water and i < conc.size() and conc[i] == 1:
+			flags |= F_CONCRETE
 		# lane lines: i = 1 .. n - 1, without those closer than 0.6 m to the right edge of the lanes on either row
 		var lines := 0
 		var n_lanes := int(ceil(maxf(lanes_a, lanes_b) - 0.01))

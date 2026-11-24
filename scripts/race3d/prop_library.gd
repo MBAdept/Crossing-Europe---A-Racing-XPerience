@@ -449,6 +449,7 @@ func mesh_parts(model_id: String, rep: String) -> Array:
 		if tex != null:
 			var bm := _billboard(tex, Rect2(0.0, 0.0, 1.0, 1.0), Rect2())
 			bm.set_shader_parameter("relief_night", IMPOSTOR_RELIEF_NIGHT)
+			bm.set_shader_parameter("cloud_shadow", 1.0)       # R7d: under the cloud shadows as the near tree
 			out.append({"mesh": ModelFactory.billboard_mesh(float(md.get("imp_w", 1.0)), float(md.get("imp_h", 1.0)), float(md.get("imp_ax", 0.5))),
 				"material": bm, "transform": Transform3D.IDENTITY, "shadow": false, "billboard": true})
 	else:

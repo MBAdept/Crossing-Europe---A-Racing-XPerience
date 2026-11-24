@@ -119,7 +119,7 @@ func test_period_and_checker() -> void:
 	var b: Object = RoadBuilder.new()
 	b.call("configure", cfg())
 	var period := float(b.get("z_period"))
-	for cycle: float in [18.0, 9.0, 6.0, 72.0]:
+	for cycle: float in [18.0, 9.0, 6.0, 72.0, 5.0, 240.0]:   # R7d: concrete slabs (5 m), asphalt stretches (240 m)
 		assert_near(fposmod(period, cycle), 0.0, 1.0e-6, "z_period (%.0f m) ist ein Vielfaches von %.0f m" % [period, cycle])
 	assert_true(period >= 1400.0, "… und lang genug für 32-Bit-Zahlen ohne sichtbare Naht")
 	var t := _syn(400, {"finish_segment": 300})
@@ -137,6 +137,38 @@ func test_period_and_checker() -> void:
 	assert_eq(marked.size(), 2, "Ziellinie auf einer Segmentgrenze: die beiden Segmente an ihr (wie in Arcade)")
 	for m: int in marked:
 		assert_true(absf(float(m) * t.seg_len + t.seg_len * 0.5 - t.length_z) <= t.seg_len * 0.5, "… Segment %d liegt an length_z" % m)
+
+
+## R7d (A-27): a concrete section shows slabs exactly where the audio plays them – the road builder decides per section
+## as AudioFeed does (audio.modern.feed: road types, share per country, calibrated thresholds) and marks those segments
+## F_CONCRETE; never in the City Limits, a tunnel or on a bridge deck.
+func test_concrete_sections_follow_the_audio() -> void:
+	var t := _real("kiel_hamburg")
+	assert_true(t != null, "Kiel–Hamburg geladen")
+	var b: Object = RoadBuilder.new()
+	b.call("configure", cfg())
+	var feed := AudioFeed.new()
+	feed.setup(ConfigLoader.lookup(cfg(), "audio.modern", {}))
+	feed.plan = t.plan
+	var seen := {true: 0, false: 0}
+	var km := 0.0
+	for sec: Dictionary in t.plan.sections:
+		var mid := (km + float(sec["end_km"])) * 0.5
+		km = float(sec["end_km"])
+		var audio := bool(feed.call("_concrete_section", mid))
+		assert_eq(bool(b.call("is_concrete", t.plan, mid)), audio, "Abschnitt bei km %.1f: Bild wie Klang" % mid)
+		seen[audio] += 1
+	assert_true(seen[true] > 0 and seen[false] > 0, "Kiel–Hamburg hat Beton- und Asphaltabschnitte (%s)" % [seen])
+	# the flag on the segments of a chunk inside a concrete and inside an asphalt section of the open road
+	for probe_km: float in [32.0, 67.0]:
+		var want := bool(b.call("is_concrete", t.plan, probe_km))
+		var chunk := int(t.km_to_z(probe_km) / t.seg_len) / N
+		for seg: Dictionary in _segments(_build(_context(t, chunk))):
+			var flags := int(seg["flags"])
+			if (flags & (RoadBuilder.F_CITY | RoadBuilder.F_TUNNEL | RoadBuilder.F_DECK)) != 0:
+				assert_eq(flags & RoadBuilder.F_CONCRETE, 0, "kein Beton in der Stadt, im Tunnel, auf Brücken")
+			else:
+				assert_eq((flags & RoadBuilder.F_CONCRETE) != 0, want, "km %.0f: Beton-Flag wie der Abschnitt" % probe_km)
 
 
 func test_lane_lines_with_fractional_lanes() -> void:

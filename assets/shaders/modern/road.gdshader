@@ -14,7 +14,8 @@
 //   COLOR     rgb = ground colour of the verge / median of the segment (the scenery's grass, display values)
 // Flag bits: 1 edge lines · 2 wide separator (fuel lane beside this segment) · 4 edge line of the fuel lane ·
 // 8 hatch stripe of the opening fuel lane · 16 checker · 32 crosswalk · 64 tunnel · 128 bridge deck ·
-// 256 guardrail left · 512 guardrail right · 1024 City Limits (curbs)
+// 256 guardrail left · 512 guardrail right · 1024 City Limits (curbs) · 2048 concrete section (R7d: the paving the
+// audio plays there – slabs of 5 m with sealed joints instead of asphalt)
 //
 // Paint geometry is Arcade's (RoadRenderer._draw_markings) to the centimetre, so both modes show the same road;
 // the edges are anti-aliased analytically: the footprint of a pixel in road metres comes from the screen-space
@@ -44,6 +45,8 @@ render_mode cull_back, ambient_light_disabled;
 uniform vec3 col_road_a = vec3(0.337, 0.345, 0.369);
 uniform vec3 col_road_l = vec3(0.373, 0.376, 0.4);
 uniform vec3 col_road_c = vec3(0.31, 0.318, 0.337);
+uniform vec3 col_concrete = vec3(0.362, 0.355, 0.335);   // R7d: concrete slabs – warmer, at most 2–3 % lighter than col_road_a
+uniform float slab_m = 5.0;                        // R7d: length of a concrete slab (the audio's joints: 5 m)
 uniform vec3 col_paved = vec3(0.42, 0.424, 0.439);
 uniform vec3 col_gravel = vec3(0.541, 0.502, 0.392);
 uniform vec3 col_sidewalk = vec3(0.639, 0.631, 0.604);
@@ -187,6 +190,38 @@ void fragment() {
 		float in_road = cover(x, la, ra, wx);
 		vec3 asph = road == 0 ? col_road_a : (road == 1 ? col_road_l : col_road_c);
 		float tone = 1.0 + grain * 0.11 + streak * 0.07 + batch * 0.08;
+		bool concrete = (flags & 2048) != 0;
+		float lane_c = (x - la) / lane_w;
+		if (concrete) {
+			// R7d: concrete slabs, one lane wide and slab_m long, each in its own shade; finer grain, no batches
+			asph = col_concrete;
+			float sz = floor(z / slab_m);
+			float sx = floor(lane_c);
+			float f_slab = detail * (1.0 - smoothstep(1.5, 6.0, wz));
+			tone = 1.0 + grain * 0.07 + streak * 0.03 + (h21(vec2(sx + 31.0, sz)) - 0.5) * 0.05 * f_slab;
+			// sealed joints across (every slab_m) and along (the lane boundaries); a little spalling at some of them
+			float jz = cover(fract(z / slab_m) * slab_m, -0.03, 0.03, wz) + cover(fract(z / slab_m) * slab_m, slab_m - 0.03, slab_m + 0.03, wz);
+			float jx = x > la + 0.3 && x < ma - 0.3 ? cover(fract(lane_c + 0.5) - 0.5, -0.025 / lane_w, 0.025 / lane_w, wx / lane_w) : 0.0;
+			float spall = smoothstep(0.75, 0.95, vnoise(vec2(x * 3.1, z * 2.3))) * (1.0 - smoothstep(0.02, 0.08, foot));
+			tone -= max(jz, jx) * (0.28 + 0.15 * spall) * detail;
+		} else if (road == 0 && detail > 0.0) {
+			// R7d: the asphalt's age changes in stretches of 240 m – a resurfaced stretch darker and finer, an old one
+			// lighter, now and then only the right lane renewed – with a thin seam where two ages meet
+			float sc = floor(z / 240.0);
+			float ha = h21(vec2(sc, 7.0));
+			float hb = h21(vec2(sc - 1.0, 7.0));
+			float age_a = ha < 0.28 ? -0.045 : (ha < 0.46 ? 0.03 : 0.0);
+			float age_b = hb < 0.28 ? -0.045 : (hb < 0.46 ? 0.03 : 0.0);
+			bool lane_only = h21(vec2(sc, 11.0)) < 0.35;
+			float right_lane = smoothstep(ma - lane_w - 0.02, ma - lane_w + 0.02, x);
+			float f_age = 1.0 - smoothstep(30.0, 120.0, wz);
+			float here = lane_only ? age_a * right_lane : age_a;
+			tone += here * f_age;
+			tone -= grain * 0.04 * step(here, -0.01);
+			float seam_z = cover(z - sc * 240.0, -0.02, 0.02, wz) * step(0.001, abs(age_a - age_b));
+			float seam_x = lane_only && abs(age_a) > 0.0 ? cover(x, ma - lane_w - 0.02, ma - lane_w + 0.02, wx) : 0.0;
+			tone -= max(seam_z, seam_x) * 0.18 * f_age;
+		}
 		float polish = 0.0;
 		float lane_u = (x - la) / lane_w;
 		float lu = fract(lane_u);
@@ -200,11 +235,11 @@ void fragment() {
 			float tracks = exp(-t1 * t1) + exp(-t2 * t2);
 			float along = 0.75 + 0.5 * vnoise(vec2(li * 7.0 + 1.0, z * 0.045));
 			polish = tracks * along * f_lane * detail;
-			tone -= polish * 0.045;
+			tone -= polish * (concrete ? -0.03 : 0.045);       // R7d: on concrete the tracks are polished lighter
 			float o = (lu - 0.5) / 0.05;
 			tone -= exp(-o * o) * 0.03 * f_lane * detail * (0.5 + vnoise(vec2(li * 3.0, z * 0.11)));
 			// sealed joint beside a lane boundary: a thin meandering tar line, here and there
-			if (li >= 1.0) {
+			if (li >= 1.0 && !concrete) {
 				float jc = (li + 0.055) * lane_w + la + sin(z * 0.71 + li * 2.0) * 0.018;
 				float on = smoothstep(0.42, 0.5, vnoise(vec2(li * 5.0 + 2.0, z * 0.021)));
 				tone -= cover(x, jc - 0.017, jc + 0.017, wx) * on * 0.22 * detail;

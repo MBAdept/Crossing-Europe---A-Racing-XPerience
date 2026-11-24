@@ -862,6 +862,8 @@ static func _place(ctx: ChunkContext, inp: Dictionary, out: Dictionary, i: int, 
 		x = edge_anchor_x(x, side, flipped, float(e["extent_l"]), float(e["extent_r"]), sc)
 	# A-24: the whole object against the sight lines of a bend – the model's AABB turned as it will stand
 	var yaw := place_yaw(e, seg_index, j) if is_model else 0.0
+	if is_model and bool(e.get("veg", false)) and not landmark:
+		tint *= veg_variation(seg_index, j)       # R7d: every plant in a shade of its own
 	var fp := footprint(e, sc, side, flipped, it.has("align"), yaw)
 	if not is_cover:
 		x = push_out(ctx, it, e, z, x, side, fp, cover)
@@ -1211,6 +1213,15 @@ static func mirror_x(t: Transform3D) -> Transform3D:
 
 
 ## Stable pseudo-random number 0..1 for (segment index, item index, salt).
+## R7d (A-27): the shade of one plant model instance – a little lighter or darker (±6 %) and a little yellower or
+## bluer (±3 %), by a stable hash of its place: a row of trees of one variant no longer looks cloned. A factor on the
+## placement tint (the shaders multiply the albedo by it – the near model and its impostor alike).
+static func veg_variation(seg_index: int, item: int) -> Color:
+	var v := (hash01(seg_index, item, 41) - 0.5) * 0.12
+	var hue := (hash01(seg_index, item, 43) - 0.5) * 0.06
+	return Color(1.0 + v + hue, 1.0 + v + hue * 0.4, 1.0 + v - hue, 1.0)
+
+
 static func hash01(seg_index: int, item: int, salt: int) -> float:
 	var h := (seg_index * 73856093) ^ ((item + 1) * 19349663) ^ (salt * 83492791)
 	h = (h ^ (h >> 13)) * 1274126177

@@ -4,9 +4,11 @@
 //   near the road     Arcade's two grass tones of the scenery in bands across the road (render.stripes.grass
 //                     segments each), fading into their mean from 6 to 40 m beyond the shoulder
 //   beside the road   gravel strip at the shoulder, mown verge with mowing stripes, the ditch with darker, earthier
-//                     ground – only where the ground is vegetation (COLOR.a)
-//   beyond 16–34 m    the open ground of inc/ground.gdshaderinc: fields in their own shades, patches in the accent
-//                     colour of the scenery, furrows, borders, soft blotches
+//                     ground – only where the ground is vegetation (COLOR.a); R7d: drier and fresher tufts, flowering
+//                     patches in the verge and the ditch
+//   beyond 16–34 m    the open ground of inc/ground.gdshaderinc: fields with their crops (R7d: meadow, young grain,
+//                     row crops, bare ground, the accent crop of the scenery), rows, tramlines, headlands, hedgerows,
+//                     soft blotches
 //   everywhere        fine grain near the camera (it fades with the distance: no shimmer far away)
 //   ce_snow           snow cover (Arcade: 94 % Palette.SNOW_GROUND), thinner on the gravel strip
 //   ce_wet            darker and smoother (it glints towards the sun)
@@ -98,6 +100,16 @@ void fragment() {
 	float joint = smoothstep(0.47, 0.495, max(slab.x, slab.y)) * (1.0 - nature) * (1.0 - smoothstep(0.02, 0.06, foot));
 	tone *= 1.0 - 0.10 * joint;
 	tone *= 1.0 + ((g1 - 0.5) * 0.20 + (g2 - 0.5) * 0.16) * near_k * mix(0.45, 1.0, nature);
+	// R7d: the grass – drier and fresher tufts over a few metres, and flowering patches in the verge and the ditch (a
+	// tinge of yellow, white or purple over metres, no dots: they would only flicker as they pass)
+	float tuft = texture(ground_noise, p / 2.3 + vec2(0.71, 0.29)).g;
+	float grassy = nature * (1.0 - gravel) * (1.0 - smoothstep(30.0, 160.0, dist));
+	tone = mix(tone, tone * vec3(1.13, 1.08, 0.74), smoothstep(0.55, 0.85, tuft) * 0.45 * grassy);
+	tone = mix(tone, tone * vec3(0.84, 0.93, 0.86), smoothstep(0.42, 0.15, tuft) * 0.35 * grassy);
+	float bloom = texture(ground_noise, p / 6.5 + vec2(0.43, 0.81)).g;
+	float hue = texture(ground_noise, p / 41.0 + vec2(0.13, 0.57)).g;
+	vec3 flower = hue < 0.42 ? vec3(0.93, 0.85, 0.36) : (hue < 0.6 ? vec3(0.93, 0.93, 0.88) : vec3(0.72, 0.56, 0.82));
+	tone = mix(tone, flower, smoothstep(0.6, 0.86, bloom) * 0.24 * (verge + 0.7 * ditch) * (1.0 - smoothstep(1.0, 4.0, foot)));
 	tone = mix(COLOR.rgb, tone, detail);
 	// snow: on everything but the water, thin and dirty on the gravel strip
 	float snow = ce_ground_snow(ce_snow, p) * (1.0 - 0.45 * gravel);
