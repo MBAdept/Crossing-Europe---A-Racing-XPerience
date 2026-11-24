@@ -256,6 +256,48 @@ func test_bands_follow_arcade_and_fade_into_the_mean() -> void:
 	assert_near(GroundLook.ground_blend(500.0, 0.0), RoadRenderer.ground_blend(500.0, 0.0), 1.0e-6, "ohne Zentrum")
 
 
+## R7d: beside a fuel lane the ground is a service area's lawn (CUSTOM1.a 1 on the right, LAWN_PAD_M before and after
+## the lane, gone LAWN_TAPER_M further on); the left side and the open road keep their fields.
+func test_service_areas_are_lawn() -> void:
+	var t := _real_track("kiel_hamburg", true)
+	assert_true(t != null and t.plan.fuel_lanes.size() > 0, "Etappe kiel_hamburg mit Tankstelle")
+	if t == null or t.plan.fuel_lanes.is_empty():
+		return
+	var l: Dictionary = t.plan.fuel_lanes[0]
+	var z0 := t.km_to_z(float(l["start_km"]))
+	var z1 := t.km_to_z(float(l["end_km"]))
+	var fuel := PackedVector2Array([Vector2(z0, z1)])
+	assert_near(TerrainBuilder.lawn_at(z0, fuel), 1.0, 1.0e-6, "am Anfang der Tankspur")
+	assert_near(TerrainBuilder.lawn_at(z0 - TerrainBuilder.LAWN_PAD_M, fuel), 1.0, 1.0e-6, "LAWN_PAD_M davor")
+	assert_near(TerrainBuilder.lawn_at(z1 + TerrainBuilder.LAWN_PAD_M + TerrainBuilder.LAWN_TAPER_M, fuel), 0.0, 1.0e-6, "dahinter ausgeblendet")
+	var prev := 1.0
+	for k in 20:
+		var w := TerrainBuilder.lawn_at(z1 + TerrainBuilder.LAWN_PAD_M + float(k) * TerrainBuilder.LAWN_TAPER_M / 19.0, fuel)
+		assert_true(w <= prev + 1.0e-6, "nimmt nach der Tankspur stetig ab")
+		prev = w
+	var ci := int((z0 + z1) * 0.5 / t.seg_len) / 32
+	var ctx := _ctx(t, ci)
+	var part := _build(ctx)
+	var b: PackedFloat32Array = part["bands"]
+	var n := ctx.rings
+	var per_side := ctx.row_count() * n
+	var inside := 0
+	for i in ctx.row_count():
+		var z := float(ctx.seg_a + i) * ctx.seg_len
+		var want := TerrainBuilder.lawn_at(z, fuel)
+		inside += 1 if want > 0.999 else 0
+		for r in n:
+			assert_near(b[(per_side + i * n + r) * 4 + 3], want, 1.0e-6, "rechts: Rasen der Rastanlage (Reihe %d, Ring %d)" % [i, r])
+			assert_eq(b[(i * n + r) * 4 + 3], 0.0, "links: kein Rasen (Reihe %d)" % i)
+	assert_true(inside > 0, "das Stück liegt an der Tankspur (%d Reihen ganz Rasen)" % inside)
+	var away := _build(_ctx(t, 3))
+	var ba: PackedFloat32Array = away["bands"]
+	var most := 0.0
+	for k in ba.size() / 4:
+		most = maxf(most, ba[k * 4 + 3])
+	assert_eq(most, 0.0, "freie Strecke: nirgends Rasen")
+
+
 func test_city_blends_outskirts_into_the_centre() -> void:
 	var net := Fair.load_network()
 	var scenery: Dictionary = net["scenery"]

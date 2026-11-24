@@ -31,7 +31,9 @@
 //   COLOR.rgb   mean ground tone, sRGB (the mean of the scenery's two grass tones, the outskirts -> centre blend of
 //               the City Limits; the water colour on a bridge)          COLOR.a   nature: 1 vegetation … 0 paved
 //   CUSTOM1     rgb = half the difference of the two grass tones (tone 0 = COLOR + it, tone 1 = COLOR - it),
-//               a = how much of the bands shows (1 near the road … 0 from 40 m beyond the shoulder)
+//               a = R7d: the lawn of a service area (1 beside a fuel lane: mown grass instead of fields up to lawn_m.x
+//               beyond the shoulder, the fields come in by lawn_m.y); how much of the bands shows (1 near the road …
+//               0 from 40 m beyond the shoulder) is band_fade_m of UV.x
 //   UV          x = metres beyond the shoulder, y = band phase (floor even: tone 0, odd: tone 1)
 //   UV2         x = metres from the centreline (signed), y = fade into the far ground (0 … 1 at the outer edge)
 //   CUSTOM0     rgb = accent colour of the patches, a = share of the patches (0..1); a = -1 marks water
@@ -48,6 +50,8 @@ uniform float detail = 1.0;                   // strength of everything painted 
 uniform float field_from_m = 16.0;            // the field structure fades in between these distances beyond the shoulder
 uniform float field_full_m = 34.0;
 uniform float band_contrast = 1.0;            // strength of Arcade's two grass tones near the road
+uniform vec2 band_fade_m = vec2(6.0, 40.0);   // the bands fade into their mean between these distances (terrain.gd)
+uniform vec2 lawn_m = vec2(110.0, 170.0);     // R7d: the lawn of a service area reaches this far (terrain.gd LAWN_M)
 
 global uniform float ce_snow;
 global uniform float ce_wet;
@@ -72,11 +76,17 @@ void fragment() {
 	float fade_far = clamp(UV2.y, 0.0, 1.0);
 	float water = smoothstep(-0.25, -0.75, v_style.a);
 	float amount = max(v_style.a, 0.0);
-	float field = smoothstep(field_from_m, field_full_m, lat);
+	// R7d: beside a fuel lane the service area's lawn – no fields, no hedges up to lawn_m.x
+	float lawn = clamp(v_band.a, 0.0, 1.0) * (1.0 - smoothstep(lawn_m.x, lawn_m.y, lat));
+	float field = smoothstep(field_from_m, field_full_m, lat) * (1.0 - lawn);
 	// Arcade's bands: +1 on even bands (tone 0), -1 on odd ones; the mean once they are thinner than a pixel
 	float band = ce_ground_stripes(UV.y, 2.0) * 2.0;
-	vec3 base = COLOR.rgb + v_band.rgb * (v_band.a * band * band_contrast);
+	float band_k = 1.0 - smoothstep(band_fade_m.x, band_fade_m.y, lat);
+	vec3 base = COLOR.rgb + v_band.rgb * (band_k * band * band_contrast);
 	vec3 tone = ce_ground_open(base, v_style.rgb, amount, nature, p, dist, field);
+	// R7d: the service area's lawn is mown – wide stripes along the road beyond the verge (mean-neutral; they go where
+	// they are thinner than a pixel)
+	tone *= 1.0 + ce_ground_stripes(lat, 8.0) * 0.08 * lawn * nature * smoothstep(field_from_m, field_full_m, lat);
 	// fine grain at two scales, near the camera only
 	float g1 = texture(ground_noise, p / CE_GROUND_GRAIN_M).r;
 	float g2 = texture(ground_noise, p / (CE_GROUND_GRAIN_M * 0.23) + vec2(0.31, 0.57)).r;

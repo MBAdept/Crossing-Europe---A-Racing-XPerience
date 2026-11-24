@@ -2913,6 +2913,12 @@ zu sehen ist. Fahrzeuge, Lichter, Schilder, der Sichtkorridor und die Fairness-S
   Muster (Reihen, Fahrgassen, Hecken) gehen wie bisher nach dem Fußabdruck eines Pixels in ihr Mittel über.
 - Gras nah an der Straße: trockenere und frischere Büschel über einige Meter, im Bankett und im Graben blühende Flecken
   (ein Hauch Gelb, Weiß oder Lila über Meter, keine Punkte – sie würden beim Vorbeifahren nur flimmern).
+- **Rastanlagen** (`builders/terrain.gd` `lawn_at()`, CUSTOM1.a): rechts neben einer Tankspur (`StagePlan.fuel_lanes`,
+  60 m davor bis 60 m danach, über weitere 80 m ausgeblendet) liegt bis 110 m jenseits des Banketts gemähter Rasen mit
+  breiten Mähstreifen statt Feldern, ab 170 m wieder Felder. Ohne ihn lag nachts hinter der Tankstelle eine dunkle
+  Reihenkultur, und die Tankstelle als Ganzes fiel unter 0,85 × Arcade (`check_structures_licht` „tankstelle“: 0,207
+  gegen 0,246; mit Rasen 0,211 wie vor R7d). Wie weit Arcades zwei Grastöne zu sehen sind (`BAND_FADE_FROM_M` /
+  `BAND_FADE_TO_M`), rechnet der Shader dafür selbst aus UV.x (`band_fade_m`), statt es in CUSTOM1.a zu lesen.
 - Relief und Luftperspektive bleiben, wie sie sind: Das Gelände hat schon sanftes Relief außerhalb des Sichtkorridors
   (A-17); jede Änderung würde die Verdeckungsprüfung berühren. Mehr Dunst wäre mehr Nebel als Arcade (F4).
 
@@ -2956,3 +2962,5 @@ zu sehen ist. Fahrzeuge, Lichter, Schilder, der Sichtkorridor und die Fairness-S
   eigene Auto unverändert, Asphalt mindestens 0,85 so hell, Linienkontrast mindestens 0,95, Gras dunkler, bei Regen
   keine Änderung; F4: der Nebelanteil im fernen Boden, gemessen mit weißer gegen schwarze Nebelfarbe, höchstens
   Arcades 0,7.
+- `tests/unit/race3d/test_terrain_builder.gd` `test_service_areas_are_lawn`: Rasen rechts an der Tankspur von
+  Kiel – Hamburg, links und auf freier Strecke keiner, stetiges Ausblenden.

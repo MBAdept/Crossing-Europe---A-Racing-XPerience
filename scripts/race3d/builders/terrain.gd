@@ -13,10 +13,13 @@ extends ChunkBuilder
 ## 768 + 128 = 896 triangles per chunk of 32 segments with 7 rings (budget: 1,100).
 ## Colours (per vertex, painted over by assets/shaders/modern/terrain.gdshader): the mean of the scenery's two grass
 ## tones with the outskirts -> centre blend of the City Limits (GroundLook.ground_blend), half their difference and
-## how much of it shows (Arcade's alternating bands: full near the road, gone from BAND_FADE_TO_M on; the shader draws
-## the bands with sharp edges from the band phase in UV.y – band_tone() repeats its arithmetic), the style of the
-## scenery (patch colour and share, vegetation or paved ground: GroundLook.style) and the fade of the outer ring into
-## the far ground.
+## how much of it shows (Arcade's alternating bands: full near the road, gone from BAND_FADE_TO_M on – the shader
+## computes it from UV.x and draws the bands with sharp edges from the band phase in UV.y; band_tone() repeats its
+## arithmetic), the style of the scenery (patch colour and share, vegetation or paved ground: GroundLook.style) and the
+## fade of the outer ring into the far ground. R7d: CUSTOM1.a = the lawn of a service area – 1 on the right beside a
+## fuel lane (StagePlan.fuel_lanes, LAWN_PAD_M before and after it, fading out over LAWN_TAPER_M); there the shader
+## draws mown grass instead of fields up to LAWN_M beyond the shoulder (a service area is lawn, car park and shrubs,
+## not a maize field behind the pumps).
 ## One shared ShaderMaterial for every chunk; it is registered for the light pools (ModernRenderer.add_pool_material)
 ## and follows the far ground and the floating origin in update() / rebased(). Like the road the mesh is on render
 ## layer 2 (GROUND_LAYERS): the real spot and omni lights of the lights layer leave the ground out, the shader draws
@@ -28,6 +31,12 @@ const SHADER := "res://assets/shaders/modern/terrain.gdshader"
 const SKIRT_M := 60.0              ## depth of the skirt below the outer edge
 const BAND_FADE_FROM_M := 6.0      ## the two grass tones alternate up to here beyond the shoulder …
 const BAND_FADE_TO_M := 40.0       ## … and have become their mean here
+## R7d: the lawn of a service area beside a fuel lane (CUSTOM1.a): full LAWN_PAD_M before and after the lane, gone
+## LAWN_TAPER_M further on; across, the shader keeps it up to LAWN_M.x beyond the shoulder and lets the fields in by
+## LAWN_M.y
+const LAWN_PAD_M := 60.0
+const LAWN_TAPER_M := 80.0
+const LAWN_M := Vector2(110.0, 170.0)
 const CITY_BAND_SHARE := 0.35      ## inside the City Limits the bands keep this much of their contrast
 const WATER_STYLE := -1.0          ## CUSTOM0.a of a vertex on the water
 const GROUND_LAYERS := 2           ## render layer of ground meshes (builders/road.gd): no positional light reaches it
@@ -89,9 +98,14 @@ func collect(ctx: ChunkContext) -> Variant:
 	if renderer is Object:
 		var prep: Variant = (renderer as Object).get("prep")
 		snow = prep is Dictionary and str((prep as Dictionary).get("weather", "")) == "snow"
+	# R7d: the fuel lanes of the stage (visual z of their start and end) – the lawn of the service areas
+	var fuel := PackedVector2Array()
+	if ctx.track != null and ctx.track.plan != null:
+		for l: Dictionary in ctx.track.plan.fuel_lanes:
+			fuel.append(Vector2(ctx.track.km_to_z(float(l["start_km"])), ctx.track.km_to_z(float(l["end_km"]))))
 	return {"city": GroundLook.city_info(ctx.track),
 		"band": maxi(1, int(ConfigLoader.lookup(ctx.cfg, "render.stripes.grass", 4))),
-		"styles": styles if styles is Dictionary else {}, "waters": waters, "snow": snow}
+		"styles": styles if styles is Dictionary else {}, "waters": waters, "snow": snow, "fuel": fuel}
 
 
 func build(ctx: ChunkContext, input: Variant) -> Dictionary:
@@ -104,6 +118,7 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 	var band_w := int(inp.get("band", 4))
 	var overrides: Dictionary = inp.get("styles", {})
 	var waters: Dictionary = inp.get("waters", {})
+	var fuel: PackedVector2Array = inp.get("fuel", PackedVector2Array())
 	var per_side := rows * n
 	var grid := per_side * 2
 	var count := grid + rows * 4            # + skirt: top and bottom vertex per row and side
@@ -160,6 +175,7 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 			amount = WATER_STYLE
 			nature = 0.0
 		var phase := float(ctx.seg_a + i - phase_base) / float(band_w)
+		var lawn := lawn_at(z, fuel)
 		var o := ctx.rows_o[i]
 		var right := ctx.rows_r[i]
 		var edge := ctx.rows_edge[i]
@@ -183,7 +199,7 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 				bands[v * 4] = half.r
 				bands[v * 4 + 1] = half.g
 				bands[v * 4 + 2] = half.b
-				bands[v * 4 + 3] = 1.0 - smoothstep(BAND_FADE_FROM_M, BAND_FADE_TO_M, m)
+				bands[v * 4 + 3] = lawn if si == 1 else 0.0
 	# smooth normals from the neighbours in the grid (one-sided at the ends of the chunk and of the ribbon)
 	for si in 2:
 		for i in rows:
@@ -254,6 +270,16 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 	if np > 1:
 		part["pieces"] = split_arrays(arrays_of(part), np)
 	return part
+
+
+## R7d: the lawn of a service area at visual z (0..1): 1 from LAWN_PAD_M before a fuel lane (start z, end z) to
+## LAWN_PAD_M after it, 0 from LAWN_TAPER_M further on. Pure (worker threads).
+static func lawn_at(z: float, fuel: PackedVector2Array) -> float:
+	var best := 0.0
+	for f in fuel:
+		var d := maxf(f.x - z, z - f.y)
+		best = maxf(best, 1.0 - smoothstep(LAWN_PAD_M, LAWN_PAD_M + LAWN_TAPER_M, d))
+	return best
 
 
 ## R4: whether row i of a chunk may carry a snow bank (open road beside open ground).
@@ -366,9 +392,9 @@ static func _snow_banks(ctx: ChunkContext, verts: PackedVector3Array, norms: Pac
 static func band_tone(part: Dictionary, v: int) -> Color:
 	var c: Color = (part["colors"] as PackedColorArray)[v]
 	var b: PackedFloat32Array = part["bands"]
-	var phase := float((part["uv"] as PackedVector2Array)[v].y)
-	var s := 1.0 if posmod(int(floor(phase + 1.0e-4)), 2) == 0 else -1.0
-	var k := b[v * 4 + 3] * s
+	var uv := (part["uv"] as PackedVector2Array)[v]
+	var s := 1.0 if posmod(int(floor(uv.y + 1.0e-4)), 2) == 0 else -1.0
+	var k := (1.0 - smoothstep(BAND_FADE_FROM_M, BAND_FADE_TO_M, uv.x)) * s
 	return Color(c.r + b[v * 4] * k, c.g + b[v * 4 + 1] * k, c.b + b[v * 4 + 2] * k, c.a)
 
 
@@ -433,6 +459,8 @@ func ground_material() -> ShaderMaterial:
 	material.shader = load(SHADER) as Shader
 	material.set_shader_parameter("ground_noise", GroundLook.noise_texture())
 	material.set_shader_parameter("pattern_origin", _pattern_origin)
+	material.set_shader_parameter("band_fade_m", Vector2(BAND_FADE_FROM_M, BAND_FADE_TO_M))
+	material.set_shader_parameter("lawn_m", LAWN_M)
 	if not far_look.is_empty():
 		_apply_far()
 	if _renderer != null and _renderer.has_method(&"add_pool_material"):
