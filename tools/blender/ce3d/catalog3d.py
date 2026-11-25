@@ -1014,6 +1014,25 @@ MODELS.update({
 })
 # --- end AS5b ------------------------------------------------------------------------------------------------------
 
+# --- AS6 --- (wave 6): the landmarks of props_landmarks.py as real-time models (docs/modelle.md section 24). The
+# builder "prop_baked" of the pipeline reference landmarks/michel: the generator's geometry at real size (towers,
+# spires, pinnacles, domes, lattices) with its materials baked into one atlas (baked / baked_cutout), the night
+# layer (floodlighting, lit windows) into the emission atlas, flat lamp materials (aviation lights) as light anchors;
+# auto_lod decimates the far levels. The renderer draws a landmark from its model as soon as the manifest has one
+# (docs/renderer-modern.md 19.2). Own block.
+MODELS.update({
+    name: dict(builder="prop_baked", source=name, kind="landmark", atlas=(2048, 2048), ppm_max=ppm,
+               roughness=0.85, auto_lod=True, view="roadside", code=["cesprites/props_buildings.py"])
+    for name, ppm in (
+        # batch L1: the race Kiel - Nuernberg and Germany (st_petri_riga also stands in Rostock)
+        ("landmarks/elbphilharmonie", 24.0), ("landmarks/kaiserburg_nuernberg", 32.0), ("landmarks/dom_fulda", 32.0),
+        ("landmarks/frankfurt_skyline", 16.0), ("landmarks/koelner_dom", 24.0), ("landmarks/fernsehturm_berlin", 20.0),
+        ("landmarks/frauenkirche_dresden", 32.0), ("landmarks/frauenkirche_muenchen", 32.0),
+        ("landmarks/st_petri_riga", 32.0),
+    )
+})
+# --- end AS6 ------------------------------------------------------------------------------------------------------
+
 
 def model_ids():
     return sorted(MODELS)
