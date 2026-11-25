@@ -4689,6 +4689,44 @@
    "bytes": 278408,
    "hash": "86b165b8b14bd1e4e440a6847efb95c0093f6942"
   },
+  "props/city_central_eckturm": {
+   "kind": "building",
+   "object": {"width_m": 19.6, "height_m": 30.6, "length_m": 16},
+   "extent_m": {"left": 14.54, "right": 9.07},
+   "aabb": [-10.95, 0, -16.48, 9.48, 31.4, 1.95],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 3961,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_central_eckturm/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 1941,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_central_eckturm/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/city_central_eckturm/albedo.webp", "emit": "props/city_central_eckturm/emit.png"},
+   "roughness": 0.86,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "central", "center"],
+   "bytes": 458715,
+   "hash": "e3ebfa4258387ad0aa3bdcc1aa499932dbe9495a"
+  },
   "props/city_central_jugendstil": {
    "kind": "building",
    "object": {"width_m": 14.6, "height_m": 23, "length_m": 14},
@@ -9569,10 +9607,7 @@
   "props/city_belgian_stone": {"model": "props/city_belgian_stone"},
   "props/city_belgian_terrace": {"model": "props/city_belgian_terrace"},
   "props/city_central_barock": {"model": "props/city_central_barock"},
-  "props/city_central_eckturm": {
-   "fallback": "sprite",
-   "object": {"width_m": 19.6, "height_m": 30.6, "length_m": 16.0}
-  },
+  "props/city_central_eckturm": {"model": "props/city_central_eckturm"},
   "props/city_central_jugendstil": {"model": "props/city_central_jugendstil"},
   "props/city_dutch_canal": {"model": "props/city_dutch_canal"},
   "props/city_dutch_canal_b": {"model": "props/city_dutch_canal_b"},
