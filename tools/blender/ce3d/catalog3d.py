@@ -754,6 +754,119 @@ MODELS.update({
 })
 # --- end AS5a ------------------------------------------------------------------------------------------------------
 
+# --- AS5b --- (wave 6): city buildings, part 2 - the styles eastern, vienna, spanish, italian, central, balkan and baltic
+# of props_cities.py (docs/modelle.md section 23). Same builder "city" (ce3d/cities3d.py) as AS5a. Own block.
+MODELS.update({
+    # eastern (centre and outskirts of seven styles: eastern, central, baltic, german_east - Leipzig, Magdeburg -, paris):
+    # the prefab block (wielka plyta) - panel joints and pastel colour fields baked, two columns of loggias with slabs and
+    # coloured parapets (vpbr), the loggia glass lit at night from the emission atlas, stairwell strip, entrance canopy,
+    # machine room and aerials on the flat roof, satellite dishes (vpbr, lod0); ground and first floor at full texel
+    # density
+    "props/city_eastern_plattenbau": dict(
+        builder="city", source="props/city_eastern_plattenbau", kind="building", atlas=(2048, 1024), ppm_max=80.0,
+        roughness=0.88, view="roadside", ao=AO_CITY, lod1=True,
+        vpbr=("epb_slab", "epb_para", "epb_parb", "epb_dm", "epb_rs"), levels={"epb_dishes": "lod0"},
+        smooth=("epb_dishes",), weights=dict(roof=0.3, away=0.3),
+        floors=dict(z=(8.6,), upper=0.65, objects=("epb_body",)),
+        openings=dict(reveal_color="#c9c3b6", sill_color="#d8d4cb"), gutters=False),
+    # vienna (centre and outskirts; also the centres of austrian - Linz - and bavarian - Muenchen, Passau, Regensburg):
+    # the Gruenderzeit tenement - rusticated ground floor with dark wooden shop portals and displays, stucco aediculae
+    # (vpbr), the corner bay with its copper dome and real windows (oriel), dormers, gutters
+    "props/city_vienna_zinshaus": dict(
+        builder="city", source="props/city_vienna_zinshaus", kind="building", atlas=(2048, 1024), ppm_max=100.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True,
+        oriel=dict(shaft="vz_dome_shaft", windows=("vz_dome_g", "vz_dome_l"), frame="#f4f0e6", corbel="#d2c8b4"),
+        vpbr=("vz_white", "vz_dorm_fm", "vz_dome_finm"), weights=dict(roof=0.45, away=0.3),
+        floors=dict(z=(8.1,), upper=0.8, objects=("vz_body",)),
+        openings=dict(reveal_color="#d8cfbd", sill_color="#f3efe6", bars={"shop": (1, [0.78])}, shop_depth=0.35),
+        gutters=dict(per_roof=2, walls=("vz_body",))),
+    # vienna (centre): the palais - Schoenbrunn yellow with white stucco (vpbr), rusticated ground floor, the risalit
+    # with giant pilasters and its pediment, the balustraded balcony (cut-out), gilded arms, copper hip roof
+    "props/city_vienna_palais": dict(
+        builder="city", source="props/city_vienna_palais", kind="building", atlas=(2048, 1024), ppm_max=100.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True, lod1_opaque=True,
+        rail_module={"vp_bal": 1.0}, cut_fill=dict(alpha=0.4, color="#b89a52"),
+        vpbr=("vp_white", "vp_gold"), weights=dict(roof=0.4, away=0.3),
+        floors=dict(z=(9.0,), upper=0.8, objects=("vp_body",)),
+        openings=dict(reveal_color="#dcc58a", sill_color="#f6f1e6", cover_skip=("vp_bal",)), gutters=False),
+    # vienna (centre): the baroque dome church - twin towers with copper bell caps, the columned portico with its
+    # pediment, curved gable, the drum with windows (lit at night), copper dome, lantern, gilded crosses (vpbr)
+    "props/city_vienna_kirche": dict(
+        builder="city", source="props/city_vienna_kirche", kind="building", atlas=(2048, 1024), ppm_max=80.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, vpbr=("vk_white", "vk_gold"),
+        weights=dict(roof=0.5, away=0.3), openings=dict(reveal_color="#e2d6bd", sill_color="#faf6ec"), gutters=False),
+    # spanish (outskirts; also french_south and italian outskirts): the whitewashed house - ochre trim (vpbr), canal
+    # tiles, iron window grilles (rejas) and the balcony railing (cut-out), the arched door, the white garden wall
+    # with its gate, geraniums (vpbr, lod0) and the orange tree on leaf cards
+    "props/city_spanish_casa": dict(
+        builder="city", source="props/city_spanish_casa", kind="building", atlas=(1024, 1024), ppm_max=110.0,
+        roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True,
+        rail_module={"sc_reja": 1.0, "sc_rail": 1.0}, cut_fill=dict(alpha=0.4, color="#b9b2a2"),
+        leaf_cards={"sc_orange_c": dict(n=130, half=0.45, core=0.9, down=-0.75, n1=130, half1=0.45,
+                                        atlas=dict(base=("#2f5a1f", "#4c7a2a"), gain=0.95))},
+        decimate={"sc_orange_c": 0.35}, lod1_decimate={"sc_orange_c": 0.35},
+        vpbr=("sc_ochre", "sc_gate_", "sc_ger", "sc_oranges"), levels={"sc_ger": "lod0", "sc_oranges": "lod0"},
+        smooth=("sc_ger", "sc_oranges"),
+        weights=dict(roof=0.5, away=0.3, objects={"sc_orange": 0.3, "sc_wall2": 0.6}, solid={"sc_orange_c": 0.3}),
+        openings=dict(reveal_color="#e4ddd0", sill_color="#d3a15c", cover_skip=("sc_reja", "sc_rail", "sc_ger")),
+        gutters=False),
+    # spanish (centre and outskirts; spanish_north): the Madrid / Barcelona block - cream render over an ashlar shop
+    # floor with displays, a balcony with an iron railing at every window (cut-out), green roller blinds, slabs and air
+    # conditioners (vpbr), plants (lod0), the set-back penthouse with its tiled roof
+    "props/city_spanish_block": dict(
+        builder="city", source="props/city_spanish_block", kind="building", atlas=(2048, 1024), ppm_max=100.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True, lod1_opaque=True,
+        rail_module={"sb_rail": 1.0, "sb_rail2": 1.0}, cut_fill=dict(alpha=0.4, color="#8f8470"),
+        vpbr=("sb_slab", "sb_acm", "sb_plants"), levels={"sb_plants": "lod0", "sb_ac": "lod0"}, smooth=("sb_plants",),
+        weights=dict(roof=0.35, away=0.3), floors=dict(z=(7.2,), upper=0.8, objects=("sb_body",)),
+        openings=dict(reveal_color="#d9c4a0", sill_color="#ddd2bf", bars={"shop": (1, [0.78])}, shop_depth=0.35,
+                      cover_skip=("sb_rail", "sb_plants")),
+        gutters=False),
+    # spanish (centre): the neo-Mudejar brick building - cream stone surrounds, quoins and bands (vpbr), iron balconies
+    # (cut-out), shops with displays, slate mansard with dormers and the slate spire on the corner
+    "props/city_spanish_ladrillo": dict(
+        builder="city", source="props/city_spanish_ladrillo", kind="building", atlas=(2048, 1024), ppm_max=100.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True, lod1_opaque=True,
+        rail_module={"sl_rail": 1.0}, cut_fill=dict(alpha=0.4, color="#6e3a2c"),
+        vpbr=("sl_stone", "sl_dorm_fm", "sl_spire_finm"), weights=dict(roof=0.45, away=0.3),
+        floors=dict(z=(7.5,), upper=0.8, objects=("sl_body",)),
+        openings=dict(reveal_color="#9c4c36", sill_color="#e8dfca", bars={"shop": (1, [0.78])}, shop_depth=0.35,
+                      cover_skip=("sl_rail",)),
+        gutters=False),
+    # italian (centre and outskirts): the Milan block - terracotta render, french windows with green persiane, iron
+    # balconies (cut-out), flower boxes (vpbr, lod0), shops with awnings and displays, rafters under the deep eave
+    "props/city_italian_block": dict(
+        builder="city", source="props/city_italian_block", kind="building", atlas=(2048, 1024), ppm_max=100.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True, lod1_opaque=True,
+        rail_module={"ib_rail": 1.0}, cut_fill=dict(alpha=0.4, color="#8f5a3a"),
+        vpbr=("ib_st", "ib_wood", "ib_fl"), levels={"ib_fl": "lod0"}, smooth=("ib_fl",),
+        weights=dict(roof=0.4, away=0.3), floors=dict(z=(7.5,), upper=0.8, objects=("ib_body",)),
+        openings=dict(reveal_color="#c98252", sill_color="#e4d6bd", bars={"shop": (1, [0.78])}, shop_depth=0.35,
+                      cover_skip=("ib_rail", "ib_fl")),
+        gutters=False),
+    # italian (centre): the Renaissance palazzo - rusticated ground floor with the round-arched portal, the piano
+    # nobile with alternating pediments (vpbr stone) and the balustraded balcony (cut-out), shutters, the deep
+    # cornicione, chimneys
+    "props/city_italian_palazzo": dict(
+        builder="city", source="props/city_italian_palazzo", kind="building", atlas=(2048, 1024), ppm_max=100.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True, lod1_opaque=True,
+        rail_module={"ip_bal": 1.0}, cut_fill=dict(alpha=0.4, color="#9c7a52"),
+        vpbr=("ip_stone",), weights=dict(roof=0.4, away=0.3), floors=dict(z=(9.0,), upper=0.8, objects=("ip_body",)),
+        openings=dict(reveal_color="#c99a62", sill_color="#d3c5a6", cover_skip=("ip_bal",)),
+        gutters=False),
+    # italian (centre, Venice): two Venetian houses - Venetian red with Gothic windows in white Istrian stone (vpbr),
+    # the polifora with its balustraded balcony and the iron balconies (cut-out), shutters, funnel chimneys
+    "props/city_italian_venezia": dict(
+        builder="city", source="props/city_italian_venezia", kind="building", atlas=(2048, 1024), ppm_max=100.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True, lod1_opaque=True,
+        rail_module={"iva_bal": 1.0, "ivb_rail": 1.0}, cut_fill=dict(alpha=0.4, color="#7a3a30"),
+        vpbr=("iv_istria",), weights=dict(roof=0.4, away=0.3),
+        floors=dict(z=(7.0,), upper=0.8, objects=("iva_body", "ivb_body")),
+        openings=dict(reveal_color="#a84a3a", sill_color="#f1ece2", n_arc=4, cover_skip=("iva_bal", "ivb_rail")),
+        gutters=False),
+})
+# --- end AS5b ------------------------------------------------------------------------------------------------------
+
 
 def model_ids():
     return sorted(MODELS)
