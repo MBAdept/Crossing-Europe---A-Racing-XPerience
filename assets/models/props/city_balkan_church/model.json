@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/city_balkan_church",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 17.6, "height_m": 24.2, "length_m": 23},
+  "extent_m": {"left": 13.41, "right": 5.2},
+  "aabb": [-8.7, 0, -21.2, 8.7, 24.2, 2.3],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 3944,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_balkan_church/lod0_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 3154,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_balkan_church/lod1_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/city_balkan_church/albedo.webp", "emit": "props/city_balkan_church/emit.png"},
+  "roughness": 0.86,
+  "auto_lod": false,
+  "tags": ["prop", "building", "city", "mirror_left", "balkan", "center"],
+  "bytes": 768227,
+  "hash": "2858963d2ba4948a609d98a21dd13f30b865c8db"
+ },
+ "sets": {
+  "props/city_balkan_church": {"model": "props/city_balkan_church"}
+ }
+}
