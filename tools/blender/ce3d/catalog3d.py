@@ -867,6 +867,149 @@ MODELS.update({
         openings=dict(reveal_color="#a84a3a", sill_color="#f1ece2", n_arc=4, cover_skip=("iva_bal", "ivb_rail")),
         gutters=False),
 })
+
+
+def _leaf(n, c1, c2, half=0.5):
+    """AS5b: leaf cards for a garden tree (the spec of AS5aR2's Loire house), lod1 with the same cards."""
+    return dict(n=n, half=half, core=0.9, down=-0.75, n1=n, half1=half, atlas=dict(base=(c1, c2), gain=0.95))
+
+
+# AS5b batch 2: the styles central, eastern (the houses), balkan and baltic - same builder "city"
+MODELS.update({
+    # central (centre: Prague, Budapest, Ljubljana, Dresden, Sibiu, Timisoara): two baroque town houses - the volute
+    # gable, white pilasters and surrounds (vpbr), the gilded house sign, red tile roofs, chimneys
+    "props/city_central_barock": dict(
+        builder="city", source="props/city_central_barock", kind="building", atlas=(2048, 1024), ppm_max=100.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, vpbr=("cb_st", "cba_gold"),
+        weights=dict(roof=0.45, away=0.3), floors=dict(z=(7.0,), upper=0.8),
+        openings=dict(reveal_color="#dccb9e", sill_color="#f3eee2"), gutters=False),
+    # central (centre; also balkan centres): the Jugendstil house - tile bands, rounded windows, semicircular balconies
+    # with iron railings (cut-out), the round decorative gable, shops with displays, copper mansard
+    "props/city_central_jugendstil": dict(
+        builder="city", source="props/city_central_jugendstil", kind="building", atlas=(2048, 1024), ppm_max=100.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True, lod1_opaque=True,
+        rail_module={"cj_rail": 1.0}, cut_fill=dict(alpha=0.4, color="#4a4640"),
+        vpbr=("cj_st", "cj_cap", "cj_slab"), weights=dict(roof=0.4, away=0.3),
+        floors=dict(z=(7.0,), upper=0.8, objects=("cj_body",)),
+        openings=dict(reveal_color="#dccfb0", sill_color="#f1e7cd", bars={"shop": (1, [0.78])}, shop_depth=0.35,
+                      cover_skip=("cj_rail",)),
+        gutters=False),
+    # central (centre, Budapest): the eclectic corner house - white ornaments (vpbr), Zsolnay tile roof, the corner
+    # turret with its tiled helm and gilded finial, dormers, shops with displays
+    "props/city_central_eckturm": dict(
+        builder="city", source="props/city_central_eckturm", kind="building", atlas=(2048, 1024), ppm_max=100.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, vpbr=("ce_st", "ce_dorm_fm", "ce_tur_finm"),
+        weights=dict(roof=0.5, away=0.3), floors=dict(z=(7.0,), upper=0.8, objects=("ce_body",)),
+        openings=dict(reveal_color="#d2c09a", sill_color="#f1ebdd", bars={"shop": (1, [0.78])}, shop_depth=0.35),
+        gutters=False),
+    # eastern (outskirts; also central outskirts): the kostka cube house - ochre render, balcony over the porch, panel
+    # fence, the apple tree on leaf cards with its apples (vpbr, lod0), shed, satellite dish
+    "props/city_eastern_house_a": dict(
+        builder="city", source="props/city_eastern_house_a", kind="building", atlas=(1024, 1024), ppm_max=110.0,
+        roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True,
+        leaf_cards={"eha_apple_c": _leaf(150, "#47702a", "#6f9a3a")},
+        decimate={"eha_apple_c": 0.35}, lod1_decimate={"eha_apple_c": 0.35},
+        vpbr=("eha_trim", "eha_conc", "eha_dishm", "eha_apples"), levels={"eha_apples": "lod0", "eha_dish": "lod0"},
+        smooth=("eha_apples",),
+        weights=dict(roof=0.5, away=0.3, objects={"eha_apple": 0.3, "eha_fence": 0.6, "eha_shed": 0.5},
+                     solid={"eha_apple_c": 0.3}),
+        openings=dict(reveal_color="#c9ab72", sill_color="#e6e2d8"), gutters=False),
+    # eastern (outskirts): the village house - pale green render, the gable to the street, red sheet-metal roof, side
+    # porch, green picket fence, the birch on leaf cards, flower bed, bench and roofed well (lod0)
+    "props/city_eastern_house_b": dict(
+        builder="city", source="props/city_eastern_house_b", kind="building", atlas=(1024, 1024), ppm_max=110.0,
+        roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True,
+        leaf_cards={"ehb_birch_c": _leaf(140, "#6f9a32", "#93b84a", half=0.4)},
+        decimate={"ehb_birch_c": 0.35}, lod1_decimate={"ehb_birch_c": 0.35},
+        vpbr=("ehb_wood", "ehb_trim", "ehb_bm", "ehb_wm", "ehb_wpm", "ehb_bed"),
+        levels={"ehb_bed": "lod0", "ehb_bench": "lod0", "ehb_well": "lod0", "ehb_wpost": "lod0", "ehb_wroof": "lod0"},
+        smooth=("ehb_bed",),
+        weights=dict(roof=0.5, away=0.3, objects={"ehb_birch": 0.3, "ehb_fence": 0.6}, solid={"ehb_birch_c": 0.3}),
+        openings=dict(reveal_color="#a9be98", sill_color="#ece8dc"), gutters=False),
+    # eastern (outskirts; also central outskirts): the newer house - salmon render, anthracite windows with roller
+    # shutters, the garage with its roof terrace railing (cut-out), board fence; the row of thujas and the garden tree
+    # decimated hard (the contract's outlier: 23,000 garden triangles in the generator)
+    "props/city_eastern_house_c": dict(
+        builder="city", source="props/city_eastern_house_c", kind="building", atlas=(1024, 1024), ppm_max=110.0,
+        roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True,
+        rail_module={"ehc_rail": 1.0}, cut_fill=dict(alpha=0.4, color="#6a6058"),
+        leaf_cards={"ehc_tree_c": _leaf(120, "#4b7a2c", "#6f9a3a")},
+        decimate={"ehc_thuja": 0.12, "ehc_tree_c": 0.35}, lod1_decimate={"ehc_thuja": 0.4, "ehc_tree_c": 0.35},
+        vpbr=("ehc_tm",),
+        weights=dict(roof=0.5, away=0.3, objects={"ehc_thuja": 0.3, "ehc_tree": 0.3, "ehc_fence": 0.6},
+                     solid={"ehc_thuja": 0.3, "ehc_tree_c": 0.3}),
+        openings=dict(reveal_color="#cf9c88", sill_color="#e8e4dc", cover_skip=("ehc_rail",)), gutters=False),
+    # balkan (outskirts): the unfinished family house - plastered ground floor, raw hollow-brick upper floor in the
+    # concrete frame, rebar on the slab (vpbr, lod0), cantilevered balcony, pergola, garden wall with its gate, dish
+    "props/city_balkan_house": dict(
+        builder="city", source="props/city_balkan_house", kind="building", atlas=(1024, 1024), ppm_max=110.0,
+        roughness=0.9, view="roadside", ao=AO_CITY, lod1=True, vpbr=("bh_rebar", "bh_wood", "bh_dm"),
+        levels={"bh_rebar": "lod0", "bh_dish": "lod0"}, weights=dict(roof=0.5, away=0.3, objects={"bh_wall2": 0.6}),
+        openings=dict(reveal_color="#d8d2c4", sill_color="#c9c4ba"), gutters=False),
+    # balkan (outskirts): the finished house - peach render, the white balustrade balcony across the front (cut-out),
+    # red tile hip roof, the unplastered brick road side, wrought-iron fence, the fig tree on leaf cards, roses (lod0)
+    "props/city_balkan_house_b": dict(
+        builder="city", source="props/city_balkan_house_b", kind="building", atlas=(1024, 1024), ppm_max=110.0,
+        roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True,
+        rail_module={"bhb_bal": 1.0}, cut_fill=dict(alpha=0.4, color="#7a5a48"),
+        leaf_cards={"bhb_fig_c": _leaf(150, "#3f6b28", "#5d8a33")},
+        decimate={"bhb_fig_c": 0.35}, lod1_decimate={"bhb_fig_c": 0.35},
+        vpbr=("bhb_white", "bhb_gold", "bhb_roses"), levels={"bhb_roses": "lod0", "bhb_knobs": "lod0"},
+        smooth=("bhb_roses",),
+        weights=dict(roof=0.5, away=0.3, objects={"bhb_fig": 0.3, "bhb_fence": 0.6}, solid={"bhb_fig_c": 0.3}),
+        openings=dict(reveal_color="#d29a78", sill_color="#f2efe8", cover_skip=("bhb_bal",)), gutters=False),
+    # balkan (centre and outskirts): the Serbo-Byzantine church - courses of red brick and pale stone, arched windows,
+    # the cross-shaped roof, octagonal drum with windows (lit at night), lead-grey domes, the bell tower's onion,
+    # gilded crosses (vpbr)
+    "props/city_balkan_church": dict(
+        builder="city", source="props/city_balkan_church", kind="building", atlas=(2048, 1024), ppm_max=90.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, vpbr=("bc_gold",),
+        weights=dict(roof=0.5, away=0.3), openings=dict(reveal_color="#9a4a34", sill_color="#e6dccb", n_arc=4),
+        gutters=False),
+    # balkan (centre): the socialist high-rise - raw concrete, balcony bands with solid parapets, randomly glazed
+    # loggias (aluminium frames vpbr), air conditioners and dishes (vpbr, lod0), shops with displays and their sign
+    "props/city_balkan_plattenbau": dict(
+        builder="city", source="props/city_balkan_plattenbau", kind="building", atlas=(2048, 1024), ppm_max=80.0,
+        roughness=0.9, view="roadside", ao=AO_CITY, lod1=True, vpbr=("bp_al", "bp_acm", "bp_dm"),
+        levels={"bp_ac": "lod0", "bp_dish": "lod0"}, weights=dict(roof=0.3, away=0.3),
+        floors=dict(z=(8.0,), upper=0.65, objects=("bp_body",)),
+        openings=dict(reveal_color="#9a978f", sill_color="#b8b5ad", bars={"shop": (1, [0.78])}, shop_depth=0.35),
+        gutters=False),
+    # baltic (outskirts: Riga, Kaunas): the wooden house - ochre clapboard on a stone plinth, white corner boards and
+    # carved casings (vpbr), the cross gable with its balcony (cut-out railing), glazed veranda, lilac (lod0), the
+    # apple tree on leaf cards
+    "props/city_baltic_wood": dict(
+        builder="city", source="props/city_baltic_wood", kind="building", atlas=(1024, 1024), ppm_max=110.0,
+        roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True,
+        rail_module={"bw_bal": 1.0}, cut_fill=dict(alpha=0.4, color="#6e5a3a"),
+        leaf_cards={"bw_apple_c": _leaf(150, "#3f6b28", "#62903a")},
+        decimate={"bw_apple_c": 0.35}, lod1_decimate={"bw_apple_c": 0.35},
+        vpbr=("bw_white", "bw_capm", "bw_lilacf"), levels={"bw_lilacf": "lod0"}, smooth=("bw_lilacf",),
+        weights=dict(roof=0.5, away=0.3, objects={"bw_apple": 0.3, "bw_fence": 0.6}, solid={"bw_apple_c": 0.3}),
+        openings=dict(reveal_color="#c9a868", sill_color="#f4f2ec", cover_skip=("bw_bal",)), gutters=False),
+    # baltic (outskirts): the wooden house with its gable to the street - green clapboard, white trim and carved
+    # bargeboards (vpbr), the gable balcony (cut-out), side porch, picket fence, the birch on leaf cards
+    "props/city_baltic_wood_b": dict(
+        builder="city", source="props/city_baltic_wood_b", kind="building", atlas=(1024, 1024), ppm_max=110.0,
+        roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True,
+        rail_module={"bwb_bal": 1.0}, cut_fill=dict(alpha=0.4, color="#4e5e48"),
+        leaf_cards={"bwb_birch_c": _leaf(140, "#6f9a32", "#93b84a", half=0.4)},
+        decimate={"bwb_birch_c": 0.35}, lod1_decimate={"bwb_birch_c": 0.35},
+        vpbr=("bwb_white",),
+        weights=dict(roof=0.5, away=0.3, objects={"bwb_birch": 0.3, "bwb_fence": 0.6}, solid={"bwb_birch_c": 0.3}),
+        openings=dict(reveal_color="#7f9a74", sill_color="#f4f2ec", cover_skip=("bwb_bal",)), gutters=False),
+    # baltic (centre, Riga): the Art Nouveau block - pale blue facade, white ornament and pilaster strips (vpbr), two
+    # bay windows, round-topped top-floor windows, balconies with iron railings (cut-out), the attic gable, shops
+    "props/city_baltic_jugendstil": dict(
+        builder="city", source="props/city_baltic_jugendstil", kind="building", atlas=(2048, 1024), ppm_max=100.0,
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True, lod1_opaque=True,
+        rail_module={"bj_rail": 1.0}, cut_fill=dict(alpha=0.4, color="#4a4c50"),
+        vpbr=("bj_white", "bj_capm"), weights=dict(roof=0.4, away=0.3),
+        floors=dict(z=(7.0,), upper=0.8, objects=("bj_body",)),
+        openings=dict(reveal_color="#93abbd", sill_color="#f2f0ea", bars={"shop": (1, [0.78])}, shop_depth=0.35,
+                      cover_skip=("bj_rail",)),
+        gutters=False),
+})
 # --- end AS5b ------------------------------------------------------------------------------------------------------
 
 
