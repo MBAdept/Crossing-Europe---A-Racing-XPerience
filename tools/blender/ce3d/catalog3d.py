@@ -756,8 +756,10 @@ MODELS.update({
 
 # --- AS5b --- (wave 6): city buildings, part 2 - the styles eastern, vienna, spanish, italian, central, balkan and baltic
 # of props_cities.py (docs/modelle.md section 23). Same builder "city" (ce3d/cities3d.py) as AS5a. Own block.
-# cut_fill: the colour of the gaps of a cut-out railing is what stands behind it - mostly a dark French window, so the
-# small mips keep the railing dark as in the sprite (a light fill turned the Spanish rejas into grey boxes at 100 m).
+# cut_fill: the colour of the gaps of a cut-out railing is what stands behind it: dense bars in front of a dark French
+# window get a dark fill (a light fill turned the Spanish rejas into grey boxes at 100 m), an open lattice or a white
+# balustrade in front of a light wall gets the shaded wall colour (a dark fill turned the Jugendstil balconies into
+# black blocks from 30 m on - the gaps weigh 0.4 in the mips, so the fill decides the far colour of the railing).
 MODELS.update({
     # eastern (centre and outskirts of seven styles: eastern, central, baltic, german_east - Leipzig, Magdeburg -, paris):
     # the prefab block (wielka plyta) - panel joints and pastel colour fields baked, two columns of loggias with slabs and
@@ -888,7 +890,7 @@ MODELS.update({
     "props/city_central_jugendstil": dict(
         builder="city", source="props/city_central_jugendstil", kind="building", atlas=(2048, 1024), ppm_max=100.0,
         roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True, lod1_opaque=True,
-        rail_module={"cj_rail": 1.0}, cut_fill=dict(alpha=0.4, color="#4a4640"),
+        rail_module={"cj_rail": 1.0}, cut_fill=dict(alpha=0.4, color="#cfc5ab"),
         vpbr=("cj_st", "cj_cap", "cj_slab"), weights=dict(roof=0.4, away=0.3),
         floors=dict(z=(7.0,), upper=0.8, objects=("cj_body",)),
         openings=dict(reveal_color="#dccfb0", sill_color="#f1e7cd", bars={"shop": (1, [0.78])}, shop_depth=0.35,
@@ -951,7 +953,7 @@ MODELS.update({
     "props/city_balkan_house_b": dict(
         builder="city", source="props/city_balkan_house_b", kind="building", atlas=(1024, 1024), ppm_max=110.0,
         roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True,
-        rail_module={"bhb_bal": 1.0}, cut_fill=dict(alpha=0.4, color="#7a5a48"),
+        rail_module={"bhb_bal": 1.0}, cut_fill=dict(alpha=0.4, color="#c4967a"),
         leaf_cards={"bhb_fig_c": _leaf(150, "#3f6b28", "#5d8a33")},
         decimate={"bhb_fig_c": 0.35}, lod1_decimate={"bhb_fig_c": 0.35},
         vpbr=("bhb_white", "bhb_gold", "bhb_roses"), levels={"bhb_roses": "lod0", "bhb_knobs": "lod0"},
@@ -981,7 +983,7 @@ MODELS.update({
     "props/city_baltic_wood": dict(
         builder="city", source="props/city_baltic_wood", kind="building", atlas=(1024, 1024), ppm_max=110.0,
         roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True,
-        rail_module={"bw_bal": 1.0}, cut_fill=dict(alpha=0.4, color="#6e5a3a"),
+        rail_module={"bw_bal": 1.0}, cut_fill=dict(alpha=0.4, color="#b8975c"),
         leaf_cards={"bw_apple_c": _leaf(150, "#3f6b28", "#62903a")},
         decimate={"bw_apple_c": 0.35}, lod1_decimate={"bw_apple_c": 0.35},
         vpbr=("bw_white", "bw_capm", "bw_lilacf"), levels={"bw_lilacf": "lod0"}, smooth=("bw_lilacf",),
@@ -992,7 +994,7 @@ MODELS.update({
     "props/city_baltic_wood_b": dict(
         builder="city", source="props/city_baltic_wood_b", kind="building", atlas=(1024, 1024), ppm_max=110.0,
         roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True,
-        rail_module={"bwb_bal": 1.0}, cut_fill=dict(alpha=0.4, color="#4e5e48"),
+        rail_module={"bwb_bal": 1.0}, cut_fill=dict(alpha=0.4, color="#7d9a72"),
         leaf_cards={"bwb_birch_c": _leaf(140, "#6f9a32", "#93b84a", half=0.4)},
         decimate={"bwb_birch_c": 0.35}, lod1_decimate={"bwb_birch_c": 0.35},
         vpbr=("bwb_white",),
@@ -1003,7 +1005,7 @@ MODELS.update({
     "props/city_baltic_jugendstil": dict(
         builder="city", source="props/city_baltic_jugendstil", kind="building", atlas=(2048, 1024), ppm_max=100.0,
         roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True, lod1_opaque=True,
-        rail_module={"bj_rail": 1.0}, cut_fill=dict(alpha=0.4, color="#4a4c50"),
+        rail_module={"bj_rail": 1.0}, cut_fill=dict(alpha=0.4, color="#97abba"),
         vpbr=("bj_white", "bj_capm"), weights=dict(roof=0.4, away=0.3),
         floors=dict(z=(7.0,), upper=0.8, objects=("bj_body",)),
         openings=dict(reveal_color="#93abbd", sill_color="#f2f0ea", bars={"shop": (1, [0.78])}, shop_depth=0.35,
