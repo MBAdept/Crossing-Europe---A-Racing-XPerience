@@ -1,0 +1,2 @@
+clip_tunnel_fix --stage=hamburg_hannover --from=hamburg --start-km=3.0 --hour=12 --weather=normal --vehicle=limousine --seed=11 --autopilot --autopilot-refuel=never --traffic-warmup --no-countdown --start-speed=120
+clip_schnee_fix --stage=hannover_kassel --from=hannover --start-km=98 --hour=12 --weather=snow --vehicle=kombi --seed=12 --autopilot --autopilot-refuel=never --traffic-warmup --no-countdown --start-speed=130
