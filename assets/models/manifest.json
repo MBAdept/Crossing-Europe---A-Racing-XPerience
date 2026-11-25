@@ -4765,6 +4765,44 @@
    "bytes": 774929,
    "hash": "279ca4a63c598cf709cf60b3d5b9f0f2abe9881f"
   },
+  "props/city_eastern_plattenbau": {
+   "kind": "building",
+   "object": {"width_m": 28.8, "height_m": 35, "length_m": 12},
+   "extent_m": {"left": 17.64, "right": 13.53},
+   "aabb": [-14.45, 0, -12, 14.4, 35, 1.6],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 4433,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_eastern_plattenbau/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 1390,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_eastern_plattenbau/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/city_eastern_plattenbau/albedo.webp", "emit": "props/city_eastern_plattenbau/emit.png"},
+   "roughness": 0.88,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "eastern", "center"],
+   "bytes": 270697,
+   "hash": "fbcd08f75a9799c1966342aeda97f96ae7f9c864"
+  },
   "props/city_french_immeuble": {
    "kind": "building",
    "object": {"width_m": 16.8, "height_m": 20.04, "length_m": 12},
@@ -9139,10 +9177,7 @@
    "fallback": "sprite",
    "object": {"width_m": 19.0, "height_m": 8.7, "length_m": 9.5}
   },
-  "props/city_eastern_plattenbau": {
-   "fallback": "sprite",
-   "object": {"width_m": 28.8, "height_m": 35.0, "length_m": 12.0}
-  },
+  "props/city_eastern_plattenbau": {"model": "props/city_eastern_plattenbau"},
   "props/city_french_immeuble": {"model": "props/city_french_immeuble"},
   "props/city_french_maison": {"model": "props/city_french_maison"},
   "props/city_french_sud": {"model": "props/city_french_sud"},
