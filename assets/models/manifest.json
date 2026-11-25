@@ -4651,6 +4651,44 @@
    "bytes": 403440,
    "hash": "7c9d1728648366706b38a60a3932655c1ab3cf18"
   },
+  "props/city_central_jugendstil": {
+   "kind": "building",
+   "object": {"width_m": 14.6, "height_m": 23, "length_m": 14},
+   "extent_m": {"left": 11.75, "right": 6.96},
+   "aabb": [-7.3, 0, -14.3, 7.3, 22.91, 1.354],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 4787,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_central_jugendstil/lod0_body.res",
+       "classes": ["vpbr", "baked_cutout"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 1281,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_central_jugendstil/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/city_central_jugendstil/albedo.webp", "emit": "props/city_central_jugendstil/emit.png"},
+   "roughness": 0.86,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "central", "center"],
+   "bytes": 566680,
+   "hash": "f831477cf28b2b2148efb0e8a40212fa8c2fe938"
+  },
   "props/city_dutch_canal": {
    "kind": "building",
    "object": {"width_m": 19, "height_m": 17.6, "length_m": 14},
@@ -9500,10 +9538,7 @@
    "fallback": "sprite",
    "object": {"width_m": 19.6, "height_m": 30.6, "length_m": 16.0}
   },
-  "props/city_central_jugendstil": {
-   "fallback": "sprite",
-   "object": {"width_m": 14.6, "height_m": 23.0, "length_m": 14.0}
-  },
+  "props/city_central_jugendstil": {"model": "props/city_central_jugendstil"},
   "props/city_dutch_canal": {"model": "props/city_dutch_canal"},
   "props/city_dutch_canal_b": {"model": "props/city_dutch_canal_b"},
   "props/city_dutch_terrace": {"model": "props/city_dutch_terrace"},
