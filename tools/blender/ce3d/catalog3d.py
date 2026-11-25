@@ -756,6 +756,8 @@ MODELS.update({
 
 # --- AS5b --- (wave 6): city buildings, part 2 - the styles eastern, vienna, spanish, italian, central, balkan and baltic
 # of props_cities.py (docs/modelle.md section 23). Same builder "city" (ce3d/cities3d.py) as AS5a. Own block.
+# cut_fill: the colour of the gaps of a cut-out railing is what stands behind it - mostly a dark French window, so the
+# small mips keep the railing dark as in the sprite (a light fill turned the Spanish rejas into grey boxes at 100 m).
 MODELS.update({
     # eastern (centre and outskirts of seven styles: eastern, central, baltic, german_east - Leipzig, Magdeburg -, paris):
     # the prefab block (wielka plyta) - panel joints and pastel colour fields baked, two columns of loggias with slabs and
@@ -785,7 +787,7 @@ MODELS.update({
     "props/city_vienna_palais": dict(
         builder="city", source="props/city_vienna_palais", kind="building", atlas=(2048, 1024), ppm_max=100.0,
         roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True, lod1_opaque=True,
-        rail_module={"vp_bal": 1.0}, cut_fill=dict(alpha=0.4, color="#b89a52"),
+        rail_module={"vp_bal": 1.0}, cut_fill=dict(alpha=0.4, color="#6e6450"),
         vpbr=("vp_white", "vp_gold"), weights=dict(roof=0.4, away=0.3),
         floors=dict(z=(9.0,), upper=0.8, objects=("vp_body",)),
         openings=dict(reveal_color="#dcc58a", sill_color="#f6f1e6", cover_skip=("vp_bal",)), gutters=False),
@@ -801,7 +803,7 @@ MODELS.update({
     "props/city_spanish_casa": dict(
         builder="city", source="props/city_spanish_casa", kind="building", atlas=(1024, 1024), ppm_max=110.0,
         roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True,
-        rail_module={"sc_reja": 1.0, "sc_rail": 1.0}, cut_fill=dict(alpha=0.4, color="#b9b2a2"),
+        rail_module={"sc_reja": 1.0, "sc_rail": 1.0}, cut_fill=dict(alpha=0.4, color="#3d3b38"),
         leaf_cards={"sc_orange_c": dict(n=130, half=0.45, core=0.9, down=-0.75, n1=130, half1=0.45,
                                         atlas=dict(base=("#2f5a1f", "#4c7a2a"), gain=0.95))},
         decimate={"sc_orange_c": 0.35}, lod1_decimate={"sc_orange_c": 0.35},
@@ -827,7 +829,7 @@ MODELS.update({
     "props/city_spanish_ladrillo": dict(
         builder="city", source="props/city_spanish_ladrillo", kind="building", atlas=(2048, 1024), ppm_max=100.0,
         roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True, lod1_opaque=True,
-        rail_module={"sl_rail": 1.0}, cut_fill=dict(alpha=0.4, color="#6e3a2c"),
+        rail_module={"sl_rail": 1.0}, cut_fill=dict(alpha=0.4, color="#4a3a34"),
         vpbr=("sl_stone", "sl_dorm_fm", "sl_spire_finm"), weights=dict(roof=0.45, away=0.3),
         floors=dict(z=(7.5,), upper=0.8, objects=("sl_body",)),
         openings=dict(reveal_color="#9c4c36", sill_color="#e8dfca", bars={"shop": (1, [0.78])}, shop_depth=0.35,
@@ -838,7 +840,7 @@ MODELS.update({
     "props/city_italian_block": dict(
         builder="city", source="props/city_italian_block", kind="building", atlas=(2048, 1024), ppm_max=100.0,
         roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True, lod1_opaque=True,
-        rail_module={"ib_rail": 1.0}, cut_fill=dict(alpha=0.4, color="#8f5a3a"),
+        rail_module={"ib_rail": 1.0}, cut_fill=dict(alpha=0.4, color="#4a3e36"),
         vpbr=("ib_st", "ib_wood", "ib_fl"), levels={"ib_fl": "lod0"}, smooth=("ib_fl",),
         weights=dict(roof=0.4, away=0.3), floors=dict(z=(7.5,), upper=0.8, objects=("ib_body",)),
         openings=dict(reveal_color="#c98252", sill_color="#e4d6bd", bars={"shop": (1, [0.78])}, shop_depth=0.35,
@@ -850,7 +852,7 @@ MODELS.update({
     "props/city_italian_palazzo": dict(
         builder="city", source="props/city_italian_palazzo", kind="building", atlas=(2048, 1024), ppm_max=100.0,
         roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True, lod1_opaque=True,
-        rail_module={"ip_bal": 1.0}, cut_fill=dict(alpha=0.4, color="#9c7a52"),
+        rail_module={"ip_bal": 1.0}, cut_fill=dict(alpha=0.4, color="#6e5e48"),
         vpbr=("ip_stone",), weights=dict(roof=0.4, away=0.3), floors=dict(z=(9.0,), upper=0.8, objects=("ip_body",)),
         openings=dict(reveal_color="#c99a62", sill_color="#d3c5a6", cover_skip=("ip_bal",)),
         gutters=False),
@@ -859,7 +861,7 @@ MODELS.update({
     "props/city_italian_venezia": dict(
         builder="city", source="props/city_italian_venezia", kind="building", atlas=(2048, 1024), ppm_max=100.0,
         roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True, lod1_opaque=True,
-        rail_module={"iva_bal": 1.0, "ivb_rail": 1.0}, cut_fill=dict(alpha=0.4, color="#7a3a30"),
+        rail_module={"iva_bal": 1.0, "ivb_rail": 1.0}, cut_fill=dict(alpha=0.4, color="#5a4a44"),
         vpbr=("iv_istria",), weights=dict(roof=0.4, away=0.3),
         floors=dict(z=(7.0,), upper=0.8, objects=("iva_body", "ivb_body")),
         openings=dict(reveal_color="#a84a3a", sill_color="#f1ece2", n_arc=4, cover_skip=("iva_bal", "ivb_rail")),
