@@ -5770,6 +5770,44 @@
    "bytes": 310693,
    "hash": "d859393c1bd11d2053fe758618049055b8a9fe58"
   },
+  "props/city_vienna_kirche": {
+   "kind": "building",
+   "object": {"width_m": 24, "height_m": 39.2, "length_m": 26},
+   "extent_m": {"left": 20.55, "right": 11.66},
+   "aabb": [-12.4, 0, -26.3, 12.4, 39.2, 2.3],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 4469,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_vienna_kirche/lod0_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 3416,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_vienna_kirche/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/city_vienna_kirche/albedo.webp", "emit": "props/city_vienna_kirche/emit.png"},
+   "roughness": 0.86,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "vienna", "center"],
+   "bytes": 278705,
+   "hash": "c85548d686d18dd8183238eb5c1ff7fc84d21285"
+  },
   "props/city_vienna_palais": {
    "kind": "building",
    "object": {"width_m": 29.3, "height_m": 22.85, "length_m": 20},
@@ -9506,10 +9544,7 @@
   "props/city_spanish_ladrillo": {"model": "props/city_spanish_ladrillo"},
   "props/city_swiss_chalet": {"model": "props/city_swiss_chalet"},
   "props/city_swiss_laube": {"model": "props/city_swiss_laube"},
-  "props/city_vienna_kirche": {
-   "fallback": "sprite",
-   "object": {"width_m": 24.0, "height_m": 39.2, "length_m": 26.0}
-  },
+  "props/city_vienna_kirche": {"model": "props/city_vienna_kirche"},
   "props/city_vienna_palais": {"model": "props/city_vienna_palais"},
   "props/city_vienna_zinshaus": {"model": "props/city_vienna_zinshaus"},
   "props/cliff": {"model": "props/cliff"},
