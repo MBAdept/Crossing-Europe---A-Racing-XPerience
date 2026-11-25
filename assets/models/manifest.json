@@ -5390,6 +5390,44 @@
    "bytes": 684599,
    "hash": "5b732ae50445d0127630994c02f2df85a9ccccee"
   },
+  "props/city_italian_block": {
+   "kind": "building",
+   "object": {"width_m": 20, "height_m": 21.9, "length_m": 13},
+   "extent_m": {"left": 14.19, "right": 9.74},
+   "aabb": [-10, 0, -14, 10, 21.9, 1.31],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 6238,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_italian_block/lod0_body.res",
+       "classes": ["vpbr", "baked_cutout"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 2810,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_italian_block/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/city_italian_block/albedo.webp", "emit": "props/city_italian_block/emit.png"},
+   "roughness": 0.86,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "italian", "center"],
+   "bytes": 444469,
+   "hash": "a4338a9ca909e30b65d496641f6025d94508f60a"
+  },
   "props/city_paris_corner": {
    "kind": "building",
    "object": {"width_m": 22.3, "height_m": 26.27, "length_m": 18},
@@ -9306,10 +9344,7 @@
   "props/city_hanse_gabled": {"model": "props/city_hanse_gabled"},
   "props/city_hanse_kontor": {"model": "props/city_hanse_kontor"},
   "props/city_hanse_speicher": {"model": "props/city_hanse_speicher"},
-  "props/city_italian_block": {
-   "fallback": "sprite",
-   "object": {"width_m": 20.0, "height_m": 21.9, "length_m": 13.0}
-  },
+  "props/city_italian_block": {"model": "props/city_italian_block"},
   "props/city_italian_palazzo": {
    "fallback": "sprite",
    "object": {"width_m": 26.7, "height_m": 23.25, "length_m": 18.0}
