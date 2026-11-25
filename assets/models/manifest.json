@@ -4917,6 +4917,44 @@
    "bytes": 877795,
    "hash": "8eedad0e1c37fe7a51a3f065ff5868c50b006a1a"
   },
+  "props/city_eastern_house_b": {
+   "kind": "building",
+   "object": {"width_m": 15, "height_m": 8.5, "length_m": 11},
+   "extent_m": {"left": 13.17, "right": 6.92},
+   "aabb": [-9.05, -0.004, -12.05, 5.55, 8.62, 4.55],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 4029,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_eastern_house_b/lod0_body.res",
+       "classes": ["vpbr", "baked_cutout"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 2836,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_eastern_house_b/lod1_body.res",
+       "classes": ["vpbr", "baked_cutout"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/city_eastern_house_b/albedo.png", "emit": "props/city_eastern_house_b/emit.png"},
+   "roughness": 0.88,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "eastern", "outskirts"],
+   "bytes": 811745,
+   "hash": "aa196777d1d3ba4bca60cf22a1f3cd9bdea71794"
+  },
   "props/city_eastern_house_c": {
    "kind": "building",
    "object": {"width_m": 19, "height_m": 8.7, "length_m": 9.5},
@@ -9689,10 +9727,7 @@
   "props/city_dutch_canal_b": {"model": "props/city_dutch_canal_b"},
   "props/city_dutch_terrace": {"model": "props/city_dutch_terrace"},
   "props/city_eastern_house_a": {"model": "props/city_eastern_house_a"},
-  "props/city_eastern_house_b": {
-   "fallback": "sprite",
-   "object": {"width_m": 15.0, "height_m": 8.5, "length_m": 11.0}
-  },
+  "props/city_eastern_house_b": {"model": "props/city_eastern_house_b"},
   "props/city_eastern_house_c": {"model": "props/city_eastern_house_c"},
   "props/city_eastern_plattenbau": {"model": "props/city_eastern_plattenbau"},
   "props/city_french_immeuble": {"model": "props/city_french_immeuble"},
