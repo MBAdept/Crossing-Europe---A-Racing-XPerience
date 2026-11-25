@@ -4727,6 +4727,44 @@
    "bytes": 452336,
    "hash": "3fd109c0329da603a99f5a6cb1e5e21d3cdbf8fe"
   },
+  "props/city_baltic_jugendstil": {
+   "kind": "building",
+   "object": {"width_m": 18.8, "height_m": 26.5, "length_m": 14},
+   "extent_m": {"left": 13.63, "right": 8.84},
+   "aabb": [-9.3, 0, -14.3, 9.3, 26.609, 1.05],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 3874,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_baltic_jugendstil/lod0_body.res",
+       "classes": ["vpbr", "baked_cutout"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 1399,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_baltic_jugendstil/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/city_baltic_jugendstil/albedo.webp", "emit": "props/city_baltic_jugendstil/emit.png"},
+   "roughness": 0.86,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "baltic", "center"],
+   "bytes": 333876,
+   "hash": "cc4c59023d1627459ee864dfd53c0264f1769d99"
+  },
   "props/city_belgian_stone": {
    "kind": "building",
    "object": {"width_m": 10, "height_m": 17.5, "length_m": 13},
@@ -9846,10 +9884,7 @@
   "props/city_balkan_house": {"model": "props/city_balkan_house"},
   "props/city_balkan_house_b": {"model": "props/city_balkan_house_b"},
   "props/city_balkan_plattenbau": {"model": "props/city_balkan_plattenbau"},
-  "props/city_baltic_jugendstil": {
-   "fallback": "sprite",
-   "object": {"width_m": 18.8, "height_m": 26.5, "length_m": 14.0}
-  },
+  "props/city_baltic_jugendstil": {"model": "props/city_baltic_jugendstil"},
   "props/city_baltic_wood": {
    "fallback": "sprite",
    "object": {"width_m": 17.6, "height_m": 10.9, "length_m": 10.0}

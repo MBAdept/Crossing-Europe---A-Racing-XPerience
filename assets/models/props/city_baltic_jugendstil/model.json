@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/city_baltic_jugendstil",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 18.8, "height_m": 26.5, "length_m": 14},
+  "extent_m": {"left": 13.63, "right": 8.84},
+  "aabb": [-9.3, 0, -14.3, 9.3, 26.609, 1.05],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 3874,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_baltic_jugendstil/lod0_body.res",
+      "classes": ["vpbr", "baked_cutout"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 1399,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_baltic_jugendstil/lod1_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/city_baltic_jugendstil/albedo.webp", "emit": "props/city_baltic_jugendstil/emit.png"},
+  "roughness": 0.86,
+  "auto_lod": false,
+  "tags": ["prop", "building", "city", "mirror_left", "baltic", "center"],
+  "bytes": 333876,
+  "hash": "cc4c59023d1627459ee864dfd53c0264f1769d99"
+ },
+ "sets": {
+  "props/city_baltic_jugendstil": {"model": "props/city_baltic_jugendstil"}
+ }
+}
