@@ -882,7 +882,7 @@ MODELS.update({
     # gable, white pilasters and surrounds (vpbr), the gilded house sign, red tile roofs, chimneys
     "props/city_central_barock": dict(
         builder="city", source="props/city_central_barock", kind="building", atlas=(2048, 1024), ppm_max=100.0,
-        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, vpbr=("cb_st", "cba_gold"),
+        roughness=0.86, view="roadside", ao=AO_CITY, lod1=True, vpbr=("cb_st", "cba_gold"), smooth=("cba_sign",),
         weights=dict(roof=0.45, away=0.3), floors=dict(z=(7.0,), upper=0.8),
         openings=dict(reveal_color="#dccb9e", sill_color="#f3eee2"), gutters=False),
     # central (centre; also balkan centres): the Jugendstil house - tile bands, rounded windows, semicircular balconies
