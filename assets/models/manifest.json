@@ -4803,6 +4803,44 @@
    "bytes": 1039605,
    "hash": "701a4c286a8e145311a5da75f65898c291252802"
   },
+  "props/city_baltic_wood_b": {
+   "kind": "building",
+   "object": {"width_m": 15.2, "height_m": 9.3, "length_m": 11},
+   "extent_m": {"left": 13.17, "right": 7.26},
+   "aabb": [-9.338, -0.003, -12.05, 6.05, 9, 4.25],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 3975,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_baltic_wood_b/lod0_body.res",
+       "classes": ["vpbr", "baked_cutout"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 3057,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_baltic_wood_b/lod1_body.res",
+       "classes": ["vpbr", "baked_cutout"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/city_baltic_wood_b/albedo.png", "emit": "props/city_baltic_wood_b/emit.png"},
+   "roughness": 0.88,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "baltic", "outskirts"],
+   "bytes": 917031,
+   "hash": "c7fd26a9004a4d931b35b5147e7b4ee6db6be211"
+  },
   "props/city_belgian_stone": {
    "kind": "building",
    "object": {"width_m": 10, "height_m": 17.5, "length_m": 13},
@@ -9924,10 +9962,7 @@
   "props/city_balkan_plattenbau": {"model": "props/city_balkan_plattenbau"},
   "props/city_baltic_jugendstil": {"model": "props/city_baltic_jugendstil"},
   "props/city_baltic_wood": {"model": "props/city_baltic_wood"},
-  "props/city_baltic_wood_b": {
-   "fallback": "sprite",
-   "object": {"width_m": 15.2, "height_m": 9.3, "length_m": 11.0}
-  },
+  "props/city_baltic_wood_b": {"model": "props/city_baltic_wood_b"},
   "props/city_belgian_stone": {"model": "props/city_belgian_stone"},
   "props/city_belgian_terrace": {"model": "props/city_belgian_terrace"},
   "props/city_central_barock": {"model": "props/city_central_barock"},
