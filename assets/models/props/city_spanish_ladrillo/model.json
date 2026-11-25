@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/city_spanish_ladrillo",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 19, "height_m": 30.2, "length_m": 14},
+  "extent_m": {"left": 13.89, "right": 9.1},
+  "aabb": [-10.85, 0, -14.5, 9.5, 30.7, 1.85],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 7107,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_spanish_ladrillo/lod0_body.res",
+      "classes": ["vpbr", "baked_cutout"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 5353,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_spanish_ladrillo/lod1_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/city_spanish_ladrillo/albedo.webp", "emit": "props/city_spanish_ladrillo/emit.png"},
+  "roughness": 0.86,
+  "auto_lod": false,
+  "tags": ["prop", "building", "city", "mirror_left", "spanish", "center"],
+  "bytes": 626196,
+  "hash": "4dc565e297cb76cb87782f6a58e50e090e6c8bbb"
+ },
+ "sets": {
+  "props/city_spanish_ladrillo": {"model": "props/city_spanish_ladrillo"}
+ }
+}
