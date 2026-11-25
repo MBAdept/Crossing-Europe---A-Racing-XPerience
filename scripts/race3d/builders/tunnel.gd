@@ -770,18 +770,9 @@ func _hill(buf: Buf, ctx: ChunkContext, i: int, z: float, xl: float, xr: float, 
 	var foot: Array[Vector3] = []
 	var front_h: Array[float] = []
 	var ridge_h: Array[float] = []
-	# QA-mid: Arcade's bumps of the outline (one draw per column, the same seeded sequence) smoothed over the neighbours
-	# ([1, 4, 6, 4, 1] / 16): as independent heights (up to ±1.8 m on 6 m columns) every column was a rib from the front
-	# edge to the ridge, and a low sun (13°) laid their shadows on the face as regular stripes; the outline keeps its
-	# bumps, a little rounder and broader
-	var bumps: Array[float] = []
 	for x: float in xs:
-		bumps.append(rng.randf_range(-0.7, 0.9) * (1.0 - absf((x - cx) / span)) * 2.0 * scale)
-	bumps = smooth_bumps(bumps)
-	for k in xs.size():
-		var x := xs[k]
 		var tt := (x - cx) / span
-		var hgt := peak * pow(maxf(0.0, 1.0 - tt * tt), 1.15) + bumps[k]
+		var hgt := peak * pow(maxf(0.0, 1.0 - tt * tt), 1.15) + rng.randf_range(-0.7, 0.9) * (1.0 - absf(tt)) * 2.0 * scale
 		# the front edge sits on the portal: on the headwall, on the wing walls beside it, on the ground beyond them
 		var hb: float
 		if x >= left and x <= right:
@@ -851,16 +842,6 @@ func _hill(buf: Buf, ctx: ChunkContext, i: int, z: float, xl: float, xr: float, 
 			var b := ring[(q + 1) % 4]
 			var out := ((a + b) * 0.5 - base).normalized() + Vector3.UP * 0.35
 			buf.quad(a, b, tip, tip, out, tree_c, ROUGH_GRASS, nolamp)
-
-
-## The hill's bumps smoothed with [1, 4, 6, 4, 1] / 16 (two passes of [1, 2, 1] / 4, the ends held).
-static func smooth_bumps(b: Array[float]) -> Array[float]:
-	var out: Array[float] = b.duplicate()
-	for _pass in 2:
-		var src := out.duplicate()
-		for k in src.size():
-			out[k] = (src[maxi(k - 1, 0)] + 2.0 * src[k] + src[mini(k + 1, src.size() - 1)]) * 0.25
-	return out
 
 
 ## Unit normal of the quad a-b-c-d that faces `toward`.
