@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/city_balkan_house_b",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 15.7, "height_m": 9, "length_m": 10},
+  "extent_m": {"left": 13.01, "right": 7.88},
+  "aabb": [-10.34, -0.006, -10.65, 6.4, 9, 5],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 6462,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_balkan_house_b/lod0_body.res",
+      "classes": ["vpbr", "baked_cutout"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 5360,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_balkan_house_b/lod1_body.res",
+      "classes": ["vpbr", "baked_cutout"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/city_balkan_house_b/albedo.png", "emit": "props/city_balkan_house_b/emit.png"},
+  "roughness": 0.88,
+  "auto_lod": false,
+  "tags": ["prop", "building", "city", "mirror_left", "balkan", "outskirts"],
+  "bytes": 913918,
+  "hash": "88d6061595289c6d63aaa1cc0f4b3e5f3305425a"
+ },
+ "sets": {
+  "props/city_balkan_house_b": {"model": "props/city_balkan_house_b"}
+ }
+}

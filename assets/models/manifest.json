@@ -4613,6 +4613,44 @@
    "bytes": 853031,
    "hash": "efe3a8beb3170eab37def4279e79196d66ab0366"
   },
+  "props/city_balkan_house_b": {
+   "kind": "building",
+   "object": {"width_m": 15.7, "height_m": 9, "length_m": 10},
+   "extent_m": {"left": 13.01, "right": 7.88},
+   "aabb": [-10.34, -0.006, -10.65, 6.4, 9, 5],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 6462,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_balkan_house_b/lod0_body.res",
+       "classes": ["vpbr", "baked_cutout"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 5360,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_balkan_house_b/lod1_body.res",
+       "classes": ["vpbr", "baked_cutout"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/city_balkan_house_b/albedo.png", "emit": "props/city_balkan_house_b/emit.png"},
+   "roughness": 0.88,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "balkan", "outskirts"],
+   "bytes": 913918,
+   "hash": "88d6061595289c6d63aaa1cc0f4b3e5f3305425a"
+  },
   "props/city_belgian_stone": {
    "kind": "building",
    "object": {"width_m": 10, "height_m": 17.5, "length_m": 13},
@@ -9733,10 +9771,7 @@
    "object": {"width_m": 17.6, "height_m": 24.2, "length_m": 23.0}
   },
   "props/city_balkan_house": {"model": "props/city_balkan_house"},
-  "props/city_balkan_house_b": {
-   "fallback": "sprite",
-   "object": {"width_m": 15.7, "height_m": 9.0, "length_m": 10.0}
-  },
+  "props/city_balkan_house_b": {"model": "props/city_balkan_house_b"},
   "props/city_balkan_plattenbau": {
    "fallback": "sprite",
    "object": {"width_m": 28.8, "height_m": 39.8, "length_m": 14.0}
