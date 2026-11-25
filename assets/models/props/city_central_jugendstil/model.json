@@ -37,8 +37,8 @@
   "roughness": 0.86,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "central", "center"],
-  "bytes": 566680,
-  "hash": "f831477cf28b2b2148efb0e8a40212fa8c2fe938"
+  "bytes": 674836,
+  "hash": "e7fc0742a4cd83fa83550f2e443f90fea5ca00c6"
  },
  "sets": {
   "props/city_central_jugendstil": {"model": "props/city_central_jugendstil"}
