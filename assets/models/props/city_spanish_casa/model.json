@@ -37,8 +37,8 @@
   "roughness": 0.88,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "spanish", "outskirts"],
-  "bytes": 823377,
-  "hash": "0843337878e28813ba88917b8e270c744250e479"
+  "bytes": 822921,
+  "hash": "95c6ee549b65e8468ff8edec4cae4858032716ac"
  },
  "sets": {
   "props/city_spanish_casa": {"model": "props/city_spanish_casa"}
