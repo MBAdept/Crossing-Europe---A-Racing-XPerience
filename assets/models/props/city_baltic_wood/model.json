@@ -1,0 +1,46 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/city_baltic_wood",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 17.6, "height_m": 10.9, "length_m": 10},
+  "extent_m": {"left": 14.13, "right": 8.09},
+  "aabb": [-11.353, -0.006, -11.05, 7.05, 10.595, 4.05],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60,
+    "tris": 6080,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_baltic_wood/lod0_body.res",
+      "classes": ["vpbr", "baked_cutout"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 4512,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_baltic_wood/lod1_body.res",
+      "classes": ["vpbr", "baked_cutout"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/city_baltic_wood/albedo.png", "emit": "props/city_baltic_wood/emit.png"},
+  "roughness": 0.88,
+  "auto_lod": false,
+  "tags": ["prop", "building", "city", "mirror_left", "baltic", "outskirts"],
+  "bytes": 1039605,
+  "hash": "701a4c286a8e145311a5da75f65898c291252802"
+ },
+ "sets": {
+  "props/city_baltic_wood": {"model": "props/city_baltic_wood"}
+ }
+}
