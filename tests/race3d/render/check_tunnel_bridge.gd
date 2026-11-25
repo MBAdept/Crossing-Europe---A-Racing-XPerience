@@ -661,7 +661,7 @@ func _full_scan() -> void:
 						beacons += 1
 				sums["beacons"] = int(sums.get("beacons", 0)) + beacons
 				# geometry over the lanes (triangles sampled), banks per end, cables, the hill in the approach corridor
-				var meshes: Array = [["struct", part.get("struct", [])]] if is_bridge else [["tube", part.get("tube", [])], ["portal", part.get("portal", [])]]
+				var meshes: Array = [["struct", part.get("struct", [])]] if is_bridge else [["tube", part.get("tube", [])], ["portal", part.get("portal", [])], ["portal", part.get("hill", [])]]
 				for m: Array in meshes:
 					var arr: Array = m[1]
 					if arr.is_empty():

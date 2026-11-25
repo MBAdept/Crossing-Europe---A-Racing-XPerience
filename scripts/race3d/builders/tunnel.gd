@@ -100,6 +100,10 @@ const K_DOOR := 11.0
 ## lit headwall, frame and hill to the top at night and the portal read like daytime. Sun, moon, ambient and shadows
 ## stay. Once the low beam has a cut-off (R4), the frame's foot may go back to layer 1.
 const PORTAL_LAYERS := 2
+## QA-mid (Q-01): the hill above a portal casts no shadow of its own (mesh "TunnelHill", built apart from the portal).
+## A low sun (13°, dusk) grazing its large face laid shadow acne on it – regular diagonal bands across the slope
+## (Hamburg – Hannover 19:30, Elbtunnel; gone with the sun's shadows switched off). Frame, headwall and wing walls keep
+## casting; the hill still receives the shadows of everything else.
 const ZONE_OUT_M := 12.0           ## the zone amount rises from 12 m before a portal …
 const ZONE_IN_M := 14.0            ## … to 1 at 14 m inside (EnvironmentRig.tunnel_blend, the rig's own law)
 
@@ -284,6 +288,7 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 	var tube := Buf.new()
 	tube.custom = true
 	var portal := Buf.new()
+	var hill := Buf.new()
 	var lamps: Array = []
 	var rows := ctx.row_count()
 	var seg_len := ctx.seg_len
@@ -336,13 +341,15 @@ func build(ctx: ChunkContext, input: Variant) -> Dictionary:
 		# the portal: the first segment of the tunnel
 		if seg == int(t[0]):
 			counts["portals"] += 1
-			_portal(portal, ctx, i, z0, float(g["xl0"]), float(g["xr0"]), ctx.scenery_db.get(str(sa["scenery"]), {}), z_end - z_portal)
+			_portal(portal, hill, ctx, i, z0, float(g["xl0"]), float(g["xr0"]), ctx.scenery_db.get(str(sa["scenery"]), {}),
+				z_end - z_portal)
 		# the frame of the exit seen from inside: the last segment of the tunnel
 		if seg == int(t[1]) - 1:
 			counts["exits"] += 1
 			_exit_frame(tube, ctx, g, z1)
 	var out := {"tube": tube.arrays() if not tube.idx.is_empty() else [], "portal": portal.arrays() if not portal.idx.is_empty() else [],
-		"lamps": lamps, "tube_triangles": tube.idx.size() / 3, "portal_triangles": portal.idx.size() / 3}
+		"hill": hill.arrays() if not hill.idx.is_empty() else [], "lamps": lamps, "tube_triangles": tube.idx.size() / 3,
+		"portal_triangles": (portal.idx.size() + hill.idx.size()) / 3, "hill_triangles": hill.idx.size() / 3}
 	out.merge(counts)
 	return out
 
@@ -679,7 +686,8 @@ func _exit_frame(tube: Buf, ctx: ChunkContext, g: Dictionary, z_exit: float) -> 
 
 ## Portal at road position z (row i of the chunk); xl / xr = the walls: the frame round the opening, the headwall with
 ## its cornice, the wing walls and the hill above.
-func _portal(buf: Buf, ctx: ChunkContext, i: int, z: float, xl: float, xr: float, scen: Variant, length: float) -> void:
+func _portal(buf: Buf, hill: Buf, ctx: ChunkContext, i: int, z: float, xl: float, xr: float, scen: Variant,
+		length: float) -> void:
 	var rm := ROUGH_CONCRETE
 	var nolamp := Vector2(-1.0, 0.0)
 	var face := -ctx.rows_f[i]                      # towards the approaching camera
@@ -734,7 +742,7 @@ func _portal(buf: Buf, ctx: ChunkContext, i: int, z: float, xl: float, xr: float
 		# its coping
 		buf.quad(ctx.local(zf - 0.25, xw, head_h + 0.02), ctx.local(zf - 0.25, xo, g_o + 0.62), ctx.local(zf + 0.25, xo, g_o + 0.62),
 			ctx.local(zf + 0.25, xw, head_h + 0.02), Vector3.UP, conc_dark, rm, nolamp)
-	_hill(buf, ctx, i, z, xl, xr, left, right, scen, length)
+	_hill(hill, ctx, i, z, xl, xr, left, right, scen, length)
 
 
 ## Arcade's hill above a portal (RoadRenderer._draw_portal, the same seeded sequence per tunnel): its front edge on the
@@ -900,6 +908,17 @@ func commit(ctx: ChunkContext, part: Dictionary, parent: Node3D) -> void:
 		pi.cast_shadow = shadow
 		pi.layers = PORTAL_LAYERS          # out of the low beam and the lamp omnis (QR5-01)
 		parent.add_child(pi)
+	var hill: Array = part.get("hill", [])
+	if not hill.is_empty():
+		var hmesh := ArrayMesh.new()
+		hmesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, hill)
+		var hi := MeshInstance3D.new()
+		hi.name = "TunnelHill"
+		hi.mesh = hmesh
+		hi.material_override = (materials as ModernMaterials).material(ModernMaterials.VPBR_STATIC)
+		hi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF      # Q-01: no shadow acne on its own face
+		hi.layers = PORTAL_LAYERS
+		parent.add_child(hi)
 
 
 ## The one tube material (main thread).

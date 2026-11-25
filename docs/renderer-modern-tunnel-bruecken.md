@@ -69,6 +69,11 @@ Am ersten Segment eines Tunnels (vpbr, statisch, beleuchtet):
   spätestens an der Ausfahrt zu Ende. Seine Vorderkante liegt auf der Stirnwand, auf den Flügelmauern und jenseits davon
   0,5 m im Gelände – er schließt das Geländeband am Portal (Render-Prüfung: Abdeckung ≤ 0,2 % an den Portalen von U1 und
   Somport).
+  **Kein Schattenwurf des Hügels** (QA-mid, Q-01): der Hügel ist ein eigenes Netz (`TunnelHill`, Teil `"hill"` neben
+  `"portal"`) und wirft keinen Schatten. Die tiefe Abendsonne (13°) streift seine große Stirnfläche, und die
+  Schattenkarte legte Schattenakne als regelmäßige Schrägstreifen auf den Hang (Hamburg – Hannover 19:30, Elbtunnel;
+  ohne Sonnenschatten verschwunden). Rahmen, Stirnwand und Flügelmauern werfen weiter Schatten; der Hügel empfängt die
+  Schatten alles anderen.
 - **Renderlayer 2** (FIX-R5, Befund QR5-01 der unabhängigen Prüfung): das ganze Portal-Mesh – Rahmen, Stirnwand,
   Flügelmauern, Hügel – liegt auf der Bodenebene (`PORTAL_LAYERS` = 2, wie Gelände, Fahrbahn und Wasser). Die Spots des
   Abblendlichts und die Omnis der Lampen (`layers/lights.gd` `LIGHT_MASK` = alles außer Layer 2) lassen es aus. Arcade
@@ -203,7 +208,7 @@ Die Scheibe selbst bleibt bei der ZS1-Regel (`test_far_ground_water`, Render-Pr�
 | Prüfung | Inhalt |
 |---|---|
 | `tests/unit/race3d/test_bridge.gd` | Wasser auf den Wasserzeilen bis zum Bandende, Ufer nach Arcades Regel, ferne Kaimauer zur Kamera, Köhlbrand-Pylone (Maßstab, Befeuerung, Takt, 56 Seile = Arcades 7 je Richtung als Zahl), kein Seil über einer Spur, kein Tragwerk in den Spuren, Brückenteile nicht im Requisiten-Builder, Pylon nachts dunkel (`emit_energy` und `night_albedo` gesetzt und richtig), Brückenlampen = Arcades `bridge_lamp`-Ereignisse (Ludwigsbrücke, Ponte della Libertà), jeder Brückentyp baut |
-| `tests/unit/race3d/test_tunnel.gd` | Röhre, Nischen/Türen/Lüfter im Abstand, Kappe, Portal, Ausfahrt; nichts über der Fahrbahn; Hügel schließt das Gelände; kurzer Tunnel ohne Kappe; Kappe nur von außen; Zone nach dem Gesetz des Rigs; `set_zone` nur, wenn das Rig es kann (auch ein Rig ohne `set_zone`: kein Aufruf); Portal auf Renderlayer 2 außerhalb von `LIGHT_MASK`, Röhre auf Layer 1 |
+| `tests/unit/race3d/test_tunnel.gd` | Röhre, Nischen/Türen/Lüfter im Abstand, Kappe, Portal, Ausfahrt; nichts über der Fahrbahn; Hügel schließt das Gelände; kurzer Tunnel ohne Kappe; Kappe nur von außen; Zone nach dem Gesetz des Rigs; `set_zone` nur, wenn das Rig es kann (auch ein Rig ohne `set_zone`: kein Aufruf); Portal auf Renderlayer 2 außerhalb von `LIGHT_MASK`, Röhre auf Layer 1; Hügel als eigenes Netz ohne Schattenwurf (QA-mid) |
 
 | `tests/race3d/render/check_tunnel_bridge.gd` | siehe Abschnitt 7 |
 | `tests/race3d/check_minimal_structures.gd` | `tunnel`, `bruecke` (seit FIX1) |

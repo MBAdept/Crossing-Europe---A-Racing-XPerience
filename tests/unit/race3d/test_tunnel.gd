@@ -123,6 +123,11 @@ static func _road_coords(ctx: ChunkContext, p: Vector3) -> Vector3:
 
 
 ## [vertex, kind] of a part's mesh arrays.
+## QA-mid (Q-01): the hill above a portal is its own mesh ("hill") beside the portal's frame, headwall and wing walls.
+static func _portal_parts(part: Dictionary) -> Array:
+	return [part.get("portal", []), part.get("hill", [])]
+
+
 static func _verts(arrays: Array) -> Array:
 	var out: Array = []
 	if arrays.is_empty():
@@ -212,7 +217,7 @@ func test_hill_closes_the_terrain_at_the_portal() -> void:
 	var front_ok := 0
 	for e: Array in built:
 		var ctx: ChunkContext = e[0]
-		for vt: Array in _verts((e[1] as Dictionary).get("portal", [])):
+		for vt: Array in _verts((e[1] as Dictionary).get("portal", [])) + _verts((e[1] as Dictionary).get("hill", [])):
 			var rc := _road_coords(ctx, vt[0])
 			widest = maxf(widest, absf(rc.y))
 			# the hill's front edge beyond the wing walls lies on the ground (a little into it: no gap to the ribbon)
@@ -241,25 +246,25 @@ func test_hill_never_cuts_through_the_tube() -> void:
 		var example := ""
 		for e: Array in built:
 			var ctx: ChunkContext = e[0]
-			var arr: Array = (e[1] as Dictionary).get("portal", [])
-			if arr.is_empty():
-				continue
-			var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
-			var idx: PackedInt32Array = arr[Mesh.ARRAY_INDEX]
-			for k in range(0, idx.size(), 3):
-				var a := v[idx[k]]
-				var b := v[idx[k + 1]]
-				var c := v[idx[k + 2]]
-				for i in 9:
-					for j in 9 - i:
-						var p := a + (b - a) * (float(i) + 0.33) / 9.0 + (c - a) * (float(j) + 0.33) / 9.0
-						var rc := _road_coords(ctx, p)
-						if rc.x < z_portal + 1.0 or rc.x > z_exit - 1.0:
-							continue
-						var row := clampi(int(round(ctx.row_of(rc.x))), 0, ctx.row_count() - 1)
-						if absf(rc.y) < ctx.shoulder_edge(row, 1 if rc.y > 0.0 else -1) - 0.2 and rc.z > 0.1 and rc.z < 6.0:
-							inside += 1
-							example = "z+%.1f x %.1f h %.1f" % [rc.x - z_portal, rc.y, rc.z]
+			for arr: Array in _portal_parts(e[1]):
+				if arr.is_empty():
+					continue
+				var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+				var idx: PackedInt32Array = arr[Mesh.ARRAY_INDEX]
+				for k in range(0, idx.size(), 3):
+					var a := v[idx[k]]
+					var b := v[idx[k + 1]]
+					var c := v[idx[k + 2]]
+					for i in 9:
+						for j in 9 - i:
+							var p := a + (b - a) * (float(i) + 0.33) / 9.0 + (c - a) * (float(j) + 0.33) / 9.0
+							var rc := _road_coords(ctx, p)
+							if rc.x < z_portal + 1.0 or rc.x > z_exit - 1.0:
+								continue
+							var row := clampi(int(round(ctx.row_of(rc.x))), 0, ctx.row_count() - 1)
+							if absf(rc.y) < ctx.shoulder_edge(row, 1 if rc.y > 0.0 else -1) - 0.2 and rc.z > 0.1 and rc.z < 6.0:
+								inside += 1
+								example = "z+%.1f x %.1f h %.1f" % [rc.x - z_portal, rc.y, rc.z]
 		assert_eq(inside, 0, "%s: nichts vom Hügel in der Röhre (%s)" % [want[2], example])
 
 
@@ -278,7 +283,7 @@ func test_short_tunnel_low_hill_no_cap() -> void:
 	var top := -INF
 	for e: Array in built:
 		var ctx: ChunkContext = e[0]
-		for vt: Array in _verts((e[1] as Dictionary).get("portal", [])):
+		for vt: Array in _verts((e[1] as Dictionary).get("portal", [])) + _verts((e[1] as Dictionary).get("hill", [])):
 			var rc := _road_coords(ctx, vt[0])
 			far = maxf(far, rc.x)
 			top = maxf(top, rc.z)
@@ -386,6 +391,7 @@ func test_portal_on_the_ground_layer_out_of_the_low_beam() -> void:
 	assert_true(mask != 0, "LIGHT_MASK der Lichtebene gelesen")
 	var b: Object = Tunnel.new()
 	var portals := 0
+	var hills := 0
 	for e: Array in built:
 		var ctx: ChunkContext = e[0]
 		var part: Dictionary = e[1]
@@ -400,7 +406,14 @@ func test_portal_on_the_ground_layer_out_of_the_low_beam() -> void:
 				assert_eq(gi.layers, Tunnel.PORTAL_LAYERS, "Portal auf der Bodenebene (Renderlayer 2)")
 				assert_eq(gi.layers & mask, 0, "kein Spot- oder Omnilicht der Lichtebene erreicht das Portal")
 				assert_true(gi.cast_shadow != GeometryInstance3D.SHADOW_CASTING_SETTING_OFF, "das Portal wirft weiter Schatten")
+			elif n.name == &"TunnelHill":
+				hills += 1
+				var hg := n as GeometryInstance3D
+				assert_eq(hg.layers, Tunnel.PORTAL_LAYERS, "Hügel auf der Bodenebene (Renderlayer 2)")
+				assert_eq(hg.cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_OFF,
+					"der Hügel wirft keinen Schatten (keine Schattenakne bei tiefer Sonne, Q-01)")
 			elif n.name == &"TunnelTube":
 				assert_eq((n as GeometryInstance3D).layers, 1, "die Röhre bleibt auf Renderlayer 1")
 		holder.free()
 	assert_eq(portals, 1, "ein Portal am Gotthard gebaut und übergeben")
+	assert_eq(hills, 1, "sein Hügel als eigenes Netz ohne Schattenwurf (Q-01)")
