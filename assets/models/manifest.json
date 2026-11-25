@@ -5466,6 +5466,44 @@
    "bytes": 457936,
    "hash": "649cf51ba9f23c567f6c1e238c8078ef96b63266"
   },
+  "props/city_spanish_block": {
+   "kind": "building",
+   "object": {"width_m": 20.6, "height_m": 27.8, "length_m": 16},
+   "extent_m": {"left": 15.25, "right": 9.78},
+   "aabb": [-10.65, 0, -16.3, 10.3, 27.8, 0.691],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 60,
+     "tris": 8287,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_spanish_block/lod0_body.res",
+       "classes": ["vpbr", "baked_cutout"]
+      }
+     ]
+    },
+    {
+     "name": "lod1",
+     "max_dist_m": 100000,
+     "tris": 4692,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "props/city_spanish_block/lod1_body.res",
+       "classes": ["vpbr", "baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "props/city_spanish_block/albedo.webp", "emit": "props/city_spanish_block/emit.png"},
+   "roughness": 0.86,
+   "auto_lod": false,
+   "tags": ["prop", "building", "city", "mirror_left", "spanish", "center"],
+   "bytes": 423798,
+   "hash": "946b0129118c0a4b893df68b6203019bd5bf51d3"
+  },
   "props/city_spanish_casa": {
    "kind": "building",
    "object": {"width_m": 18, "height_m": 7.92, "length_m": 10},
@@ -9282,10 +9320,7 @@
   },
   "props/city_paris_corner": {"model": "props/city_paris_corner"},
   "props/city_paris_haussmann": {"model": "props/city_paris_haussmann"},
-  "props/city_spanish_block": {
-   "fallback": "sprite",
-   "object": {"width_m": 20.6, "height_m": 27.8, "length_m": 16.0}
-  },
+  "props/city_spanish_block": {"model": "props/city_spanish_block"},
   "props/city_spanish_casa": {"model": "props/city_spanish_casa"},
   "props/city_spanish_ladrillo": {
    "fallback": "sprite",
