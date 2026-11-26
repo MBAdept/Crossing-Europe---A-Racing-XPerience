@@ -54,6 +54,32 @@
    "bytes": 351353,
    "hash": "354394db8d95f3f15049e0349f5e0662f490cc50"
   },
+  "landmarks/frauenkirche_dresden": {
+   "kind": "landmark",
+   "object": {"width_m": 46.4, "height_m": 91, "length_m": 55.2},
+   "extent_m": {"left": 35.3, "right": 19.85},
+   "aabb": [-23.2, 0, -57, 23.2, 91, -1.4],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 4124,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/frauenkirche_dresden/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/frauenkirche_dresden/albedo.webp", "emit": "landmarks/frauenkirche_dresden/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 425918,
+   "hash": "939fa0c0e6ff12bed12334f0d4c4fac076571e15"
+  },
   "landmarks/kaiserburg_nuernberg": {
    "kind": "landmark",
    "object": {"width_m": 158, "height_m": 66, "length_m": 46},
@@ -9877,10 +9903,7 @@
    "fallback": "sprite",
    "object": {"width_m": 320.0, "height_m": 300.0, "length_m": 80.0}
   },
-  "landmarks/frauenkirche_dresden": {
-   "fallback": "sprite",
-   "object": {"width_m": 46.4, "height_m": 91.0, "length_m": 55.2}
-  },
+  "landmarks/frauenkirche_dresden": {"model": "landmarks/frauenkirche_dresden"},
   "landmarks/frauenkirche_muenchen": {
    "fallback": "sprite",
    "object": {"width_m": 40.0, "height_m": 98.6, "length_m": 109.0}
