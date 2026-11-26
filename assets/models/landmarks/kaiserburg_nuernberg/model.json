@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "landmarks/kaiserburg_nuernberg",
+ "model": {
+  "kind": "landmark",
+  "object": {"width_m": 158, "height_m": 66, "length_m": 46},
+  "extent_m": {"left": 87.66, "right": 75.8},
+  "aabb": [-78, 0, -46, 80, 66, 0],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 1016,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "landmarks/kaiserburg_nuernberg/lod0_body.res",
+      "classes": ["baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "landmarks/kaiserburg_nuernberg/albedo.webp", "emit": "landmarks/kaiserburg_nuernberg/emit.png"},
+  "roughness": 0.85,
+  "auto_lod": true,
+  "tags": ["prop", "landmark"],
+  "bytes": 310207,
+  "hash": "e603dd7ca51dc8ca8998a6fdee98e85d43af242b"
+ },
+ "sets": {
+  "landmarks/kaiserburg_nuernberg": {"model": "landmarks/kaiserburg_nuernberg"}
+ }
+}

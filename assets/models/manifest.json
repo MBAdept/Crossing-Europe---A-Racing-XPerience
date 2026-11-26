@@ -28,6 +28,32 @@
    "bytes": 351353,
    "hash": "354394db8d95f3f15049e0349f5e0662f490cc50"
   },
+  "landmarks/kaiserburg_nuernberg": {
+   "kind": "landmark",
+   "object": {"width_m": 158, "height_m": 66, "length_m": 46},
+   "extent_m": {"left": 87.66, "right": 75.8},
+   "aabb": [-78, 0, -46, 80, 66, 0],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 1016,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/kaiserburg_nuernberg/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/kaiserburg_nuernberg/albedo.webp", "emit": "landmarks/kaiserburg_nuernberg/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 310207,
+   "hash": "e603dd7ca51dc8ca8998a6fdee98e85d43af242b"
+  },
   "landmarks/michel": {
    "kind": "landmark",
    "object": {"width_m": 72, "height_m": 132, "length_m": 44},
@@ -9814,10 +9840,7 @@
    "fallback": "sprite",
    "object": {"width_m": 18.0, "height_m": 42.0, "length_m": 18.0}
   },
-  "landmarks/kaiserburg_nuernberg": {
-   "fallback": "sprite",
-   "object": {"width_m": 158.0, "height_m": 66.0, "length_m": 46.0}
-  },
+  "landmarks/kaiserburg_nuernberg": {"model": "landmarks/kaiserburg_nuernberg"},
   "landmarks/kathedrale_burgos": {
    "fallback": "sprite",
    "object": {"width_m": 59.0, "height_m": 88.0, "length_m": 106.0}
