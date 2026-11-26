@@ -80,6 +80,32 @@
    "bytes": 425918,
    "hash": "939fa0c0e6ff12bed12334f0d4c4fac076571e15"
   },
+  "landmarks/frauenkirche_muenchen": {
+   "kind": "landmark",
+   "object": {"width_m": 40, "height_m": 98.6, "length_m": 109},
+   "extent_m": {"left": 60.49, "right": 17.81},
+   "aabb": [-20.8, 0, -108.8, 20.8, 98.6, 0.7],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 1782,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/frauenkirche_muenchen/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/frauenkirche_muenchen/albedo.webp", "emit": "landmarks/frauenkirche_muenchen/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 276098,
+   "hash": "711c87a664f3571953b16619fe57c43c392ddad5"
+  },
   "landmarks/kaiserburg_nuernberg": {
    "kind": "landmark",
    "object": {"width_m": 158, "height_m": 66, "length_m": 46},
@@ -9904,10 +9930,7 @@
    "object": {"width_m": 320.0, "height_m": 300.0, "length_m": 80.0}
   },
   "landmarks/frauenkirche_dresden": {"model": "landmarks/frauenkirche_dresden"},
-  "landmarks/frauenkirche_muenchen": {
-   "fallback": "sprite",
-   "object": {"width_m": 40.0, "height_m": 98.6, "length_m": 109.0}
-  },
+  "landmarks/frauenkirche_muenchen": {"model": "landmarks/frauenkirche_muenchen"},
   "landmarks/freiheitsdenkmal_riga": {
    "fallback": "sprite",
    "object": {"width_m": 18.0, "height_m": 42.0, "length_m": 18.0}
