@@ -936,7 +936,8 @@ MODELS.update({
         roughness=0.88, view="roadside", ao=AO_CITY, lod1=True, single_cutout=True,
         rail_module={"ehc_rail": 1.0}, cut_fill=dict(alpha=0.4, color="#6a6058"),
         leaf_cards={"ehc_tree_c": _leaf(120, "#4b7a2c", "#6f9a3a")},
-        decimate={"ehc_thuja": 0.12, "ehc_tree_c": 0.35}, lod1_decimate={"ehc_thuja": 0.4, "ehc_tree_c": 0.35},
+        # the thuja hedge keeps its lod0 decimation in lod1: decimated once more (0.4) it turned 89 triangles inside out
+        decimate={"ehc_thuja": 0.12, "ehc_tree_c": 0.35}, lod1_decimate={"ehc_tree_c": 0.35},
         vpbr=("ehc_tm",),
         weights=dict(roof=0.5, away=0.3, objects={"ehc_thuja": 0.3, "ehc_tree": 0.3, "ehc_fence": 0.6},
                      solid={"ehc_thuja": 0.3, "ehc_tree_c": 0.3}),
