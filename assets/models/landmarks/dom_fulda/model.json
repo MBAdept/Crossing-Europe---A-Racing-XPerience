@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "landmarks/dom_fulda",
+ "model": {
+  "kind": "landmark",
+  "object": {"width_m": 48, "height_m": 65, "length_m": 99},
+  "extent_m": {"left": 50.49, "right": 16.99},
+  "aabb": [-24.4, 0, -99.4, 24.4, 65, -1.55],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 4560,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "landmarks/dom_fulda/lod0_body.res",
+      "classes": ["baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "landmarks/dom_fulda/albedo.webp", "emit": "landmarks/dom_fulda/emit.png"},
+  "roughness": 0.85,
+  "auto_lod": true,
+  "tags": ["prop", "landmark"],
+  "bytes": 349476,
+  "hash": "bb10f1e060d17b72fedd5953f47e4ecf80230ba0"
+ },
+ "sets": {
+  "landmarks/dom_fulda": {"model": "landmarks/dom_fulda"}
+ }
+}
