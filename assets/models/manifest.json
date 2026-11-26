@@ -28,6 +28,32 @@
    "bytes": 349476,
    "hash": "bb10f1e060d17b72fedd5953f47e4ecf80230ba0"
   },
+  "landmarks/dom_passau": {
+   "kind": "landmark",
+   "object": {"width_m": 34, "height_m": 68, "length_m": 102},
+   "extent_m": {"left": 52.04, "right": 15.77},
+   "aabb": [-17.95, 0, -102.4, 17.95, 68, -1.55],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 4316,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/dom_passau/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/dom_passau/albedo.webp", "emit": "landmarks/dom_passau/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 246446,
+   "hash": "4c3c1f13b8a20074200ec90423e2de5ff565a33f"
+  },
   "landmarks/elbphilharmonie": {
    "kind": "landmark",
    "object": {"width_m": 110, "height_m": 110, "length_m": 78},
@@ -10060,10 +10086,7 @@
    "object": {"width_m": 48.0, "height_m": 90.5, "length_m": 63.0}
   },
   "landmarks/dom_fulda": {"model": "landmarks/dom_fulda"},
-  "landmarks/dom_passau": {
-   "fallback": "sprite",
-   "object": {"width_m": 34.0, "height_m": 68.0, "length_m": 102.0}
-  },
+  "landmarks/dom_passau": {"model": "landmarks/dom_passau"},
   "landmarks/dom_regensburg": {
    "fallback": "sprite",
    "object": {"width_m": 39.0, "height_m": 105.0, "length_m": 90.0}
