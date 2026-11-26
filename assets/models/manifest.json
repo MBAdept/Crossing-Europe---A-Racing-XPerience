@@ -2,6 +2,32 @@
  "version": 1,
  "exporter": "ce3d 1",
  "models": {
+  "landmarks/elbphilharmonie": {
+   "kind": "landmark",
+   "object": {"width_m": 110, "height_m": 110, "length_m": 78},
+   "extent_m": {"left": 63.59, "right": 48.56},
+   "aabb": [-55, 0, -78, 55, 110, 0],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 908,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/elbphilharmonie/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/elbphilharmonie/albedo.webp", "emit": "landmarks/elbphilharmonie/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 351353,
+   "hash": "354394db8d95f3f15049e0349f5e0662f490cc50"
+  },
   "landmarks/michel": {
    "kind": "landmark",
    "object": {"width_m": 72, "height_m": 132, "length_m": 44},
@@ -9767,10 +9793,7 @@
    "fallback": "sprite",
    "object": {"width_m": 125.0, "height_m": 330.0, "length_m": 125.0}
   },
-  "landmarks/elbphilharmonie": {
-   "fallback": "sprite",
-   "object": {"width_m": 110.0, "height_m": 110.0, "length_m": 78.0}
-  },
+  "landmarks/elbphilharmonie": {"model": "landmarks/elbphilharmonie"},
   "landmarks/fernsehturm_berlin": {
    "fallback": "sprite",
    "object": {"width_m": 78.0, "height_m": 368.0, "length_m": 70.0}
