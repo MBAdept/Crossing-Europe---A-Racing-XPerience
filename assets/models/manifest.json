@@ -5476,7 +5476,7 @@
     {
      "name": "lod1",
      "max_dist_m": 100000,
-     "tris": 3070,
+     "tris": 4526,
      "parts": [
       {
        "node": "body",
@@ -5490,8 +5490,8 @@
    "roughness": 0.88,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "eastern", "outskirts"],
-   "bytes": 914709,
-   "hash": "5cf6f71e8a533ff7a4803c8659a46183b5b728d5"
+   "bytes": 941956,
+   "hash": "21c5b0306002246e9aa7fe05c6fe6e3b6b7929ea"
   },
   "props/city_eastern_plattenbau": {
    "kind": "building",
