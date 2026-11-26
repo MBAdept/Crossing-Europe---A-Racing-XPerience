@@ -1029,6 +1029,18 @@ MODELS.update({
         ("landmarks/frankfurt_skyline", 16.0), ("landmarks/koelner_dom", 24.0), ("landmarks/fernsehturm_berlin", 20.0),
         ("landmarks/frauenkirche_dresden", 32.0), ("landmarks/frauenkirche_muenchen", 32.0),
         ("landmarks/st_petri_riga", 32.0),
+        # batch L2: Austria, Prague, Paris, Brussels, Calais, Milan
+        ("landmarks/stephansdom", 24.0), ("landmarks/riesenrad", 32.0), ("landmarks/mariendom_linz", 24.0),
+        ("landmarks/dom_passau", 32.0), ("landmarks/dom_regensburg", 24.0), ("landmarks/veitsdom_prag", 24.0),
+        ("landmarks/eiffel_tower", 16.0), ("landmarks/atomium", 24.0), ("landmarks/basilika_koekelberg", 24.0),
+        ("landmarks/beffroi_calais", 32.0), ("landmarks/duomo_milano", 24.0),
+        # batch L3: Venice, Spain, Budapest, Warsaw, Riga, Sofia, Romania
+        ("landmarks/campanile_venezia", 32.0), ("landmarks/sagrada_familia", 20.0), ("landmarks/basilica_pilar", 24.0),
+        ("landmarks/kathedrale_burgos", 24.0), ("landmarks/parlament_budapest", 16.0),
+        ("landmarks/kulturpalast_warschau", 16.0), ("landmarks/freiheitsdenkmal_riga", 32.0),
+        ("landmarks/nevsky_kathedrale", 32.0), ("landmarks/stadtpfarrkirche_sibiu", 32.0),
+        ("landmarks/catedrala_timisoara", 32.0), ("landmarks/catedrala_mantuirii", 24.0),
+        ("landmarks/palatul_parlamentului", 16.0),
     )
 })
 # --- end AS6 ------------------------------------------------------------------------------------------------------
