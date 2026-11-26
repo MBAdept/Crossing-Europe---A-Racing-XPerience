@@ -1964,7 +1964,7 @@ seitdem nicht geändert).
 | `city_eastern_house_a` | 605 | 0,90–1,05 | 8 170 / 6 980 | baked_cutout / baked_cutout | 1024×1024 | 21,1 / 42,2 | 238 / 297 kB | 184 s |
 | `city_spanish_casa` | 543 | 0,90–1,10 | 2 744 / 1 403 | baked_cutout / baked_cutout | 1024×1024 | 35,0 / 58,3 | 65 / 348 kB | 151 s |
 | `city_spanish_block` | 464 | 0,90–1,15 | 8 287 / 4 692 | baked_cutout / baked | 2048×1024 | 38,3 / 47,9 | 125 / 623 kB | 302 s |
-| `city_eastern_house_c` | 418 | 0,90–1,05 | 5 220 / 3 070 | baked_cutout / baked_cutout | 1024×1024 | 28,7 / 47,9 | 167 / 320 kB | 205 s |
+| `city_eastern_house_c` | 418 | 0,90–1,05 | 5 220 / 4 526 | baked_cutout / baked_cutout | 1024×1024 | 28,7 / 47,9 | 194 / 320 kB | 171 s |
 | `city_balkan_house` | 272 | 0,90–1,10 | 3 364 / 2 734 | baked / baked | 1024×1024 | 39,3 / 65,5 | 92 / 351 kB | 124 s |
 | `city_central_jugendstil` | 267 | 0,95–1,15 | 4 787 / 1 281 | baked_cutout / baked | 2048×1024 | 41,0 / 51,2 | 83 / 724 kB | 305 s |
 | `city_central_barock` | 240 | 0,95–1,10 | 4 537 / 2 900 | baked / baked | 2048×1024 | 35,6 / 44,5 | 108 / 379 kB | 352 s |
@@ -1986,8 +1986,8 @@ seitdem nicht geändert).
 | `city_vienna_kirche` | 6 | 1,02–2,20 | 4 469 / 3 416 | baked / baked | 2048×1024 | 14,5 / 29,0 | 108 / 388 kB | 350 s |
 
 Summe der 23 Modelle im Archiv (deflate -9 je Datei, wie `tools/pck_report.py`; Texturen = die importierte
-VRAM-Textur `.ctex`, die das PCK trägt): C1 0,96 MB Netze und 5,32 MB Texturen, C2 1,61 / 5,89 MB (Grenze je Charge
-3 / 7 MB), zusammen 2,56 / 11,21 MB. Zwei Zeichenaufrufe je Stufe (`baked` bzw. `baked_cutout` + `vpbr`), kein
+VRAM-Textur `.ctex`, die das PCK trägt): C1 0,96 MB Netze und 5,32 MB Texturen, C2 1,64 / 5,89 MB (Grenze je Charge
+3 / 7 MB), zusammen 2,59 / 11,21 MB. Zwei Zeichenaufrufe je Stufe (`baked` bzw. `baked_cutout` + `vpbr`), kein
 Fernbild. Alle unter 10 000 Dreiecken in lod0. „px/m Straße min“ ist die kleinste Dichte der Straßenwände (bei den
 Gartenhäusern die Gartenmauer bzw. der Zaun mit 0,6 der Dichte, bei der Wiener Kirche die Turmhelme über 40 m),
 „Packdichte“ die Dichte des Atlas, „Export“ die Zeit mit Bake (`nice -n 10`, ein Arbeiter, geteilte Maschine).
@@ -2007,7 +2007,8 @@ Nichts am Bauer und nichts an den Generatoren: Die 23 Sets nutzen nur Katalog-Op
 - **Blattkarten für die Gartenbäume** (`leaf_cards`, Hilfsfunktion `_leaf` im Katalog): Orangenbaum der Casa, Apfelbaum
   (Haus A), Gartenbaum (Haus C), Feige (Balkanhaus B), Flieder (Holzhaus), Birke (Holzhaus B).
 - **Dezimieren statt Kürzen:** Haus C trug im Generator 23 000 Garten-Dreiecke (Thujen-Hecke); `decimate` 0,12 auf
-  die Thujen bringt das Modell auf 5 220 / 3 070.
+  die Thujen bringt das Modell auf 5 220 / 4 526. lod1 nimmt die Hecke wie lod0: ein zweites Dezimieren (0,4) kippte
+  89 dünne Dreiecke gegen ihre Normalen (validate_models).
 - Erker mit echten Fenstern (`oriel`) am Wiener Zinshaus, `rail_module` für alle durchlaufenden Geländer, Läden mit
   Auslage (`bars`, `shop_depth`) in Zinshaus, Block, Ziegelhaus, Mailänder Block, Jugendstil und Eckturm.
 
