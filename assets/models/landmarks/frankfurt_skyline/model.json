@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "landmarks/frankfurt_skyline",
+ "model": {
+  "kind": "landmark",
+  "object": {"width_m": 320, "height_m": 300, "length_m": 80},
+  "extent_m": {"left": 157.48, "right": 148.98},
+  "aabb": [-151.706, 0, -77, 163.445, 300.85, -5],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 1936,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "landmarks/frankfurt_skyline/lod0_body.res",
+      "classes": ["baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "landmarks/frankfurt_skyline/albedo.webp", "emit": "landmarks/frankfurt_skyline/emit.png"},
+  "roughness": 0.85,
+  "auto_lod": true,
+  "tags": ["prop", "landmark"],
+  "bytes": 1338336,
+  "hash": "c02f2fff43b07da6164fc4810eabf5e68902396f"
+ },
+ "sets": {
+  "landmarks/frankfurt_skyline": {"model": "landmarks/frankfurt_skyline"}
+ }
+}
