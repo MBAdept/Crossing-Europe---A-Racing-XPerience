@@ -1945,3 +1945,100 @@ noch +1 bis +21). Das Sprite hat seine Schatten eingebacken. Ohne Schatten ist d
 Kompatibilitäts-Renderer das Sonnenlicht dann in einem anderen Durchgang rechnet) – verglichen wird nur der Verlauf
 über die Entfernung. Abhilfe gehört in den Renderer (R4/R7): jenseits der Schattenreichweite den gerichteten Anteil
 auf Gebäuden um einen mittleren Schattenanteil senken oder ein Fernbild mit eingebackenen Schatten (A-16).
+
+## 23. Stadthäuser eastern, vienna, spanish, italian, central, balkan und baltic (Welle 6, AS5b)
+
+Die 23 übrigen Stadthaus-Sets von `props_cities.py` haben Echtzeit-Modelle aus demselben Bauer `city` wie die
+Abschnitte 20–22, in zwei Chargen: C1 eastern_plattenbau, vienna (Zinshaus, Palais, Kirche), spanish (Casa, Block,
+Ladrillo) und italian (Block, Palazzo, Venezia); C2 central (Barock, Jugendstil, Eckturm), die drei Häuser von
+eastern, balkan (Haus, Haus B, Plattenbau, Kirche) und baltic (Jugendstil, Holzhaus, Holzhaus B). Damit haben alle
+46 Stadthaus-Sets ein Modell. Sie stehen in Wien, Linz, München, Passau, Regensburg (vienna), Madrid, Barcelona,
+Saragossa, Burgos, San Sebastián (spanish), Mailand, Venedig, Ljubljana (italian), Prag, Budapest, Ljubljana, Sibiu,
+Timișoara, Leipzig (central), Posen, Warschau, Białystok, Leipzig, Magdeburg (eastern), Belgrad, Sofia, Slavonski
+Brod, Bukarest (balkan), Kaunas und Riga (baltic). Reihenfolge der Tabelle nach Häufigkeit im ganzen Netz (gezählt:
+Platzierungen aller Etappen in beiden Richtungen, mit Wiederholungen; Zählung von AS5a1, die Platzierung hat sich
+seitdem nicht geändert).
+
+| Set | Platzierungen (Netz) | Maßstab im Spiel | Dreiecke lod0 / lod1 | Klassen lod0 / lod1 | Atlas | px/m Straße min / Packdichte | Archiv Netze / Texturen | Export |
+|---|---|---|---|---|---|---|---|---|
+| `city_eastern_house_a` | 605 | 0,90–1,05 | 8 170 / 6 980 | baked_cutout / baked_cutout | 1024×1024 | 21,1 / 42,2 | 238 / 297 kB | 184 s |
+| `city_spanish_casa` | 543 | 0,90–1,10 | 2 744 / 1 403 | baked_cutout / baked_cutout | 1024×1024 | 35,0 / 58,3 | 65 / 348 kB | 151 s |
+| `city_spanish_block` | 464 | 0,90–1,15 | 8 287 / 4 692 | baked_cutout / baked | 2048×1024 | 38,3 / 47,9 | 125 / 623 kB | 302 s |
+| `city_eastern_house_c` | 418 | 0,90–1,05 | 5 220 / 3 070 | baked_cutout / baked_cutout | 1024×1024 | 28,7 / 47,9 | 167 / 320 kB | 205 s |
+| `city_balkan_house` | 272 | 0,90–1,10 | 3 364 / 2 734 | baked / baked | 1024×1024 | 39,3 / 65,5 | 92 / 351 kB | 124 s |
+| `city_central_jugendstil` | 267 | 0,95–1,15 | 4 787 / 1 281 | baked_cutout / baked | 2048×1024 | 41,0 / 51,2 | 83 / 724 kB | 305 s |
+| `city_central_barock` | 240 | 0,95–1,10 | 4 537 / 2 900 | baked / baked | 2048×1024 | 35,6 / 44,5 | 108 / 379 kB | 352 s |
+| `city_eastern_plattenbau` | 208 | 0,81–1,05 | 4 433 / 1 390 | baked / baked | 2048×1024 | 30,2 / 46,5 | 62 / 452 kB | 206 s |
+| `city_vienna_zinshaus` | 170 | 0,95–1,10 | 6 155 / 3 475 | baked / baked | 2048×1024 | 39,6 / 49,5 | 114 / 511 kB | 298 s |
+| `city_balkan_house_b` | 133 | 0,90–1,10 | 6 462 / 5 360 | baked_cutout / baked_cutout | 1024×1024 | 30,5 / 50,8 | 189 / 312 kB | 166 s |
+| `city_eastern_house_b` | 128 | 0,90–1,05 | 4 029 / 2 836 | baked_cutout / baked_cutout | 1024×1024 | 37,7 / 62,9 | 114 / 329 kB | 203 s |
+| `city_baltic_wood` | 124 | 0,90–1,10 | 6 080 / 4 512 | baked_cutout / baked_cutout | 1024×1024 | 28,1 / 46,8 | 169 / 348 kB | 283 s |
+| `city_italian_block` | 93 | 0,92–1,10 | 6 238 / 2 810 | baked_cutout / baked | 2048×1024 | 43,5 / 54,4 | 96 / 663 kB | 275 s |
+| `city_spanish_ladrillo` | 81 | 0,96–1,10 | 7 107 / 5 353 | baked_cutout / baked | 2048×1024 | 44,3 / 55,4 | 124 / 774 kB | 385 s |
+| `city_vienna_palais` | 62 | 0,95–1,10 | 6 999 / 4 049 | baked_cutout / baked | 2048×1024 | 31,9 / 39,9 | 121 / 474 kB | 252 s |
+| `city_baltic_jugendstil` | 54 | 0,96–1,13 | 3 874 / 1 399 | baked_cutout / baked | 2048×1024 | 42,8 / 53,4 | 77 / 520 kB | 330 s |
+| `city_italian_palazzo` | 51 | 0,95–1,15 | 5 170 / 3 159 | baked_cutout / baked | 2048×1024 | 38,6 / 48,3 | 87 / 546 kB | 274 s |
+| `city_baltic_wood_b` | 46 | 0,90–1,04 | 3 975 / 3 057 | baked_cutout / baked_cutout | 1024×1024 | 34,9 / 58,2 | 115 / 317 kB | 184 s |
+| `city_balkan_plattenbau` | 35 | 0,87–1,05 | 7 628 / 1 888 | baked / baked | 2048×1024 | 23,7 / 36,4 | 106 / 673 kB | 192 s |
+| `city_italian_venezia` | 14 | 0,95–1,12 | 3 408 / 1 229 | baked_cutout / baked | 2048×1024 | 44,7 / 55,9 | 56 / 537 kB | 338 s |
+| `city_balkan_church` | 13 | 0,90–1,09 | 3 944 / 3 154 | baked / baked | 2048×1024 | 21,2 / 42,4 | 82 / 745 kB | 581 s |
+| `city_central_eckturm` | 11 | 0,95–1,10 | 3 961 / 1 941 | baked / baked | 2048×1024 | 35,6 / 44,5 | 67 / 574 kB | 285 s |
+| `city_vienna_kirche` | 6 | 1,02–2,20 | 4 469 / 3 416 | baked / baked | 2048×1024 | 14,5 / 29,0 | 108 / 388 kB | 350 s |
+
+Summe der 23 Modelle im Archiv (deflate -9 je Datei, wie `tools/pck_report.py`; Texturen = die importierte
+VRAM-Textur `.ctex`, die das PCK trägt): C1 0,96 MB Netze und 5,32 MB Texturen, C2 1,61 / 5,89 MB (Grenze je Charge
+3 / 7 MB), zusammen 2,56 / 11,21 MB. Zwei Zeichenaufrufe je Stufe (`baked` bzw. `baked_cutout` + `vpbr`), kein
+Fernbild. Alle unter 10 000 Dreiecken in lod0. „px/m Straße min“ ist die kleinste Dichte der Straßenwände (bei den
+Gartenhäusern die Gartenmauer bzw. der Zaun mit 0,6 der Dichte, bei der Wiener Kirche die Turmhelme über 40 m),
+„Packdichte“ die Dichte des Atlas, „Export“ die Zeit mit Bake (`nice -n 10`, ein Arbeiter, geteilte Maschine).
+
+### Was neu ist
+
+Nichts am Bauer und nichts an den Generatoren: Die 23 Sets nutzen nur Katalog-Optionen der Abschnitte 20–22
+(`check_sprite_geometry` hat nichts zu prüfen – die Sprites sind dieselben). Je Set eigene Werte für:
+
+- **`cut_fill` nach dem, was hinter dem Gitter steht.** Die Lücken eines ausgeschnittenen Geländers wiegen in den
+  Mips 0,4 – ihre Füllfarbe entscheidet, welche Farbe das Geländer ab 30–60 m hat. Dichte Stäbe vor dunklen
+  Fenstertüren bekommen eine dunkle Füllung (Rejas der Casa `#3d3b38`, Ziegelhaus `#4a3a34`, Mailänder Block
+  `#4a3e36`), ein offenes Gitter oder eine weiße Balustrade vor heller Wand die beschattete Wandfarbe (Jugendstil
+  `#cfc5ab`, Balkanhaus B, baltische Holzhäuser). Gemessen am falschen Fall: Die Jugendstil-Balkone waren mit der
+  dunklen Füllung `#4a4640` ab 30 m schwarze Blöcke (im Sprite hell und zart), nach dem Wechsel hellgrau und
+  durchbrochen; die Rejas der Casa mit heller Füllung aus 100 m graue Kästen.
+- **Blattkarten für die Gartenbäume** (`leaf_cards`, Hilfsfunktion `_leaf` im Katalog): Orangenbaum der Casa, Apfelbaum
+  (Haus A), Gartenbaum (Haus C), Feige (Balkanhaus B), Flieder (Holzhaus), Birke (Holzhaus B).
+- **Dezimieren statt Kürzen:** Haus C trug im Generator 23 000 Garten-Dreiecke (Thujen-Hecke); `decimate` 0,12 auf
+  die Thujen bringt das Modell auf 5 220 / 3 070.
+- Erker mit echten Fenstern (`oriel`) am Wiener Zinshaus, `rail_module` für alle durchlaufenden Geländer, Läden mit
+  Auslage (`bars`, `shop_depth`) in Zinshaus, Block, Ziegelhaus, Mailänder Block, Jugendstil und Eckturm.
+
+### Hook im Generator
+
+Keiner.
+
+### Tönung
+
+`city_vienna_kirche` wird an 2 von 6 Stellen mit `#f4f2ec` getönt; der Renderer legt die Tönung auf die
+Modell-Instanz (R7). Die anderen 22 Sets sind nirgends getönt.
+
+### Messungen (llvmpipe, Prüfszene im Renn-Look, gemessen)
+
+| Messung | Ergebnis |
+|---|---|
+| Stufenwechsel lod0 → lod1 bei 60 m („Mittel“), 12 Uhr | 3,8 % (Wiener Kirche) bis 17,7 % (Zinshaus) der Pixel, Helligkeit −2,2 bis +1,8 % |
+| dasselbe, 22 Uhr | 1,4 bis 12,7 % der Pixel, Helligkeit −0,8 bis +3,1 % |
+| Fernbild-Stufe gegen Sprite bei 200 m, 12 Uhr: Plattenbauten | eastern +23 %, balkan −25 % Helligkeit – beide Sprites sind gedreht und zeigen eine beschattete Flanke, das Modell steht frontal; im Rennen (A/B Warschau, Sofia) nicht auffällig |
+| Rennen A/B, Arcade gegen Modern im selben Zustand (Hoch) | Warschau Tag/Nacht, Leipzig-Rand, Wien Tag/Nacht, Linz, Madrid Zentrum/Rand, Mailand: Umriss, Maßstab und Farben an derselben Stelle wie Arcade, Modern mit Tiefe, Gittern und Auslagen |
+
+### Ehrliche Einordnung
+
+Gut: Umriss, Geschosse, Dächer und Farben wie die Sprites; Tiefe an Front und Flanke – Loggien mit Brüstungen,
+Stuck und Ädikulen, Pilaster, Rustika, Gitterbalkone, Rejas und Persiane, Läden mit Waren, Erker mit Kupferkuppel,
+Zsolnay-Dach, Zwiebelhauben, Stülpschalung. Gartenbäume auf Blattkarten statt Kugelkronen. Nachts leuchten dieselben
+Fenster wie im Sprite, Läden mit Auslage.
+
+Noch nicht gut: Die Gartenhäuser sparen in lod1 wenig (Haus A 6 980 von 8 170, Balkanhaus B, Holzhäuser): Zaunstäbe
+und Blattkarten bleiben – im Budget, aber Haus A ist das häufigste Set von allen (605). Die Tambourkuppel der Wiener
+Kirche verdeckt aus Straßenhöhe der Giebel. Das Hauszeichen des Barockhauses ist eine achteckige Scheibe (aus 10 m
+sichtbar). Die Nachtfassaden sind im Rennen heller als in Arcade (Wien 1,7 ×, Warschau 1,5 × im Median der Fassade):
+das Lichtgesetz des Renderers (docs/renderer-modern.md 9.6) hebt helle Albedos nachts an, die Sprites haben ihre
+Schatten eingebacken – keine Modellfrage.
