@@ -262,6 +262,32 @@
    "bytes": 263295,
    "hash": "0c87900cb6a78696757d15fce1c1901f35db091a"
   },
+  "landmarks/stephansdom": {
+   "kind": "landmark",
+   "object": {"width_m": 113, "height_m": 136.4, "length_m": 49},
+   "extent_m": {"left": 64.85, "right": 48.61},
+   "aabb": [-55.603, 0, -48.5, 57.6, 136.4, 1.1],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 3410,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/stephansdom/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/stephansdom/albedo.webp", "emit": "landmarks/stephansdom/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 1060860,
+   "hash": "47390a30a848086f7fef770649a9d822d11b7231"
+  },
   "player/gran_turismo": {
    "kind": "vehicle",
    "object": {"width_m": 1.95, "length_m": 4.95, "height_m": 1.285},
@@ -10047,10 +10073,7 @@
    "fallback": "sprite",
    "object": {"width_m": 30.8, "height_m": 73.3, "length_m": 83.0}
   },
-  "landmarks/stephansdom": {
-   "fallback": "sprite",
-   "object": {"width_m": 113.0, "height_m": 136.4, "length_m": 49.0}
-  },
+  "landmarks/stephansdom": {"model": "landmarks/stephansdom"},
   "landmarks/veitsdom_prag": {
    "fallback": "sprite",
    "object": {"width_m": 174.0, "height_m": 96.5, "length_m": 80.0}
