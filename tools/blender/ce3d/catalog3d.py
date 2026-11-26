@@ -1021,27 +1021,33 @@ MODELS.update({
 # layer (floodlighting, lit windows) into the emission atlas, flat lamp materials (aviation lights) as light anchors;
 # auto_lod decimates the far levels. The renderer draws a landmark from its model as soon as the manifest has one
 # (docs/renderer-modern.md 19.2). Own block.
+# Atlas by size (validate_models: all texture sources <= 60 MB, VRAM <= 240 MB; after L1 50.4 / 159 MB): the large
+# and ornate landmarks 2048x2048, the medium ones 2048x1024, the slim towers and the monument 1024x1024.
+_LM_BIG, _LM_MID, _LM_SMALL = (2048, 2048), (2048, 1024), (1024, 1024)
 MODELS.update({
-    name: dict(builder="prop_baked", source=name, kind="landmark", atlas=(2048, 2048), ppm_max=ppm,
+    name: dict(builder="prop_baked", source=name, kind="landmark", atlas=atlas, ppm_max=ppm,
                roughness=0.85, auto_lod=True, view="roadside", code=["cesprites/props_buildings.py"])
-    for name, ppm in (
+    for name, ppm, atlas in (
         # batch L1: the race Kiel - Nuernberg and Germany (st_petri_riga also stands in Rostock)
-        ("landmarks/elbphilharmonie", 24.0), ("landmarks/kaiserburg_nuernberg", 32.0), ("landmarks/dom_fulda", 32.0),
-        ("landmarks/frankfurt_skyline", 16.0), ("landmarks/koelner_dom", 24.0), ("landmarks/fernsehturm_berlin", 20.0),
-        ("landmarks/frauenkirche_dresden", 32.0), ("landmarks/frauenkirche_muenchen", 32.0),
-        ("landmarks/st_petri_riga", 32.0),
+        ("landmarks/elbphilharmonie", 24.0, _LM_BIG), ("landmarks/kaiserburg_nuernberg", 32.0, _LM_BIG),
+        ("landmarks/dom_fulda", 32.0, _LM_BIG), ("landmarks/frankfurt_skyline", 16.0, _LM_BIG),
+        ("landmarks/koelner_dom", 24.0, _LM_BIG), ("landmarks/fernsehturm_berlin", 20.0, _LM_BIG),
+        ("landmarks/frauenkirche_dresden", 32.0, _LM_BIG), ("landmarks/frauenkirche_muenchen", 32.0, _LM_BIG),
+        ("landmarks/st_petri_riga", 32.0, _LM_BIG),
         # batch L2: Austria, Prague, Paris, Brussels, Calais, Milan
-        ("landmarks/stephansdom", 24.0), ("landmarks/riesenrad", 32.0), ("landmarks/mariendom_linz", 24.0),
-        ("landmarks/dom_passau", 32.0), ("landmarks/dom_regensburg", 24.0), ("landmarks/veitsdom_prag", 24.0),
-        ("landmarks/eiffel_tower", 16.0), ("landmarks/atomium", 24.0), ("landmarks/basilika_koekelberg", 24.0),
-        ("landmarks/beffroi_calais", 32.0), ("landmarks/duomo_milano", 24.0),
+        ("landmarks/stephansdom", 24.0, _LM_BIG), ("landmarks/riesenrad", 32.0, _LM_MID),
+        ("landmarks/mariendom_linz", 24.0, _LM_BIG), ("landmarks/dom_passau", 32.0, _LM_MID),
+        ("landmarks/dom_regensburg", 24.0, _LM_MID), ("landmarks/veitsdom_prag", 24.0, _LM_MID),
+        ("landmarks/eiffel_tower", 16.0, _LM_BIG), ("landmarks/atomium", 24.0, _LM_MID),
+        ("landmarks/basilika_koekelberg", 24.0, _LM_BIG), ("landmarks/beffroi_calais", 32.0, _LM_SMALL),
+        ("landmarks/duomo_milano", 24.0, _LM_BIG),
         # batch L3: Venice, Spain, Budapest, Warsaw, Riga, Sofia, Romania
-        ("landmarks/campanile_venezia", 32.0), ("landmarks/sagrada_familia", 20.0), ("landmarks/basilica_pilar", 24.0),
-        ("landmarks/kathedrale_burgos", 24.0), ("landmarks/parlament_budapest", 16.0),
-        ("landmarks/kulturpalast_warschau", 16.0), ("landmarks/freiheitsdenkmal_riga", 32.0),
-        ("landmarks/nevsky_kathedrale", 32.0), ("landmarks/stadtpfarrkirche_sibiu", 32.0),
-        ("landmarks/catedrala_timisoara", 32.0), ("landmarks/catedrala_mantuirii", 24.0),
-        ("landmarks/palatul_parlamentului", 16.0),
+        ("landmarks/campanile_venezia", 32.0, _LM_SMALL), ("landmarks/sagrada_familia", 20.0, _LM_BIG),
+        ("landmarks/basilica_pilar", 24.0, _LM_MID), ("landmarks/kathedrale_burgos", 24.0, _LM_MID),
+        ("landmarks/parlament_budapest", 16.0, _LM_BIG), ("landmarks/kulturpalast_warschau", 16.0, _LM_BIG),
+        ("landmarks/freiheitsdenkmal_riga", 32.0, _LM_SMALL), ("landmarks/nevsky_kathedrale", 32.0, _LM_MID),
+        ("landmarks/stadtpfarrkirche_sibiu", 32.0, _LM_MID), ("landmarks/catedrala_timisoara", 32.0, _LM_MID),
+        ("landmarks/catedrala_mantuirii", 24.0, _LM_BIG), ("landmarks/palatul_parlamentului", 16.0, _LM_BIG),
     )
 })
 # --- end AS6 ------------------------------------------------------------------------------------------------------
