@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "landmarks/riesenrad",
+ "model": {
+  "kind": "landmark",
+  "object": {"width_m": 63, "height_m": 64.75, "length_m": 24},
+  "extent_m": {"left": 35.79, "right": 26.03},
+  "aabb": [-33.213, -0.889, -22.948, 33.213, 65.301, -1.052],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 17816,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "landmarks/riesenrad/lod0_body.res",
+      "classes": ["baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "landmarks/riesenrad/albedo.webp", "emit": "landmarks/riesenrad/emit.png"},
+  "roughness": 0.85,
+  "auto_lod": true,
+  "tags": ["prop", "landmark"],
+  "bytes": 637394,
+  "hash": "fb46601648b431ea5057bf8405a602b7ae7de7a9"
+ },
+ "sets": {
+  "landmarks/riesenrad": {"model": "landmarks/riesenrad"}
+ }
+}

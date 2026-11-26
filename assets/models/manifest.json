@@ -236,6 +236,32 @@
    "bytes": 440949,
    "hash": "17f842e877e00dc397b43e5ead7623d6ea4f2c46"
   },
+  "landmarks/riesenrad": {
+   "kind": "landmark",
+   "object": {"width_m": 63, "height_m": 64.75, "length_m": 24},
+   "extent_m": {"left": 35.79, "right": 26.03},
+   "aabb": [-33.213, -0.889, -22.948, 33.213, 65.301, -1.052],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 17816,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/riesenrad/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/riesenrad/albedo.webp", "emit": "landmarks/riesenrad/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 637394,
+   "hash": "fb46601648b431ea5057bf8405a602b7ae7de7a9"
+  },
   "landmarks/st_petri_riga": {
    "kind": "landmark",
    "object": {"width_m": 75, "height_m": 123.25, "length_m": 30},
@@ -10060,10 +10086,7 @@
    "fallback": "sprite",
    "object": {"width_m": 268.0, "height_m": 96.0, "length_m": 123.0}
   },
-  "landmarks/riesenrad": {
-   "fallback": "sprite",
-   "object": {"width_m": 63.0, "height_m": 64.75, "length_m": 24.0}
-  },
+  "landmarks/riesenrad": {"model": "landmarks/riesenrad"},
   "landmarks/sagrada_familia": {
    "fallback": "sprite",
    "object": {"width_m": 93.0, "height_m": 172.5, "length_m": 62.0}
