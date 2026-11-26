@@ -210,6 +210,32 @@
    "bytes": 924581,
    "hash": "ccf8543495836811325c4be0c350da451bf2160c"
   },
+  "landmarks/mariendom_linz": {
+   "kind": "landmark",
+   "object": {"width_m": 60, "height_m": 134.8, "length_m": 130},
+   "extent_m": {"left": 60.79, "right": 12.09},
+   "aabb": [-31.1, 0, -131.8, 31.1, 134.8, -0.6],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 5888,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/mariendom_linz/lod0_body.res",
+       "classes": ["baked", "baked_cutout"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/mariendom_linz/albedo.webp", "emit": "landmarks/mariendom_linz/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 772415,
+   "hash": "f36d811ee38b88244a356c820e14c56b9684ccd1"
+  },
   "landmarks/michel": {
    "kind": "landmark",
    "object": {"width_m": 72, "height_m": 132, "length_m": 44},
@@ -10069,10 +10095,7 @@
    "fallback": "sprite",
    "object": {"width_m": 190.0, "height_m": 237.0, "length_m": 68.0}
   },
-  "landmarks/mariendom_linz": {
-   "fallback": "sprite",
-   "object": {"width_m": 60.0, "height_m": 134.8, "length_m": 130.0}
-  },
+  "landmarks/mariendom_linz": {"model": "landmarks/mariendom_linz"},
   "landmarks/michel": {"model": "landmarks/michel"},
   "landmarks/nevsky_kathedrale": {
    "fallback": "sprite",

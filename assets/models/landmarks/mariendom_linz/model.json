@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "landmarks/mariendom_linz",
+ "model": {
+  "kind": "landmark",
+  "object": {"width_m": 60, "height_m": 134.8, "length_m": 130},
+  "extent_m": {"left": 60.79, "right": 12.09},
+  "aabb": [-31.1, 0, -131.8, 31.1, 134.8, -0.6],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 5888,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "landmarks/mariendom_linz/lod0_body.res",
+      "classes": ["baked", "baked_cutout"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "landmarks/mariendom_linz/albedo.webp", "emit": "landmarks/mariendom_linz/emit.png"},
+  "roughness": 0.85,
+  "auto_lod": true,
+  "tags": ["prop", "landmark"],
+  "bytes": 772415,
+  "hash": "f36d811ee38b88244a356c820e14c56b9684ccd1"
+ },
+ "sets": {
+  "landmarks/mariendom_linz": {"model": "landmarks/mariendom_linz"}
+ }
+}
