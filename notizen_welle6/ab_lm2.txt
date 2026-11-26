@@ -1,0 +1,12 @@
+lm_riesenrad budapest_wien budapest 239.7 12
+lm_stephansdom budapest_wien budapest 242.9 12
+lm_mariendom_linz wien_linz wien 182.9 12
+lm_dom_passau linz_passau linz 113.3 12
+lm_dom_regensburg passau_regensburg passau 118.3 12
+lm_veitsdom_prag wien_prag wien 333.1 12
+lm_eiffel_tower luettich_paris luettich 393.5 12
+lm_atomium koeln_bruessel koeln 211.7 12
+lm_basilika_koekelberg koeln_bruessel koeln 213.1 12
+lm_beffroi_calais bruessel_calais bruessel 213.1 12
+lm_duomo_milano bern_mailand bern 362.3 12
+lm_riesenrad_nacht budapest_wien budapest 239.7 22

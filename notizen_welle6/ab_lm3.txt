@@ -1,0 +1,12 @@
+lm_campanile_venezia mailand_venedig mailand 273.3 12
+lm_sagrada_familia saragossa_barcelona saragossa 296.4 12
+lm_basilica_pilar madrid_saragossa madrid 313.3 12
+lm_kathedrale_burgos san_sebastian_burgos san_sebastian 222.7 12
+lm_parlament_budapest belgrad_budapest belgrad 398.1 12
+lm_kulturpalast_warschau posen_warschau posen 302.2 12
+lm_freiheitsdenkmal_riga kaunas_riga kaunas 253.1 12
+lm_nevsky_kathedrale belgrad_sofia belgrad 392.3 12
+lm_stadtpfarrkirche_sibiu bukarest_sibiu bukarest 278.1 12
+lm_catedrala_timisoara sibiu_timisoara sibiu 272.9 12
+lm_catedrala_mantuirii bukarest_sibiu sibiu 277.7 12
+lm_palatul_parlamentului bukarest_sibiu sibiu 275.9 12
