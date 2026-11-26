@@ -184,6 +184,32 @@
    "bytes": 440949,
    "hash": "17f842e877e00dc397b43e5ead7623d6ea4f2c46"
   },
+  "landmarks/st_petri_riga": {
+   "kind": "landmark",
+   "object": {"width_m": 75, "height_m": 123.25, "length_m": 30},
+   "extent_m": {"left": 34.77, "right": 38.97},
+   "aabb": [-31.4, 0, -30.6, 44.6, 123.25, -0.6],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 1308,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/st_petri_riga/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/st_petri_riga/albedo.webp", "emit": "landmarks/st_petri_riga/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 263295,
+   "hash": "0c87900cb6a78696757d15fce1c1901f35db091a"
+  },
   "player/gran_turismo": {
    "kind": "vehicle",
    "object": {"width_m": 1.95, "length_m": 4.95, "height_m": 1.285},
@@ -9970,10 +9996,7 @@
    "fallback": "sprite",
    "object": {"width_m": 93.0, "height_m": 172.5, "length_m": 62.0}
   },
-  "landmarks/st_petri_riga": {
-   "fallback": "sprite",
-   "object": {"width_m": 75.0, "height_m": 123.25, "length_m": 30.0}
-  },
+  "landmarks/st_petri_riga": {"model": "landmarks/st_petri_riga"},
   "landmarks/stadtpfarrkirche_sibiu": {
    "fallback": "sprite",
    "object": {"width_m": 30.8, "height_m": 73.3, "length_m": 83.0}

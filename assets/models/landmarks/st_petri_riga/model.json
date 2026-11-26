@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "landmarks/st_petri_riga",
+ "model": {
+  "kind": "landmark",
+  "object": {"width_m": 75, "height_m": 123.25, "length_m": 30},
+  "extent_m": {"left": 34.77, "right": 38.97},
+  "aabb": [-31.4, 0, -30.6, 44.6, 123.25, -0.6],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 1308,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "landmarks/st_petri_riga/lod0_body.res",
+      "classes": ["baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "landmarks/st_petri_riga/albedo.webp", "emit": "landmarks/st_petri_riga/emit.png"},
+  "roughness": 0.85,
+  "auto_lod": true,
+  "tags": ["prop", "landmark"],
+  "bytes": 263295,
+  "hash": "0c87900cb6a78696757d15fce1c1901f35db091a"
+ },
+ "sets": {
+  "landmarks/st_petri_riga": {"model": "landmarks/st_petri_riga"}
+ }
+}
