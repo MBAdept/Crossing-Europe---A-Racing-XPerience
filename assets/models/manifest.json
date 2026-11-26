@@ -80,6 +80,32 @@
    "bytes": 310207,
    "hash": "e603dd7ca51dc8ca8998a6fdee98e85d43af242b"
   },
+  "landmarks/koelner_dom": {
+   "kind": "landmark",
+   "object": {"width_m": 86.2, "height_m": 157.4, "length_m": 144.6},
+   "extent_m": {"left": 73.83, "right": 30.72},
+   "aabb": [-44.5, 0, -146.231, 44.5, 157.38, 0],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 11900,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/koelner_dom/lod0_body.res",
+       "classes": ["baked", "baked_cutout"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/koelner_dom/albedo.webp", "emit": "landmarks/koelner_dom/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 924581,
+   "hash": "ccf8543495836811325c4be0c350da451bf2160c"
+  },
   "landmarks/michel": {
    "kind": "landmark",
    "object": {"width_m": 72, "height_m": 132, "length_m": 44},
@@ -9868,10 +9894,7 @@
    "fallback": "sprite",
    "object": {"width_m": 59.0, "height_m": 88.0, "length_m": 106.0}
   },
-  "landmarks/koelner_dom": {
-   "fallback": "sprite",
-   "object": {"width_m": 86.2, "height_m": 157.4, "length_m": 144.6}
-  },
+  "landmarks/koelner_dom": {"model": "landmarks/koelner_dom"},
   "landmarks/kulturpalast_warschau": {
    "fallback": "sprite",
    "object": {"width_m": 190.0, "height_m": 237.0, "length_m": 68.0}
