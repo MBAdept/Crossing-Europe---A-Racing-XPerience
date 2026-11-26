@@ -54,6 +54,32 @@
    "bytes": 351353,
    "hash": "354394db8d95f3f15049e0349f5e0662f490cc50"
   },
+  "landmarks/fernsehturm_berlin": {
+   "kind": "landmark",
+   "object": {"width_m": 78, "height_m": 368, "length_m": 70},
+   "extent_m": {"left": 52.96, "right": 26.28},
+   "aabb": [-37.275, 0, -78, 37.275, 368.8, 0],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 4548,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/fernsehturm_berlin/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/fernsehturm_berlin/albedo.webp", "emit": "landmarks/fernsehturm_berlin/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 280769,
+   "hash": "dbaf6d6b5b7645e2a46f60341018d48c2ba5e307"
+  },
   "landmarks/frauenkirche_dresden": {
    "kind": "landmark",
    "object": {"width_m": 46.4, "height_m": 91, "length_m": 55.2},
@@ -9947,10 +9973,7 @@
    "object": {"width_m": 125.0, "height_m": 330.0, "length_m": 125.0}
   },
   "landmarks/elbphilharmonie": {"model": "landmarks/elbphilharmonie"},
-  "landmarks/fernsehturm_berlin": {
-   "fallback": "sprite",
-   "object": {"width_m": 78.0, "height_m": 368.0, "length_m": 70.0}
-  },
+  "landmarks/fernsehturm_berlin": {"model": "landmarks/fernsehturm_berlin"},
   "landmarks/frankfurt_skyline": {
    "fallback": "sprite",
    "object": {"width_m": 320.0, "height_m": 300.0, "length_m": 80.0}

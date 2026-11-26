@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "landmarks/fernsehturm_berlin",
+ "model": {
+  "kind": "landmark",
+  "object": {"width_m": 78, "height_m": 368, "length_m": 70},
+  "extent_m": {"left": 52.96, "right": 26.28},
+  "aabb": [-37.275, 0, -78, 37.275, 368.8, 0],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 4548,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "landmarks/fernsehturm_berlin/lod0_body.res",
+      "classes": ["baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "landmarks/fernsehturm_berlin/albedo.webp", "emit": "landmarks/fernsehturm_berlin/emit.png"},
+  "roughness": 0.85,
+  "auto_lod": true,
+  "tags": ["prop", "landmark"],
+  "bytes": 280769,
+  "hash": "dbaf6d6b5b7645e2a46f60341018d48c2ba5e307"
+ },
+ "sets": {
+  "landmarks/fernsehturm_berlin": {"model": "landmarks/fernsehturm_berlin"}
+ }
+}
