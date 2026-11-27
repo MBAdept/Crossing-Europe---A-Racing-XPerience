@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "landmarks/catedrala_mantuirii",
+ "model": {
+  "kind": "landmark",
+  "object": {"width_m": 67.5, "height_m": 127, "length_m": 126},
+  "extent_m": {"left": 72.88, "right": 24.18},
+  "aabb": [-34, 0, -126.4, 34, 127, 0.4],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 5176,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "landmarks/catedrala_mantuirii/lod0_body.res",
+      "classes": ["baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "landmarks/catedrala_mantuirii/albedo.webp", "emit": "landmarks/catedrala_mantuirii/emit.png"},
+  "roughness": 0.85,
+  "auto_lod": true,
+  "tags": ["prop", "landmark"],
+  "bytes": 400689,
+  "hash": "481c26fa987698bd6af2cf11833a29572a96fa25"
+ },
+ "sets": {
+  "landmarks/catedrala_mantuirii": {"model": "landmarks/catedrala_mantuirii"}
+ }
+}

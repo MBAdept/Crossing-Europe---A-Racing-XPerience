@@ -132,6 +132,32 @@
    "bytes": 685968,
    "hash": "254cbc994bcb7a3fccb4830c78413545ea4425f5"
   },
+  "landmarks/catedrala_mantuirii": {
+   "kind": "landmark",
+   "object": {"width_m": 67.5, "height_m": 127, "length_m": 126},
+   "extent_m": {"left": 72.88, "right": 24.18},
+   "aabb": [-34, 0, -126.4, 34, 127, 0.4],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 5176,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/catedrala_mantuirii/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/catedrala_mantuirii/albedo.webp", "emit": "landmarks/catedrala_mantuirii/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 400689,
+   "hash": "481c26fa987698bd6af2cf11833a29572a96fa25"
+  },
   "landmarks/catedrala_timisoara": {
    "kind": "landmark",
    "object": {"width_m": 48, "height_m": 90.5, "length_m": 63},
@@ -10504,10 +10530,7 @@
   "landmarks/basilika_koekelberg": {"model": "landmarks/basilika_koekelberg"},
   "landmarks/beffroi_calais": {"model": "landmarks/beffroi_calais"},
   "landmarks/campanile_venezia": {"model": "landmarks/campanile_venezia"},
-  "landmarks/catedrala_mantuirii": {
-   "fallback": "sprite",
-   "object": {"width_m": 67.5, "height_m": 127.0, "length_m": 126.0}
-  },
+  "landmarks/catedrala_mantuirii": {"model": "landmarks/catedrala_mantuirii"},
   "landmarks/catedrala_timisoara": {"model": "landmarks/catedrala_timisoara"},
   "landmarks/dom_fulda": {"model": "landmarks/dom_fulda"},
   "landmarks/dom_passau": {"model": "landmarks/dom_passau"},
