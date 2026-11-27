@@ -463,12 +463,12 @@
      ]
     }
    ],
-   "textures": {"albedo": "landmarks/freiheitsdenkmal_riga/albedo.png", "emit": "landmarks/freiheitsdenkmal_riga/emit.png"},
+   "textures": {"albedo": "landmarks/freiheitsdenkmal_riga/albedo.webp", "emit": "landmarks/freiheitsdenkmal_riga/emit.png"},
    "roughness": 0.85,
    "auto_lod": true,
    "tags": ["prop", "landmark"],
-   "bytes": 210260,
-   "hash": "896389e43ed2de024137a18213e3162514a3f799"
+   "bytes": 45676,
+   "hash": "6d986254d87e07337f5685118a820766ec7b00f0"
   },
   "landmarks/kaiserburg_nuernberg": {
    "kind": "landmark",

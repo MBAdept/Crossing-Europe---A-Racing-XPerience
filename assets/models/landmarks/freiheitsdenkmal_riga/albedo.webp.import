@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://1b0h6blspwoh"
-path.s3tc="res://.godot/imported/albedo.png-6f058ae1e9ba9a32df2e597daf39db2b.s3tc.ctex"
+uid="uid://dfi5t73dux055"
+path.s3tc="res://.godot/imported/albedo.webp-624a76c1fe21c120a26ab5525a59ffb9.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/models/landmarks/freiheitsdenkmal_riga/albedo.png"
-dest_files=["res://.godot/imported/albedo.png-6f058ae1e9ba9a32df2e597daf39db2b.s3tc.ctex"]
+source_file="res://assets/models/landmarks/freiheitsdenkmal_riga/albedo.webp"
+dest_files=["res://.godot/imported/albedo.webp-624a76c1fe21c120a26ab5525a59ffb9.s3tc.ctex"]
 
 [params]
 
