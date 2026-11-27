@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "landmarks/eiffel_tower",
+ "model": {
+  "kind": "landmark",
+  "object": {"width_m": 125, "height_m": 330, "length_m": 125},
+  "extent_m": {"left": 92.27, "right": 62.03},
+  "aabb": [-63.981, -0.8, -126.481, 63.981, 330.65, 1.481],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 25152,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "landmarks/eiffel_tower/lod0_body.res",
+      "classes": ["baked", "baked_cutout"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "landmarks/eiffel_tower/albedo.webp", "emit": "landmarks/eiffel_tower/emit.png"},
+  "roughness": 0.85,
+  "auto_lod": true,
+  "tags": ["prop", "landmark"],
+  "bytes": 1204797,
+  "hash": "e2e43523e60ac57bf2eeb9e08b0967d68060d22b"
+ },
+ "sets": {
+  "landmarks/eiffel_tower": {"model": "landmarks/eiffel_tower"}
+ }
+}
