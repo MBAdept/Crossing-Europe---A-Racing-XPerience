@@ -71,6 +71,10 @@ def _object_size(info, pts):
 def _finish_model(model_id, spec3d, sspec, info, pts):
     model = ModelData(model_id, spec3d["kind"], _object_size(info, pts))
     model.extent_m = sprite_extent(pts, sspec["camera"].get("view_yaw", 0.0))
+    if spec3d.get("kind") == "landmark":
+        # N6 (after wave 6): the turn of the sprite's 3/4 view; the renderer turns the model by it so that it shows
+        # what Arcade's picture shows (docs/renderer-modern.md 19.1)
+        model.extra["view_yaw_deg"] = float(sspec["camera"].get("view_yaw", 0.0))
     model.tags = list(sspec.get("tags", []))
     model.auto_lod = bool(spec3d.get("auto_lod", False))
     for sid in (spec3d.get("sets") or [model_id]):
