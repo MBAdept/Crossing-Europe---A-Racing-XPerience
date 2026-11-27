@@ -21,12 +21,12 @@
     ]
    }
   ],
-  "textures": {"albedo": "landmarks/campanile_venezia/albedo.png", "emit": "landmarks/campanile_venezia/emit.png"},
+  "textures": {"albedo": "landmarks/campanile_venezia/albedo.webp", "emit": "landmarks/campanile_venezia/emit.png"},
   "roughness": 0.85,
   "auto_lod": true,
   "tags": ["prop", "landmark"],
-  "bytes": 685968,
-  "hash": "254cbc994bcb7a3fccb4830c78413545ea4425f5"
+  "bytes": 180156,
+  "hash": "99a11ea2ce4de3dc5825c8976c789b77de40452a"
  },
  "sets": {
   "landmarks/campanile_venezia": {"model": "landmarks/campanile_venezia"}
