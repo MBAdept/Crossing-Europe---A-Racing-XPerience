@@ -1685,7 +1685,8 @@ Bäume und Windräder im ersten Stand dieser Montage (`props.gd` `NO_CUSTOM`).
 
 Gut: Umriss, Geschosse, Dachformen und Fensterraster wie das Sprite (IoU 0,987–0,999, Kran 0,922; gemessen mit
 `k4_scene --mode=outline2`); Tiefe an den Straßenfassaden (Laibungen, Sprossen, Hölzer, Gesimse, Erker, Balkone,
-Türen mit Bogen und Stufen, Schaufenster mit Auslage); nachts dieselben Fenster wie in Arcade; geschlossene Rückseiten.
+Türen mit Bogen und Stufen, Schaufenster mit Auslage); nachts dieselben Fenster wie in Arcade (seit F-04 einige mehr,
+Abschnitt 26); geschlossene Rückseiten.
 
 Nach der Nacharbeit AS5aR1 gut: Die Straßenflanken der Altstadt- und Giebelhäuser haben Fenster und Türen im Stil
 der Front (nachts beleuchtet), der Erker des Turmhauses echte Fenster, die Geländer bleiben in jeder Entfernung als
@@ -1798,7 +1799,7 @@ Rahmen, Sprossen, Sohlbänke, Fensterläden als Geometrie, Haussmann-Balkone mit
 französische Fenstergitter vor echten Fenstern, Läden mit Auslage (Lyon, Brüssel, Bern, Paris), die Arkaden der Lauben
 als echte Öffnungen, Blausteinstürze, Gesimse, Treppen-, Glocken-, Hals-, Gesims- und Volutengiebel. Die
 Straßenflanken, im Sprite blind, haben Fenster und Türen im Stil der Front. Nachts leuchten dieselben Fenster wie im
-Sprite, die Auslagen mit Waren dahinter. Im Rennen (Paris, A/B) zeigt Modern an der Flanke des Haussmann-Blocks
+Sprite (seit F-04 einige mehr, Abschnitt 26), die Auslagen mit Waren dahinter. Im Rennen (Paris, A/B) zeigt Modern an der Flanke des Haussmann-Blocks
 Bogenläden mit Auslage, Balkone und Gitter, wo Arcade eine flache Wand zeigt.
 
 Noch nicht gut: Die Modelle flimmern in Bewegung 2- bis 5-mal so stark wie ihre Sprites (Sprossen, Gitter, Rahmen;
@@ -2270,3 +2271,57 @@ dem Rennen ist der Schatten eines 0,14-m-Stabs ohnehin kaum ein Pixel.
 Für später: Andere Modelle mit Stäben unter einem Pixel (Eiffelturm: als Gitter im Atlas `baked_cutout`, gemessen ohne
 Flimmern über dem Sprite) brauchen die Klasse nicht; neue Wahrzeichen oder Brücken mit Seilen könnten sie nutzen –
 dafür müsste `builders/props.gd` sie mit dem Gesetz der Requisiten zeichnen (heute nur Wahrzeichen).
+
+## 26. Mehr erleuchtete Nachtfenster der AS5a-Stadthäuser (F-04, nach Welle 6)
+
+**Warum.** Die AS5b-Häuser von Welle 6 sind nachts im Rennen heller als Arcade; der Spieler hat entschieden, diese
+„lebendige“ Nachtansicht zu behalten (Frage B-N1 im Bericht von Welle 6). Die 23 älteren Stadthäuser der Abschnitte 20
+und 21 (`german`, `german_old`, `hanse`, `dutch`, `belgian`, `french`, `paris`, `swiss`) lagen darunter: warmes
+Fensterlicht im Median 0,75 × Arcade (AS5b 0,96 ×), das Hansehaus in Hamburg 0,47 ×.
+
+**Was geändert ist** (`ce3d/cities3d.py`, `ce3d/catalog3d.py`):
+
+- `_log_walls(…, lit_k)`: Der Anteil erleuchteter Fenster jedes Fensterrasters (`lit`, wie im Sprite) wird mit `lit_k`
+  multipliziert, höchstens `LIT_MAX` = 0,85 (einige Fenster bleiben immer dunkel) – in der Fassadentextur und im
+  Fensterprotokoll, aus dem die geschnittenen Scheiben von lod0 ihr Licht nehmen, gleich. `wallmat` erleuchtet ein
+  Fenster, wenn seine Zufallszahl `r1 < lit`: Jedes Fenster, das im Sprite leuchtet, leuchtet weiter, einige dunkle
+  kommen dazu. Schaufenster (eigener Anteil) und Türen bleiben, wie sie sind.
+- Katalog: `AS5A_LIT_K` = 1,35 für die 23 AS5a-Modelle (`lit` 0,45 → 0,61, 0,5 → 0,675; ab 0,63 die Grenze 0,85).
+  Ohne `lit_k` exportiert der Bauer byte-gleich (geprüft an `city_balkan_house`).
+- Neu exportiert und gebacken: Dreiecke je Stufe unverändert, nur die Nachtlicht-Atlanten (`emit.png`) ändern sich.
+  Unverändert blieben `city_german_office` (Glasfassade mit eigenem Lichtmaterial, nicht über `wallmat`) und
+  `city_french_sud` (zehn Fenster; keines wechselt mit dem höheren Anteil).
+
+Gleich aussehende Fenster teilen sich im Atlas eine Stelle: Ob ein bestimmtes Fenster eines Hauses neu leuchtet, hängt
+an der Zufallszahl seiner Atlasstelle. Am Lyoner Stadthaus (`city_french_immeuble`) leuchten fünf Stellen mehr, die
+im Bild Lyon aber nicht vorkommen.
+
+### Messungen (llvmpipe, Hoch, 22 Uhr, klar, Abstand der beiden Bilder 2 s)
+
+Anteil warmer Fensterpixel Modern / Arcade im Bild unter der oberen Anzeige (y 100–560), ohne Pixel, die beide Bilder
+gleich zeichnen (Anzeige, Schilder). „Streng“: R > 170, G > 120, B < 150, R > B + 50 (Werkzeug der QA, `warm2.py`);
+„weit“: R > 110, G > 70, R > B + 40 (zählt auch die etwas dunkleren Fenster von Modern mit).
+
+| Stelle | Bild | streng vorher → nachher | weit vorher → nachher |
+|---|---|---|---|
+| Paris (Lüttich – Paris km 387,5) | 1 / 2 | 1,11 → 1,09 / 0,46 → 0,47 | 1,47 → 1,44 / 0,46 → 0,47 |
+| Amsterdam (Bremen – Amsterdam km 357,3) | 1 / 2 | 1,23 → 1,63 / 0,82 → 0,85 | 1,29 → 1,67 / 0,89 → 0,96 |
+| Brüssel (Köln – Brüssel km 195,5) | 1 / 2 | 1,06 → 1,29 / 0,68 → 0,75 | 1,28 → 1,47 / 0,63 → 0,69 |
+| Lyon (Montpellier – Lyon km 297) | 1 / 2 | 0,57 → 0,56 / 0,77 → 0,75 | 0,63 → 0,62 / 0,91 → 0,89 |
+| Bern (Lyon – Bern km 302,3) | 1 / 2 | 0,65 → 0,69 / 0,70 → 0,73 | 0,65 → 0,74 / 0,64 → 0,71 |
+| Hamburg (Kiel – Hamburg km 88,2) | 1 / 2 | 0,73 → 0,92 / 0,90 → 0,94 | 0,69 → 0,92 / 1,05 → 1,23 |
+| **Median** | | **0,75 → 0,80** | **0,79 → 0,90** |
+
+Zum Vergleich die AS5b-Städte (Wien, Warschau, Prag, Mailand, Sofia; Bilder von Welle 6): streng 0,96, weit 0,87.
+Hansehaus rechts in Hamburg allein: 0,47 → 1,41 × Arcade.
+
+### Ehrliche Einordnung
+
+Gut: Je Haus leuchten jetzt mehr Fenster als im Sprite (außer Bürohaus und Südfranzösischem Haus); Hamburg, Amsterdam und Brüssel wirken nachts sichtbar
+belebter, ohne dass jedes Fenster brennt. Im weiten Maß liegen die AS5a-Städte jetzt bei den AS5b-Städten.
+
+Wo die Lücke bleibt, liegt es nicht an der Zahl der Fenster: In Paris (Bild 2) steht in Arcade ein einzelnes, sehr
+nahes Sprite mit großen Schaufenstern im Bild; in Lyon zeigt Bild 2 vor allem einen allgemeinen Wohnblock und einen
+Laden (keine AS5a-Modelle), und an der nahen Fassade des Stadthauses in Bild 1 leuchtet keine neue Atlasstelle. Erleuchtete Fenster sind in Modern im Mittel 5–10 % dunkler als in Arcade (Helligkeit
+der warmen Pixel 176–190 gegen 186–208) – derselbe Abstand wie bei AS5b; `PANE_LIGHT_K` (0,55) ist seit AS4R gegen
+Arcade abgeglichen und gilt für alle Häuser.

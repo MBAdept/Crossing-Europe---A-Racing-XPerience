@@ -2087,3 +2087,13 @@ KRITIK-R / AU-R2)**
   stage_plan.gd, game_config.json, the message line of race_session.gd); `tools/golden.sh make` applies it,
   `arcade_v070.env` records its MD5 (`patch=`), and `check` refuses hash lists made with another patch. Only player
   requests in shared files may ever go into this patch.
+
+**A-33 Night windows of the AS5a city houses (F-04, after the player's answer B-N1)**
+- The player keeps the "lively" night look of the AS5b houses (brighter than Arcade). The 23 AS5a houses (§20/§21 of
+  modelle.md) get more lit windows to match: `cities3d._log_walls(lit_k)` multiplies the lit share of every window
+  grid by `lit_k`, at most `LIT_MAX` 0.85, in the facade texture and in the window log of the cut panes alike;
+  `catalog3d.AS5A_LIT_K` = 1.35. A window lights when its random number r1 < lit, so every window the sprite lights
+  stays lit (Arcade's windows are a subset). Shop displays, doors and geometry are unchanged.
+- Measured (warm window pixels Modern / Arcade, six city positions at 22:00, two pictures each): median 0.75 → 0.80
+  (strict rule), 0.79 → 0.90 (wide rule); AS5b 0.96 / 0.87; the Hanse house in Hamburg 0.47 → 1.41. Lit windows in
+  Modern stay 5–10 % darker than Arcade's (`PANE_LIGHT_K` 0.55 for all houses, AS4R) – not changed here.
