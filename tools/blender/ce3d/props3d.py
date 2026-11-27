@@ -152,6 +152,58 @@ def _drop_hidden_tops(objs, names):
     return n_drop
 
 
+def _drop_beam_caps(objs, names):
+    """Wave 6 (AS6): removes the two end faces of every box beam (meshutil.bm_beam: a cube of 8 vertices and 6
+    faces) in the objects named in `names` (prefixes) - in a lattice the ends sit inside the chords, the ground or
+    a platform and are never seen; they are a third of the lattice's triangles (Eiffel tower: lod0 over the
+    landmark budget of 25,000). A beam's end faces are the two faces whose normal runs along its longest edge.
+    Components that are not such a box stay untouched. Returns the number of faces removed."""
+    import bmesh
+    if not names:
+        return 0
+    n_drop = 0
+    for ob in objs:
+        if not any(ob.name.startswith(n) for n in names):
+            continue
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        bm.verts.ensure_lookup_table()
+        seen = set()
+        drop = []
+        for v0 in bm.verts:
+            if v0.index in seen:
+                continue
+            comp, stack = [], [v0]
+            seen.add(v0.index)
+            while stack:
+                v = stack.pop()
+                comp.append(v)
+                for e in v.link_edges:
+                    w = e.other_vert(v)
+                    if w.index not in seen:
+                        seen.add(w.index)
+                        stack.append(w)
+            faces = {f for v in comp for f in v.link_faces}
+            if len(comp) != 8 or len(faces) != 6 or any(len(f.verts) != 4 for f in faces):
+                continue
+            edges = {e for v in comp for e in v.link_edges}
+            longest = max(edges, key=lambda e: e.calc_length())
+            axis = np.array(longest.verts[1].co - longest.verts[0].co)
+            axis /= max(1e-9, np.linalg.norm(axis))
+            for f in faces:
+                if abs(float(np.dot(np.array(f.normal), axis))) > 0.99:
+                    drop.append(f)
+        if drop:
+            bmesh.ops.delete(bm, geom=drop, context="FACES_ONLY")
+            bm.to_mesh(ob.data)
+            ob.data.update()
+            n_drop += len(drop)
+        bm.free()
+    if not n_drop:
+        raise ValueError("drop_caps %s: no face removed (object names?)" % (list(names),))
+    return n_drop
+
+
 def _mark_rotor(mb, rotor):
     """Rotor code on every vpbr corner of a MeshBuilder (see ROTOR_CODE): COLOR.a and UV2.y = hub height."""
     hub = float(rotor["hub_z"]) / ROTOR_HUB_M
@@ -190,6 +242,7 @@ def build_baked(model_id, spec3d):
     rig, info, sspec = _build_source(spec3d)
     objs = _objects(rig)
     core.realize(objs)
+    caps_dropped = _drop_beam_caps(objs, spec3d.get("drop_caps", ()))
     mats = {}
     for ob in objs:
         for s in ob.material_slots:
@@ -229,6 +282,8 @@ def build_baked(model_id, spec3d):
         model.texture_files["emit.png"] = BK.encode(BK.half(baked["emit"]["lights"]), None, "png")
         model.textures["emit"] = "emit.png"
     model.stats = dict(build_s=round(time.time() - t0, 2), objects=len(objs), bake=baked["stats"])
+    if caps_dropped:
+        model.stats["caps_dropped"] = caps_dropped
     return model
 
 

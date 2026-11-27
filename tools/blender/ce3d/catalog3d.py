@@ -1050,6 +1050,9 @@ MODELS.update({
         ("landmarks/catedrala_mantuirii", 24.0, _LM_BIG), ("landmarks/palatul_parlamentului", 16.0, _LM_BIG),
     )
 })
+# The Eiffel tower's lattice of box beams: their end faces (hidden in the chords) are a third of its triangles and put
+# lod0 over the landmark budget (25,152 > 25,000) - build_baked drops them (props3d._drop_beam_caps).
+MODELS["landmarks/eiffel_tower"]["drop_caps"] = ("eif_lattice",)
 # --- end AS6 ------------------------------------------------------------------------------------------------------
 
 
