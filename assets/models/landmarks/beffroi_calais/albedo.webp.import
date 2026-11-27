@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bjcik6bwkr3mv"
-path.s3tc="res://.godot/imported/albedo.png-0fde364de1e740bd3a96653fc42e4b54.s3tc.ctex"
+uid="uid://ccmr2ifgx61ks"
+path.s3tc="res://.godot/imported/albedo.webp-f61c70bfe6fdc836d0890565e54f34dd.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/models/landmarks/beffroi_calais/albedo.png"
-dest_files=["res://.godot/imported/albedo.png-0fde364de1e740bd3a96653fc42e4b54.s3tc.ctex"]
+source_file="res://assets/models/landmarks/beffroi_calais/albedo.webp"
+dest_files=["res://.godot/imported/albedo.webp-f61c70bfe6fdc836d0890565e54f34dd.s3tc.ctex"]
 
 [params]
 

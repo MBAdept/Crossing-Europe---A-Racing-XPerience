@@ -99,12 +99,12 @@
      ]
     }
    ],
-   "textures": {"albedo": "landmarks/beffroi_calais/albedo.png", "emit": "landmarks/beffroi_calais/emit.png"},
+   "textures": {"albedo": "landmarks/beffroi_calais/albedo.webp", "emit": "landmarks/beffroi_calais/emit.png"},
    "roughness": 0.85,
    "auto_lod": true,
    "tags": ["prop", "landmark"],
-   "bytes": 740219,
-   "hash": "7e719a1a9103225bacb37c8da0367fc07de17557"
+   "bytes": 263097,
+   "hash": "4b63f30cd0176c77f2a5affda9c70c495836332f"
   },
   "landmarks/campanile_venezia": {
    "kind": "landmark",
