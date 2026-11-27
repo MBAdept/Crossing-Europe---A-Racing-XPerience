@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "landmarks/campanile_venezia",
+ "model": {
+  "kind": "landmark",
+  "object": {"width_m": 76, "height_m": 98.6, "length_m": 80},
+  "extent_m": {"left": 32.92, "right": 40.36},
+  "aabb": [-30.4, 0, -80, 46, 98.6, -0.6],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 3728,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "landmarks/campanile_venezia/lod0_body.res",
+      "classes": ["baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "landmarks/campanile_venezia/albedo.png", "emit": "landmarks/campanile_venezia/emit.png"},
+  "roughness": 0.85,
+  "auto_lod": true,
+  "tags": ["prop", "landmark"],
+  "bytes": 685968,
+  "hash": "254cbc994bcb7a3fccb4830c78413545ea4425f5"
+ },
+ "sets": {
+  "landmarks/campanile_venezia": {"model": "landmarks/campanile_venezia"}
+ }
+}

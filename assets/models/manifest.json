@@ -80,6 +80,32 @@
    "bytes": 740219,
    "hash": "7e719a1a9103225bacb37c8da0367fc07de17557"
   },
+  "landmarks/campanile_venezia": {
+   "kind": "landmark",
+   "object": {"width_m": 76, "height_m": 98.6, "length_m": 80},
+   "extent_m": {"left": 32.92, "right": 40.36},
+   "aabb": [-30.4, 0, -80, 46, 98.6, -0.6],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 3728,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/campanile_venezia/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/campanile_venezia/albedo.png", "emit": "landmarks/campanile_venezia/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 685968,
+   "hash": "254cbc994bcb7a3fccb4830c78413545ea4425f5"
+  },
   "landmarks/dom_fulda": {
    "kind": "landmark",
    "object": {"width_m": 48, "height_m": 65, "length_m": 99},
@@ -10246,10 +10272,7 @@
   },
   "landmarks/basilika_koekelberg": {"model": "landmarks/basilika_koekelberg"},
   "landmarks/beffroi_calais": {"model": "landmarks/beffroi_calais"},
-  "landmarks/campanile_venezia": {
-   "fallback": "sprite",
-   "object": {"width_m": 76.0, "height_m": 98.6, "length_m": 80.0}
-  },
+  "landmarks/campanile_venezia": {"model": "landmarks/campanile_venezia"},
   "landmarks/catedrala_mantuirii": {
    "fallback": "sprite",
    "object": {"width_m": 67.5, "height_m": 127.0, "length_m": 126.0}
