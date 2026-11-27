@@ -2,6 +2,32 @@
  "version": 1,
  "exporter": "ce3d 1",
  "models": {
+  "landmarks/atomium": {
+   "kind": "landmark",
+   "object": {"width_m": 75.98, "height_m": 102.01, "length_m": 84.95},
+   "extent_m": {"left": 51.28, "right": 32.1},
+   "aabb": [-40.375, -0.295, -84.476, 40.375, 102.014, 0.476],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 12674,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/atomium/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/atomium/albedo.webp", "emit": "landmarks/atomium/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 453173,
+   "hash": "8dc74761f956a7d18083ea0b2f39e0f9347f4576"
+  },
   "landmarks/dom_fulda": {
    "kind": "landmark",
    "object": {"width_m": 48, "height_m": 65, "length_m": 99},
@@ -10135,10 +10161,7 @@
   }
  },
  "sets": {
-  "landmarks/atomium": {
-   "fallback": "sprite",
-   "object": {"width_m": 75.98, "height_m": 102.01, "length_m": 84.95}
-  },
+  "landmarks/atomium": {"model": "landmarks/atomium"},
   "landmarks/basilica_pilar": {
    "fallback": "sprite",
    "object": {"width_m": 141.0, "height_m": 92.0, "length_m": 78.0}
