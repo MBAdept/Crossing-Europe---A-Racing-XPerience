@@ -2731,6 +2731,20 @@ Zielstadt wie Arcade. Vorlage ist in beiden Fällen Arcades eingefrorener Code (
   Bisektion gerade so weit, dass die Verschiebung höchstens `MAX_NODE_SHIFT_M` beträgt; ein solches Wahrzeichen zeigt
   in der Kurve etwas Seitenwand. Kurze Grundrisse behalten die ganze Drehung (`test_landmarks`
   „long_footprint_turns_only_as_far_as_the_node_may_move“).
+- **Im Blickwinkel des Sprites** (N6, nach Welle 6): Jedes Wahrzeichen-Sprite zeigt sein Bauwerk in einer
+  3/4-Ansicht (`view_yaw` −10 … −28° in `props_landmarks.py`); Arcades Anker rechnet schon mit den Ausdehnungen in
+  diesem Blick (`extent_m`), das Modell stand aber frontal – lange Bauten wirkten schmaler und weiter weg als in Arcade
+  (Fulda, Mailand, Parlamentspalast). Das Modell trägt den Winkel (`model.json` `view_yaw_deg`, vom Exporter), und
+  `place_model()` dreht um ihn zusätzlich zur Anfahrt; `near_shift()` und `capped_turn()` messen gegen die Lage im
+  Sprite-Blick (Kurs Straße + Winkel): auf gerader Straße liegt die nächste Ecke dann genau auf Arcades Bildkante,
+  ohne Verschiebung. Gedreht schwenkt das Ende einer langen Kirche zur Straße; hinter dem Platz (`clear_m[1]`, Track
+  gibt `clear_m` und `plaza` jetzt an den Eintrag weiter – Arcade liest sie nicht) stehen die Stadthäuser.
+  `yaw_within_band()` kürzt den Winkel deshalb so weit, dass kein Punkt der Grundriss-Hülle (`footprint_hull()`,
+  konvexe Hülle der Netzpunkte) hinter dem Platz näher als `HOUSE_BAND_M` = 36 m an die Fahrbahnkante kommt; liegt
+  schon der frontale Grundriss darin, bleibt es frontal. Netzweit stehen 78 Aufstellungen im Blickwinkel ihres Sprites,
+  15 davon gekürzt (Fulda 12° statt 22°, Stephansdom 11° statt 22°, Timișoara frontal); der Knoten bleibt höchstens
+  12 m von Arcades Anker (`test_landmarks` „sprite_view_keeps_out_of_the_town_houses“, Netztest). Eine gewöhnliche
+  Requisite als Wahrzeichen (`props/church`) hat keinen Winkel und steht wie bisher.
 - `builders/props.gd` lässt alle Wahrzeichen-Einträge diesem Builder, sobald es ihn gibt (seine Ente-Typ-Weiche
   `_skip_landmarks = renderer.builder("landmarks") != null`, Zeilen 88, 122, 329, 539, 741 – sie stand schon im Code;
   R7b hat `props.gd` nicht geändert).

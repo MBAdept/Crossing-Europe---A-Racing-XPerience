@@ -2184,11 +2184,12 @@ Kugeln des Atomiums in Chrom, die Goldkuppeln von Sofia und Bukarest mit Glanzli
 und Farben mit den Sprites überein; nachts sind sie angestrahlt wie Arcades Lichtebene.
 
 Noch nicht gut:
-- **Blickwinkel (N6).** Jedes Sprite zeigt sein Wahrzeichen um 10–28° gedreht (`view_yaw` in `props_landmarks.py`);
-  die Modelle stehen frontal zur Anfahrt. Im Rennen wirken lange Bauten dadurch schmaler als in Arcade (Fulda: nur
-  die Doppelturmfassade statt Fassade, Langhaus und Kuppel), die Kuppel von Koekelberg steht hinter der Fassade.
-  Um den Sprite-Winkel gedreht sieht das Modell aus wie das Sprite (`prop_scene --yaw`); die Drehung schwenkt aber
-  das Ende langer Kirchen zur Straße, hinter dem Anker sind nur 40 m frei. Eigener Schritt.
+- **Blickwinkel (N6, nach der Welle behoben).** Jedes Sprite zeigt sein Wahrzeichen um 10–28° gedreht (`view_yaw`
+  in `props_landmarks.py`); die Modelle standen frontal zur Anfahrt und wirkten im Rennen schmaler als in Arcade
+  (Fulda nur mit der Doppelturmfassade, Koekelbergs Kuppel hinter der Fassade, Mailand ohne Flanke). Jetzt trägt jedes
+  Modell den Winkel (`view_yaw_deg`, vom Exporter) und der Renderer dreht es darum (renderer-modern.md 19.1) – gekürzt,
+  wo eine lange Kirche sonst hinter ihrem Platz in die Häuserzeile schwenken würde (Fulda 12° statt 22°). Im Rennen
+  danach: Dresden, Koekelberg, Atomium und Mailand wie Arcade, Fulda näher daran.
 - **Speichen des Riesenrads (N2)** flimmern ab etwa 250 m (Messung oben): 0,14 m sind dort schmaler als ein Pixel.
 - **Burgos (N3)** ist schon im Generator schlicht (Rosette eine flache Scheibe) – Modell wie Sprite.
 - Die zehn Einträge ohne Generator bleiben prozedurale Formen (oben).
