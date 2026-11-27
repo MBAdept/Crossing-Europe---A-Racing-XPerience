@@ -295,7 +295,9 @@ def build_baked(model_id, spec3d):
     model.lods = [Lod("lod0", 100000, [Part("body", "lod0_body", mb.finish(), auto_lod=model.auto_lod)])]
     model.lights = tr.lights()
     model.roughness = float(spec3d.get("roughness", 0.9))
-    big = max(size) > 1024
+    # WebP (quality 95) above 1024 px; a landmark always (wave 6: a 1024² landmark atlas as PNG was 590-610 kB, more
+    # than a 2048×1024 WebP - the texture sources of all models are capped at 60 MB, validate_models)
+    big = max(size) > 1024 or spec3d.get("kind") == "landmark"
     alb_name = "albedo.webp" if big else "albedo.png"
     model.texture_files[alb_name] = BK.encode(baked["albedo"], baked["alpha"], "webp" if big else "png")
     model.textures["albedo"] = alb_name
