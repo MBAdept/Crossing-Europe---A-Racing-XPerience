@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "landmarks/beffroi_calais",
+ "model": {
+  "kind": "landmark",
+  "object": {"width_m": 84, "height_m": 75, "length_m": 26},
+  "extent_m": {"left": 48.48, "right": 40.5},
+  "aabb": [-42.4, 0, -26.5, 42.4, 75, 3],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 2890,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "landmarks/beffroi_calais/lod0_body.res",
+      "classes": ["baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "landmarks/beffroi_calais/albedo.png", "emit": "landmarks/beffroi_calais/emit.png"},
+  "roughness": 0.85,
+  "auto_lod": true,
+  "tags": ["prop", "landmark"],
+  "bytes": 740219,
+  "hash": "7e719a1a9103225bacb37c8da0367fc07de17557"
+ },
+ "sets": {
+  "landmarks/beffroi_calais": {"model": "landmarks/beffroi_calais"}
+ }
+}

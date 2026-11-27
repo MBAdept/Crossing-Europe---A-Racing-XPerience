@@ -54,6 +54,32 @@
    "bytes": 458131,
    "hash": "cce5840b425eda61e1c58475a9f3dd62e3e168a3"
   },
+  "landmarks/beffroi_calais": {
+   "kind": "landmark",
+   "object": {"width_m": 84, "height_m": 75, "length_m": 26},
+   "extent_m": {"left": 48.48, "right": 40.5},
+   "aabb": [-42.4, 0, -26.5, 42.4, 75, 3],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 2890,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/beffroi_calais/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/beffroi_calais/albedo.png", "emit": "landmarks/beffroi_calais/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 740219,
+   "hash": "7e719a1a9103225bacb37c8da0367fc07de17557"
+  },
   "landmarks/dom_fulda": {
    "kind": "landmark",
    "object": {"width_m": 48, "height_m": 65, "length_m": 99},
@@ -10193,10 +10219,7 @@
    "object": {"width_m": 141.0, "height_m": 92.0, "length_m": 78.0}
   },
   "landmarks/basilika_koekelberg": {"model": "landmarks/basilika_koekelberg"},
-  "landmarks/beffroi_calais": {
-   "fallback": "sprite",
-   "object": {"width_m": 84.0, "height_m": 75.0, "length_m": 26.0}
-  },
+  "landmarks/beffroi_calais": {"model": "landmarks/beffroi_calais"},
   "landmarks/campanile_venezia": {
    "fallback": "sprite",
    "object": {"width_m": 76.0, "height_m": 98.6, "length_m": 80.0}
