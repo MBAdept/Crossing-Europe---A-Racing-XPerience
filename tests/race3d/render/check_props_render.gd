@@ -25,6 +25,7 @@ const BACKGROUND := Color(0.42, 0.56, 0.74)
 const MAX_MEAN_DIFF := 1.5            ## mean difference (0..255) of a pixel and its mirror pixel, over the object pixels
 const MAX_BAD_SHARE := 0.01           ## share of object pixels whose mirror pixel differs by more than 40 levels
 const MIN_OBJECT_PIXELS := 2000       ## per half
+const STANDIN_SET := "props/city_swiss_chalet"   ## W6: the set a test manifest leaves without a model (_standin_set())
 
 var _failed: Array[String] = []
 
@@ -39,6 +40,7 @@ func _run() -> void:
 		quit(1)
 		return
 	await _check_mirror()
+	ModelDB.load_manifest()            # the shipped manifest again (_standin_set() may have loaded a test manifest)
 	await _check_rotor()
 	ModelDB.release_all()
 	ModernMaterials.drop_shared()
@@ -92,8 +94,8 @@ func _check_mirror() -> void:
 	var part := b.build(ctx, b.collect(ctx))
 	var groups: Dictionary = part.get("groups", {})
 	# RINT-M2: the German town house is a model since AS5a (stand-in before); R7c: the chalet too since AS5a2 – the
-	# stand-in is now the first prop set the shipped manifest still draws as its Arcade sprite (mirrored on the left by
-	# the scenery rule's "mirror")
+	# stand-in is the first prop set the shipped manifest still draws as its Arcade sprite (mirrored on the left by
+	# the scenery rule's "mirror"); since wave 6 none is left: the chalet from a test manifest without its model
 	for key: String in ["m|props/farmhouse|1", "m|props/streetlight|1", "m|props/city_german_house|1", "s|%s|1" % sb]:
 		if not groups.has(key):
 			p.append("keine gespiegelte Gruppe %s" % key)
@@ -279,4 +281,20 @@ func _standin_set() -> String:
 	for sid: String in ModelDB.set_ids():
 		if sid.begins_with("props/") and str(ModelDB.resolve(sid).get("fallback", "")) == "sprite":
 			return sid
-	return ""
+	# since wave 6 every prop set has a model: a test manifest takes the chalet's model away (as check_vehicles
+	# "kasten", A-13) – the shipped models with a changed set table; _run() loads the shipped manifest again
+	var src: Variant = JSON.parse_string(FileAccess.get_file_as_string(ModelDB.ROOT + ModelDB.MANIFEST))
+	if not src is Dictionary or not ((src as Dictionary).get("sets", {}) as Dictionary).has(STANDIN_SET):
+		return ""
+	var m: Dictionary = src
+	m["root"] = ModelDB.ROOT
+	(m["sets"] as Dictionary)[STANDIN_SET] = {"fallback": "sprite", "object": ModelDB.object_size(STANDIN_SET)}
+	var path := "user://check_props_render_standin_manifest.json"
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	if f == null:
+		return ""
+	f.store_string(JSON.stringify(m))
+	f.close()
+	if not ModelDB.load_manifest(path) or ModelDB.has_model(STANDIN_SET):
+		return ""
+	return STANDIN_SET
