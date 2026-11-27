@@ -1062,6 +1062,8 @@ MODELS["landmarks/atomium"].update(vpbr=("at_steel", "at_tube"), overrides={
 # night as lamp channel 14 with the generator's flood share 0.75): baked they were a matt mustard yellow.
 MODELS["landmarks/nevsky_kathedrale"].update(vpbr=("an_gold",), overrides={
     "an_gold": dict(role="flat", color="#d4a838", rough=0.28, metal=1.0, lamp="flood:0.75")})
+MODELS["landmarks/catedrala_mantuirii"].update(vpbr=("cm_gilded",), overrides={
+    "cm_gilded": dict(role="flat", color="#d8ad45", rough=0.3, metal=1.0, lamp="flood:0.7")})
 # --- end AS6 ------------------------------------------------------------------------------------------------------
 
 
