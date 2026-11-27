@@ -18,7 +18,9 @@ Checks assets/models/ against the rules of the model pipeline and fails (exit 1)
              off their values (+-0.02), lamp weights or material values outside 0..1, atlas coordinates of
              baked surfaces outside 0..1, uncompressed surfaces, materials inside a mesh, an automatic
              (decimated) level in a patch-built body; more than a handful of triangles of a vpbr or baked
-             surface wound against their normals (inside out: they are culled and cast no shadow)
+             surface wound against their normals (inside out: they are culled and cast no shadow); a surface
+             "thin" (N2: beams a landmark shader widens to a pixel) outside a landmark, with a width (COLOR.a, cm)
+             outside 0.01 .. THIN_MAX_M or with an automatic level
   lamps      vehicles, every level of detail: a lamp the following driver reacts to shows too little area in
              the direction he looks from (LAMP_MIN_CM2: tail, brake and each indicator from straight behind;
              head and each indicator from straight ahead - projected area by the winding of the triangles);
@@ -102,7 +104,9 @@ WINDING_MAX = 8                 # triangles of a surface that may be wound again
 # every level of a vehicle fills the bounding box of lod0 (m per side of the box): a coarser level simplifies,
 # it does not shrink or lose what sticks out (mirrors, roof rails)
 BOUNDS_TOL_M = {"car": 0.03, "police": 0.03, "player": 0.02, "heavy": 0.05}
-WINDING_CLASSES = ("vpbr", "baked", "baked_cutout")
+WINDING_CLASSES = ("vpbr", "baked", "baked_cutout", "thin")
+# N2 (after wave 6): the class "thin" (ce3d/thin.py) - COLOR.a = the beam's width in cm, at most THIN_MAX_M
+THIN_MAX_M = 0.6
 
 
 class Result:
@@ -278,6 +282,9 @@ def check_entry(res, mid, model):
             for c in part.get("classes", []):
                 if c not in M.CLASSES:
                     res.err(mid, "%s/%s: unbekannte Klasse %r" % (ln, node, c))
+                elif c == "thin" and model["kind"] != "landmark":
+                    res.err(mid, "%s/%s: Klasse 'thin' nur bei Wahrzeichen (nur builders/landmarks.gd zeichnet sie)"
+                            % (ln, node))
             if "wheel" in part:
                 w = part["wheel"]
                 pos = part.get("pos", [0, 0, 0])
@@ -598,13 +605,22 @@ def check_mesh(res, mid, rel, m, model, part):
         if w and cls in WINDING_CLASSES and w.get("against", 0) > WINDING_MAX:
             res.err(mid, "%s: %d von %d Dreiecken zeigen gegen ihre Normalen (verkehrt herum gewickelt)"
                     % (where, w["against"], w.get("total", 0)))
-        if cls == "vpbr":
+        if cls in ("vpbr", "thin"):
             if "alpha_values" not in s or "lamp_values" not in s or "uv_range" not in s:
                 res.err(mid, "%s: COLOR, UV oder UV2 fehlt" % where)
                 continue
-            bad = [a for a in s["alpha_values"] if not near(a, PAINT_CODES, CODE_TOL)]
-            if bad or s.get("alpha_count", 0) > 64:
-                res.err(mid, "%s: Lackcodes neben den Werten 0 / 0.25 / 0.5 / 1: %s" % (where, bad[:6]))
+            if cls == "thin":
+                # widths 1 cm .. THIN_MAX_M; never an automatic level (a decimated beam is a flat strip)
+                ar = s.get("alpha_range", [0.0, 0.0])
+                if ar[0] < 0.5 / 255.0 or ar[1] * 2.55 > THIN_MAX_M + 0.005:
+                    res.err(mid, "%s: Stabbreite (COLOR.a) außerhalb 0,01 .. %.2f m: %s"
+                            % (where, THIN_MAX_M, [round(a * 2.55, 3) for a in ar]))
+                if s.get("lods", 0) > 0:
+                    res.err(mid, "%s: automatische (dezimierte) Stufe einer Fläche 'thin'" % where)
+            else:
+                bad = [a for a in s["alpha_values"] if not near(a, PAINT_CODES, CODE_TOL)]
+                if bad or s.get("alpha_count", 0) > 64:
+                    res.err(mid, "%s: Lackcodes neben den Werten 0 / 0.25 / 0.5 / 1: %s" % (where, bad[:6]))
             bad = []
             for v in s["lamp_values"]:
                 if near(v, (-1.0,), CODE_TOL):

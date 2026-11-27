@@ -16,6 +16,14 @@
 //                  14      flood-lit surface: keeps its albedo and adds albedo x weight x flood_color at night
 //                  16      glass facade (builder only): floor bands every 4 m and mullions every 3 m of the model's
 //                          own metres, windows lit at random at night (Arcade's skyscrapers: 35 %)
+//   CE_THIN      (with CE_VCOL; N2 after wave 6) the surface "thin" of a landmark model: square box beams thinner than
+//                a pixel from some distance on (the Riesenrad's spokes, rims and pylons - tools/blender/ce3d/thin.py).
+//                Drawn as CE_VCOL, but every beam is widened about its own axis to at least thin_px pixels (its
+//                corners move along NORMAL, the radial direction; COLOR.a = its width in cm, a corner lies
+//                width / sqrt 2 from the axis) and drawn with the share of that width it really has (alpha = true
+//                width / drawn width): the mean a pixel would see instead of the hit-or-miss of a beam under a pixel,
+//                which shimmered while the camera moved. Always translucent (blend_mix, no depth writes: crossing
+//                beams add up as the sprite's mip filter adds them); a translucent material casts no shadow
 //   CE_GLOW      soft additive glow points (aviation lights, a lighthouse lamp – Arcade's _lm_glow): a quad per
 //                point whose four corners share the centre; UV = corner (-1..1), UV2 = (size m, minimum px),
 //                COLOR = colour and strength, CUSTOM0 = (mode 0 steady / 1 blink / 2 flash, period s, lit s,
@@ -40,7 +48,9 @@ render_mode unshaded, cull_disabled, depth_draw_opaque, shadows_disabled;
 #elif defined(CE_GLOW)
 render_mode unshaded, cull_disabled, blend_add, depth_draw_never, shadows_disabled;
 #else
-#ifdef CE_BLEND
+#if defined(CE_THIN)
+render_mode cull_back, blend_mix, depth_draw_never;
+#elif defined(CE_BLEND)
 render_mode cull_back, blend_mix, depth_draw_always;
 #elif defined(CE_CUTOUT)
 render_mode cull_disabled;
@@ -75,6 +85,10 @@ uniform vec3 flood_light = vec3(1.0, 0.8, 0.5);        // channel 14: Arcade's f
 uniform vec3 window_color = vec3(1.0, 0.88, 0.6);      // channel 16 at night: Arcade's lit office windows
 uniform float window_share = 0.35;
 uniform vec3 beacon_color = vec3(1.0, 0.12, 0.08);
+#ifdef CE_THIN
+uniform float viewport_h = 720.0;                       // height of the 3D picture in pixels (the builder sets it)
+uniform float thin_px = 1.5;                            // a beam is drawn at least this many pixels wide
+#endif
 #elif defined(CE_GLOW)
 uniform float viewport_h = 720.0;                       // height of the picture in pixels (set by the builder)
 #endif
@@ -101,6 +115,9 @@ const float REF_GREY = 0.38;
 #elif defined(CE_VCOL)
 varying vec3 v_obj;
 varying vec3 v_onrm;
+#ifdef CE_THIN
+varying float v_cov;
+#endif
 #elif defined(CE_GLOW)
 varying float v_on;
 varying float v_beam;
@@ -158,6 +175,17 @@ void vertex() {
 #elif defined(CE_VCOL)
 	v_obj = VERTEX;
 	v_onrm = NORMAL;
+#ifdef CE_THIN
+	// width in pixels at this corner's depth (the model's uniform scale: a landmark's catalogue scale, mirrored in x
+	// at most; pixels per metre as CE_GLOW, abs() for the Compatibility renderer's negative y scale)
+	float w = COLOR.a * 2.55;
+	float sc = length(MODEL_MATRIX[0].xyz);
+	float depth = max(-(MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).z, 0.1);
+	float px_per_m = abs(PROJECTION_MATRIX[1][1]) * viewport_h * 0.5 / depth;
+	float k = max(1.0, thin_px / max(w * sc * px_per_m, 1.0e-4));
+	VERTEX += NORMAL * ((k - 1.0) * w * 0.70710678);
+	v_cov = 1.0 / k;
+#endif
 #elif defined(CE_GLOW)
 	v_beam = 0.0;
 	if (CUSTOM0.x > 2.5) {
@@ -336,13 +364,19 @@ void fragment() {
 	}
 	float a_out = la + (1.0 - la) * keep;
 #ifdef CE_BLEND
+	float wb = (1.0 - la) * keep / max(a_out, 1.0e-4);
+#else
+	float wb = 1.0;
+	a_out = 1.0;
+#endif
+#ifdef CE_THIN
+	a_out *= clamp(v_cov, 0.0, 1.0);
+#endif
+#if defined(CE_BLEND) || defined(CE_THIN)
 	if (a_out < 0.004) {
 		discard;
 	}
 	ALPHA = a_out;
-	float wb = (1.0 - la) * keep / max(a_out, 1.0e-4);
-#else
-	float wb = 1.0;
 #endif
 	ALBEDO = alb * wb;
 	ROUGHNESS = rough;

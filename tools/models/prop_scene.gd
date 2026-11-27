@@ -237,11 +237,21 @@ func _build_review_light(night: bool) -> void:
 		_sun.light_energy = 0.8
 		_sun.light_color = Color(1.0, 0.97, 0.92)
 	ModernMaterials.set_global("ce_night", 1.0 if night else 0.0)
+	_thin_lights(1.0 if night else 0.0)
 	ModernMaterials.set_global("ce_sun_color", ModernMaterials.light_value(_sun.light_color, _sun.light_energy))
 	ModernMaterials.set_global("ce_ambient", ModernMaterials.light_value(_env.ambient_light_color, _env.ambient_light_energy))
 	ModernMaterials.set_global("ce_sun_dir", to_sun)
 	ModernMaterials.set_global("ce_time", float(str(_args.get("time", "1.7"))))
 	ModernMaterials.set_global("ce_wind", Vector4(1.0, 0.0, 0.3, 0.0))
+
+
+## N2: the beams of a landmark (class "thin", landmark.gdshader CE_THIN) carry the landmark law in lm_fade: here its
+## lights at night as builders/landmarks.gd gives them near a landmark (no fade, no haze - the scene has its own fog);
+## and they are widened to a pixel of the 3D picture: the game picture's height × the preset's 3D scale.
+func _thin_lights(lights: float) -> void:
+	_mats.material("thin")
+	_mats.set_class_parameter("thin", "lm_fade", Vector4(1.0, 0.0, lights, 0.0))
+	_mats.set_class_parameter("thin", "viewport_h", float(GAME.y) * clampf(_sv.scaling_3d_scale, 0.25, 2.0))
 
 
 ## --look=race: the light, fog, shadows and globals of a race at --hour / --weather with the levels of --preset.
@@ -280,6 +290,7 @@ func _build_race_light() -> void:
 		_mats.set_class_parameter(cls, "env_horizon", horizon)
 		_mats.set_class_parameter(cls, "env_ground", Color(0.30 * amb.r, 0.31 * amb.g, 0.32 * amb.b))
 		_mats.set_class_parameter(cls, "env_tunnel", Palette.TUNNEL_AMBIENT * 0.45)
+	_thin_lights(clampf(float(_pal.get("lights", 0.0)), 0.0, 1.0))
 	_race_update(float(str(_args.get("time", "1.7"))))
 	# the palette's sky behind the 3D picture (BG_CANVAS: canvas layers up to -10 are the background)
 	var layer := CanvasLayer.new()

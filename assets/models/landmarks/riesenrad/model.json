@@ -11,12 +11,12 @@
    {
     "name": "lod0",
     "max_dist_m": 100000,
-    "tris": 17816,
+    "tris": 13944,
     "parts": [
      {
       "node": "body",
       "mesh": "landmarks/riesenrad/lod0_body.res",
-      "classes": ["baked"]
+      "classes": ["baked", "thin"]
      }
     ]
    }
@@ -26,8 +26,8 @@
   "view_yaw_deg": -24,
   "auto_lod": true,
   "tags": ["prop", "landmark"],
-  "bytes": 637394,
-  "hash": "fb46601648b431ea5057bf8405a602b7ae7de7a9"
+  "bytes": 307372,
+  "hash": "03c6e322d6c6bdd2bdb8a2b79ab3baaa58019c55"
  },
  "sets": {
   "landmarks/riesenrad": {"model": "landmarks/riesenrad"}

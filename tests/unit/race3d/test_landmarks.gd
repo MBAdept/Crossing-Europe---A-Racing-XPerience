@@ -445,11 +445,83 @@ func test_no_instance_uniforms() -> void:
 ## translucent variants exist for picture, atlas and vertex colours.
 func test_variants() -> void:
 	var b = Landmarks.new()
-	for v: String in ["picture", "atlas", "atlas_cutout", "vcol", "glow"]:
+	for v: String in ["picture", "atlas", "atlas_cutout", "vcol", "thin", "glow"]:
 		for blend: bool in [false, true]:
 			var sh: Shader = b.shader(v, blend)
 			assert_true(sh != null and sh.code.contains("#define"), "%s%s: eigener Shader" % [v, " (durchscheinend)" if blend else ""])
 			assert_eq(sh.code.contains("#define CE_BLEND"), blend, "%s: CE_BLEND genau bei der durchscheinenden Variante" % v)
+	_cleanup()
+
+
+## N2 (after wave 6): the surface class "thin" – beams the shader widens to a pixel of the 3D picture and draws with
+## their coverage. Both materials of a thin surface are the vertex-colour variant with CE_THIN (always translucent,
+## no depth writes, casting no shadow), carry the tint and the height of the 3D picture; the builder sets that height
+## on them every frame (the watchdog may lower the 3D scale during a stage); ModernMaterials draws the class with the
+## same shader for everybody else (never as vpbr: COLOR.a is a width, not a paint code); and the shipped Riesenrad has
+## its beams in it.
+func test_thin_beams_are_widened_to_a_pixel_of_the_3d_picture() -> void:
+	var b = Landmarks.new()
+	var pair: Array = b.model_materials("thin", ShaderMaterial.new(), Color("#c0a080"), {})
+	assert_eq(pair.size(), 2, "zwei Materialien (nah, durchscheinend)")
+	for i in pair.size():
+		var m: ShaderMaterial = pair[i]
+		var code := m.shader.code
+		assert_true(code.contains("#define CE_VCOL") and code.contains("#define CE_THIN"), "Variante thin: CE_VCOL + CE_THIN")
+		assert_eq(code.contains("#define CE_BLEND"), i == 1, "CE_BLEND nur bei der durchscheinenden")
+		assert_near(float(m.get_shader_parameter("viewport_h")), 720.0, 1.0e-3, "Bildhöhe ohne Renderer: 720 px")
+		var t: Variant = m.get_shader_parameter("tint")
+		assert_true(t is Vector3 and (t as Vector3).is_equal_approx(Vector3(Color("#c0a080").r, Color("#c0a080").g, Color("#c0a080").b)), "Tönung")
+	var src := FileAccess.get_file_as_string(Landmarks.SHADER_PATH)
+	var re := RegEx.create_from_string("#if defined\\(CE_THIN\\)\\s*\\n\\s*render_mode ([^;]*);")
+	var hit := re.search(src)
+	assert_true(hit != null, "eigener render_mode für CE_THIN")
+	if hit != null:
+		var rm := hit.get_string(1)
+		assert_true(rm.contains("blend_mix") and rm.contains("depth_draw_never"), "durchscheinend, ohne Tiefe: %s" % rm)
+	# every frame: the height of this frame's 3D picture reaches the thin materials of a live landmark, once per change
+	var e := {"node": Node3D.new(), "slots": [], "mats": pair, "thin": pair, "has_lights": false}
+	b._thin_h = 540.0
+	b._apply(e, 100.0, Vector4(1.0, 0.0, 0.0, 0.0), false)
+	for m: ShaderMaterial in pair:
+		assert_near(float(m.get_shader_parameter("viewport_h")), 540.0, 1.0e-3, "Bildhöhe des Bildes (3D-Maßstab 0,75)")
+		assert_true((m.get_shader_parameter("lm_fade") as Vector4).is_equal_approx(Vector4(1.0, 0.0, 0.0, 0.0)), "Gesetz gesetzt")
+	(e["node"] as Node3D).free()
+	# everybody else: the same shader, never the vpbr one
+	var mats := ModernMaterials.new()
+	var fm := mats.material(ModernMaterials.class_for("thin", {"kind": "landmark"})) as ShaderMaterial
+	assert_true(fm != null and fm.shader != null and fm.shader.code.contains("#define CE_THIN"), "ModernMaterials: thin mit CE_THIN")
+	assert_true(ModernMaterials.CLASSES.has("thin"), "Klasse bekannt")
+	# the shipped Riesenrad: its beams are the surface "thin" (widths 0.14 – 0.55 m in cm steps, unit radial normals)
+	if ModelDB.available() and ModelDB.has_model("landmarks/riesenrad"):
+		var lib := PropLibrary.new()
+		lib.request(["landmarks/riesenrad"], self)
+		var guard := 0
+		while lib.pending() > 0 and guard < 30000:
+			OS.delay_msec(1)
+			guard += 1
+		var found := 0
+		for pv: Variant in lib.mesh_parts("landmarks/riesenrad", "lod0"):
+			var mesh: Mesh = (pv as Dictionary)["mesh"]
+			for si in mesh.get_surface_count():
+				if Landmarks.surface_class(mesh, si) != "thin":
+					continue
+				var arr := mesh.surface_get_arrays(si)
+				var cols: PackedColorArray = arr[Mesh.ARRAY_COLOR]
+				var nors: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+				found = cols.size()
+				var wmin := INF
+				var wmax := 0.0
+				for c: Color in cols:
+					wmin = minf(wmin, c.a * 2.55)
+					wmax = maxf(wmax, c.a * 2.55)
+				assert_true(wmin >= 0.135 and wmax <= 0.555, "Stabbreiten %.3f – %.3f m" % [wmin, wmax])
+				var bad := 0
+				for n: Vector3 in nors:
+					if absf(n.length() - 1.0) > 0.02:
+						bad += 1
+				assert_eq(bad, 0, "radiale Normalen sind Einheitsvektoren")
+		assert_true(found >= 7000, "Riesenrad: %d Ecken in der Fläche thin (968 Stäbe × 8)" % found)
+		lib.clear(self)
 	_cleanup()
 
 

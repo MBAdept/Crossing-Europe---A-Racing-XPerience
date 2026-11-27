@@ -17,7 +17,9 @@ extends ChunkBuilder
 ##               sprite anchor, +Z the side the sprite shows) but facing its approach (_place) and mirrored only where
 ##               Arcade mirrors the picture (a plain prop with the tag mirror_left on the left side). Surfaces of the classes
 ##               baked / baked_cutout / vpbr draw with assets/shaders/modern/landmark.gdshader (CE_ATLAS / CE_VCOL),
-##               the classes glass and leaves keep their own materials (they have no landmark law)
+##               thin (N2: beams widened to a pixel and drawn with their coverage) with CE_VCOL + CE_THIN – it needs the
+##               height of the 3D picture in pixels, set every frame (_pixel_h()); the classes glass and leaves keep
+##               their own materials (they have no landmark law)
 ##   2 PICTURE   else Arcade's own picture: the sprite cell, as Arcade draws it (CE_PICTURE)
 ##   3 PROC      else the procedural kind Arcade draws ("proc" without a sprite: Hannover, Dortmund, Leipzig, Madrid,
 ##               Belgrad, Calais): its shape in 3D, built here from Arcade's dimensions (proc_mesh(): domed_church,
@@ -76,6 +78,7 @@ var _live: Dictionary = {}          ## index -> live landmark (_make)
 var _shaders: Dictionary = {}       ## variant key -> Shader
 var _proc_cache: Dictionary = {}    ## proc key -> {"mesh", "glows"}
 var _hulls: Dictionary = {}         ## model id -> its footprint hull (footprint_hull(), N6)
+var _thin_h := 720.0                ## N2: height of the 3D picture this frame (_pixel_h()) for the "thin" materials
 var _last_view: Dictionary = {}
 
 
@@ -319,6 +322,7 @@ func update(view: Dictionary, _dt: float) -> void:
 			fog_start = float((st as Dictionary)["fog_begin"])
 	var r := minf(reach(vis, night, _law), maxf(_path_m, vis))
 	var l := landmark_range(vis, _law)
+	_thin_h = _pixel_h()
 	for li in _plans.size():
 		var p: Dictionary = _plans[li]
 		var d := float(p["z"]) - cam_z
@@ -360,6 +364,11 @@ func _apply(e: Dictionary, d: float, f: Vector4, blend: bool) -> void:
 				else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	for m: Variant in e["mats"]:
 		(m as ShaderMaterial).set_shader_parameter("lm_fade", f)
+	var thin: Array = e.get("thin", [])
+	if not thin.is_empty() and float(e.get("thin_h", 0.0)) != _thin_h:
+		e["thin_h"] = _thin_h
+		for m: Variant in thin:
+			(m as ShaderMaterial).set_shader_parameter("viewport_h", _thin_h)
 
 
 func _drop(li: int) -> void:
@@ -374,7 +383,7 @@ func _drop(li: int) -> void:
 func _make(li: int, p: Dictionary, world: Node3D) -> Variant:
 	var node := Node3D.new()
 	node.name = "Landmark%d" % li
-	var e := {"node": node, "slots": [], "mats": [], "has_lights": true}
+	var e := {"node": node, "slots": [], "mats": [], "thin": [], "has_lights": true}
 	var rep := int(p["rep"])
 	var cast_ok := _casters >= 1
 	var box := AABB()                 # footprint of the model or shape in its own space (_place)
@@ -422,6 +431,8 @@ func _make(li: int, p: Dictionary, world: Node3D) -> Variant:
 					if pair.is_empty():
 						continue      # glass, leaves: their own material, no landmark law
 					_slot(e, mi, si, pair, cast_ok)
+					if cls == "thin":
+						(e["thin"] as Array).append_array(pair)
 		PROC:
 			var pm := _proc(str(p["proc_key"]), p["item"])
 			var mi := MeshInstance3D.new()
@@ -453,6 +464,17 @@ func _viewport_h() -> float:
 		var h := (_renderer as Node).get_viewport().get_visible_rect().size.y
 		if h > 0.0:
 			return h
+	return 720.0
+
+
+## Height of the 3D picture in pixels: the viewport's height × its 3D resolution scale (Quality: scale_3d, which the
+## watchdog may lower during a stage) – the beams of the class "thin" are widened to a pixel of THAT picture.
+func _pixel_h() -> float:
+	if _renderer is Node and (_renderer as Node).is_inside_tree():
+		var vp := (_renderer as Node).get_viewport()
+		var h := vp.get_visible_rect().size.y
+		if h > 0.0:
+			return h * clampf(vp.scaling_3d_scale, 0.25, 2.0)
 	return 720.0
 
 
@@ -668,6 +690,8 @@ func shader(variant: String, blend: bool) -> Shader:
 			defs = "#define CE_ATLAS\n#define CE_CUTOUT\n"
 		"vcol":
 			defs = "#define CE_VCOL\n"
+		"thin":
+			defs = "#define CE_VCOL\n#define CE_THIN\n"
 		"glow":
 			defs = "#define CE_GLOW\n"
 	if blend:
@@ -714,6 +738,8 @@ func model_materials(cls: String, src: Material, tint: Color, _md: Dictionary) -
 			variant = "atlas_cutout"
 		"vpbr", ModernMaterials.VPBR_STATIC:
 			variant = "vcol"
+		"thin":
+			variant = "thin"
 		_:
 			return []
 	var out: Array = []
@@ -725,6 +751,8 @@ func model_materials(cls: String, src: Material, tint: Color, _md: Dictionary) -
 				if v != null:
 					m.set_shader_parameter(k, v)
 		m.set_shader_parameter("tint", Vector3(tint.r, tint.g, tint.b))
+		if variant == "thin":
+			m.set_shader_parameter("viewport_h", _pixel_h())
 		out.append(m)
 	return out
 

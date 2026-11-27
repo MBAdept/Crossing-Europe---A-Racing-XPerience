@@ -208,6 +208,107 @@ def _drop_beam_caps(objs, names):
     return n_drop
 
 
+def _split_thin(objs, names, max_w):
+    """N2 (after wave 6): takes the square box beams up to max_w (m) thick out of the objects named in `names`
+    (prefixes) - their side faces become the surface "thin" (ce3d/thin.py), their end faces are dropped. Returns
+    {material name: (material, pos (T, 3, 3), nor (T, 3, 3) radial, width (T, 3))} in root space (as core.Soup) and
+    the number of beams; the beams are deleted from their objects. Components that are no such beam stay (the
+    Riesenrad's hub). Raises when a named object gives no beam or is scaled unevenly (the width would differ per
+    direction)."""
+    import bmesh
+    from . import thin
+    out = {}
+    n_beams = 0
+    for ob in objs:
+        if not any(ob.name.startswith(n) for n in names):
+            continue
+        mw = np.array(ob.matrix_world, dtype=np.float64)
+        m3, t3 = mw[:3, :3], mw[:3, 3]
+        sc = np.linalg.norm(m3, axis=0)
+        if float(np.ptp(sc)) > 1e-6 * float(sc.max()):
+            raise ValueError("thin %s: scaled unevenly %s" % (ob.name, sc.round(4).tolist()))
+        flip = np.linalg.det(m3) < 0.0
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        bm.verts.ensure_lookup_table()
+        seen = set()
+        drop = []
+        found = 0
+        for v0 in bm.verts:
+            if v0.index in seen:
+                continue
+            comp, stack = [], [v0]
+            seen.add(v0.index)
+            while stack:
+                v = stack.pop()
+                comp.append(v)
+                for e in v.link_edges:
+                    w = e.other_vert(v)
+                    if w.index not in seen:
+                        seen.add(w.index)
+                        stack.append(w)
+            faces = list({f for v in comp for f in v.link_faces})
+            if len(comp) != 8 or len(faces) != 6 or any(len(f.verts) != 4 for f in faces):
+                continue
+            if len({f.material_index for f in faces}) != 1:
+                continue
+            at = {v.index: k for k, v in enumerate(comp)}
+            corners = np.array([tuple(v.co) for v in comp], dtype=np.float64) @ m3.T + t3
+            quads = [[at[v.index] for v in f.verts] for f in faces]
+            if flip:
+                quads = [q[::-1] for q in quads]
+            b = thin.beam(corners, quads)
+            if b is None or b["width"] > max_w:
+                continue
+            slot = faces[0].material_index
+            mat = ob.material_slots[slot].material if slot < len(ob.material_slots) else None
+            if mat is None:
+                raise ValueError("thin %s: a beam without a material" % ob.name)
+            pos, nor, wid = thin.side_triangles(b, corners)
+            got = out.setdefault(mat.name, [mat, [], [], []])
+            got[1].append(pos)
+            got[2].append(nor)
+            got[3].append(wid)
+            drop.extend(comp)
+            found += 1
+        if found:
+            bmesh.ops.delete(bm, geom=drop, context="VERTS")
+            bm.to_mesh(ob.data)
+            ob.data.update()
+        bm.free()
+        if not found:
+            raise ValueError("thin %s: no square box beam up to %.2f m" % (ob.name, max_w))
+        n_beams += found
+    if not n_beams:
+        raise ValueError("thin %s: no object matched" % (list(names),))
+    return {k: (v[0], np.concatenate(v[1]), np.concatenate(v[2]), np.concatenate(v[3])) for k, v in out.items()}, n_beams
+
+
+def _thin_surface(mb, beams, overrides):
+    """Adds the beams of _split_thin() to MeshBuilder mb as the surface "thin": colour, roughness, metallic and lamp
+    channel from the material as the class vpbr has them (roles.Translator with the catalogue's overrides - a
+    procedural material needs a flat one), COLOR.a = the beam's width code (ce3d/thin.py)."""
+    from . import thin
+    tr = roles.Translator(overrides=overrides, glass_class=False)
+    for name in sorted(beams):
+        mat, pos, nor, wid = beams[name]
+        role, d = tr.describe(mat)
+        if role != "flat":
+            raise ValueError("thin: material %s is %r - it needs a flat override (colour, rough, metal)" % (name, role))
+        tmp = core.MeshBuilder()
+        tr.add_role(tmp, role, d, pos, nor)
+        cs = tmp.chunks.get("vpbr", [])
+        if len(tmp.chunks) != 1 or len(cs) != 1 or cs[0][0].shape[0] != pos.shape[0]:
+            raise ValueError("thin: material %s does not translate to one vpbr chunk (a split lamp?)" % name)
+        p, n, col, uv, uv2 = cs[0]
+        col = np.array(col, copy=True)
+        codes = np.vectorize(thin.width_code)(wid)
+        col[..., 3] = codes.astype(np.uint8)
+        mb.add("thin", p, n, col, uv, uv2)
+    if tr.anchors:
+        raise ValueError("thin: a beam is a lamp with a light anchor - not supported")
+
+
 def _mark_rotor(mb, rotor):
     """Rotor code on every vpbr corner of a MeshBuilder (see ROTOR_CODE): COLOR.a and UV2.y = hub height."""
     hub = float(rotor["hub_z"]) / ROTOR_HUB_M
@@ -247,12 +348,21 @@ def build_baked(model_id, spec3d):
     objs = _objects(rig)
     core.realize(objs)
     caps_dropped = _drop_beam_caps(objs, spec3d.get("drop_caps", ()))
+    # N2: "thin" (object name prefixes) - their square box beams up to thin_max_m become the surface "thin" (widened
+    # to a pixel and drawn with their coverage by landmark.gdshader); they stay out of the atlas
+    thin_beams, n_thin = {}, 0
+    if spec3d.get("thin"):
+        from . import thin as TH
+        thin_beams, n_thin = _split_thin(objs, tuple(spec3d["thin"]), float(spec3d.get("thin_max_m", TH.THIN_MAX_M)))
+        objs = [o for o in objs if len(o.data.polygons) > 0]
     mats = {}
     for ob in objs:
-        for s in ob.material_slots:
+        used = {p.material_index for p in ob.data.polygons}
+        for i, s in enumerate(ob.material_slots):
             if s.material is not None:
                 roles.tag(s.material)                 # every material must be tagged
-                mats[s.material.name] = s.material
+                if i in used or not thin_beams:       # a material left only on thin beams is not baked
+                    mats[s.material.name] = s.material
     # Wave 6 (AS6): "vpbr" (material name prefixes) - flat materials drawn as vertex PBR instead of baked: a polished
     # metal (the Atomium's steel) keeps its roughness and metallic value and reflects the sky in the renderer; baked,
     # it became a matt grey atlas colour. Their objects stay out of the bake when they carry nothing else.
@@ -294,6 +404,8 @@ def build_baked(model_id, spec3d):
             lamp = roles.lamp_from_emit(d.get("emit")) if role == "flat" else None
             if lamp is not None and lamp[0] == "lights" and lamp[1] >= 0.25:
                 tr.anchors.append((lamp[0], soup.pos[sel].mean(axis=1), core.tri_areas(soup.pos[sel]), lamp[2]))
+    if thin_beams:
+        _thin_surface(mb, thin_beams, spec3d.get("overrides"))
     pts = mb.points()
     model = _finish_model(model_id, spec3d, sspec, info, pts)
     # slivers below 0.1 mm dropped as in the city and bridge builders: n-gon caps with collinear corners (the
@@ -315,6 +427,8 @@ def build_baked(model_id, spec3d):
     model.stats = dict(build_s=round(time.time() - t0, 2), objects=len(objs), bake=baked["stats"])
     if caps_dropped:
         model.stats["caps_dropped"] = caps_dropped
+    if n_thin:
+        model.stats["thin_beams"] = n_thin
     return model
 
 

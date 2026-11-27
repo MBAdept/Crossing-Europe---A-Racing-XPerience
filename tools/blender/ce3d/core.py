@@ -6,7 +6,7 @@ and the far side of a prop point to -Z (to_model_axes is a pure rotation: windin
 """
 import numpy as np
 
-CLASS_ORDER = ("vpbr", "glass", "baked", "baked_cutout", "leaves")
+CLASS_ORDER = ("vpbr", "glass", "baked", "baked_cutout", "leaves", "thin")
 
 
 # --- colours ---------------------------------------------------------------------------------------

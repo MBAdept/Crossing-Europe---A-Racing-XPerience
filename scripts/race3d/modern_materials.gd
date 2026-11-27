@@ -17,7 +17,12 @@ extends RefCounted
 ## ModelDB.release_all() AND clear() here (or drop_shared()) – release_all() alone frees no texture memory.
 
 const SHADER_DIR := "res://assets/shaders/modern/"
-const CLASSES: Array[String] = ["vpbr", "glass", "baked", "baked_cutout", "leaves"]
+const CLASSES: Array[String] = ["vpbr", "glass", "baked", "baked_cutout", "leaves", "thin"]
+## N2 (after wave 6): the class "thin" (beams a landmark shader widens to a pixel, tools/blender/ce3d/thin.py) is drawn
+## by builders/landmarks.gd with the landmark law; here it gets the same shader without it (landmark.gdshader with
+## CE_VCOL + CE_THIN: lm_fade at its default, a 720-px picture) for every other user of a model - the review scene,
+## render checks. Its COLOR.a is a width, not a paint code: never the vpbr material.
+const THIN_SHADER := "res://assets/shaders/modern/landmark.gdshader"
 ## M2INT: the class "vpbr" for STATIC geometry (props, buildings, trees, street furniture – every model that is not a
 ## vehicle): the same shader with its instance uniforms (paint, lamps, fade, sun, fill, gloss, xfade) turned into plain
 ## uniforms with the same defaults. Static nodes never set them, but every geometry instance whose material HAS
@@ -240,6 +245,11 @@ func shader(class_id: String) -> Shader:
 		if base != null:
 			sh = Shader.new()
 			sh.code = base.code.replace("shader_type spatial;", "shader_type spatial;\n#define CE_CUTOUT")
+	elif class_id == "thin":
+		var lm := load(THIN_SHADER) as Shader
+		if lm != null:
+			sh = Shader.new()
+			sh.code = lm.code.replace("shader_type spatial;", "shader_type spatial;\n#define CE_VCOL\n#define CE_THIN")
 	elif class_id == VPBR_STATIC:
 		var vb := shader("vpbr")
 		if vb != null:

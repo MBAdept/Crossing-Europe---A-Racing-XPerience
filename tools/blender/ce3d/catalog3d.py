@@ -1069,6 +1069,14 @@ MODELS["landmarks/nevsky_kathedrale"].update(auto_lod=False, vpbr=("an_gold",), 
 MODELS["landmarks/catedrala_mantuirii"].update(auto_lod=False, vpbr=("cm_gilded",), overrides={
     "cm_gilded": dict(role="flat", color="#d8ad45", rough=0.3, metal=1.0, lamp="flood:0.7")})
 # --- end AS6 ------------------------------------------------------------------------------------------------------
+# N2 (after wave 6): the Riesenrad's beams - 120 spokes of 0.14 m, the rims (0.45 m) with their zigzag lacing
+# (0.22 m), the cross ties and the lattice pylons (0.22 - 0.55 m) - are thinner than a pixel from about 250 m on and
+# shimmered while the camera moved. As the surface "thin" (ce3d/thin.py) landmark.gdshader widens each to a pixel and
+# draws it with its coverage. Out of the atlas they are plain steel as in the generator (rr_steel is procedural: a
+# flat override with its colour, roughness, metallic and flood share); the hub and everything else stay baked.
+MODELS["landmarks/riesenrad"].update(thin=("rr_wheel", "rr_spokes"), overrides={
+    "rr_steel": dict(role="flat", color="#5d3a2e", rough=0.6, metal=0.35, lamp="flood:0.75"),
+    "rr_spoke": dict(role="flat", color="#5d3a2e", rough=0.6, metal=0.35, lamp="flood:0.35")})
 
 
 def model_ids():

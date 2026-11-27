@@ -18,11 +18,13 @@ extends SceneTree
 ## in many bytes and sometimes in length; bytes and hash in model.json therefore hold for assets/models.
 ## Times go to _cache3d/bake_report.json, never into the model folders.
 ## Automatic mesh LODs (ImporterMesh.generate_lods) are only made for meshes the exporter flags "auto_lod"
-## (never for cars with decal patches). After a bake run `godot --headless --path . --import` once (textures).
+## (never for cars with decal patches), and never for a surface of the class "thin" (N2: the beams a landmark shader
+## widens to a pixel - decimated, a beam would collapse into a flat strip).
+## After a bake run `godot --headless --path . --import` once (textures).
 
 const DEFAULT_CACHE := "res://tools/blender/_cache3d"
 const DEFAULT_OUT := "res://assets/models"
-const CLASSES: Array[String] = ["vpbr", "glass", "baked", "baked_cutout", "leaves"]
+const CLASSES: Array[String] = ["vpbr", "glass", "baked", "baked_cutout", "leaves", "thin"]
 const LOD_NORMAL_MERGE_DEG := 60.0
 const LOD_NORMAL_SPLIT_DEG := 25.0
 
@@ -202,6 +204,7 @@ func _array_mesh(src: ImporterMesh, auto_lod: bool) -> Dictionary:
 		if not CLASSES.has(cls) or by_class.has(cls):
 			return {}
 		by_class[cls] = s
+	var late: Array = []
 	for cls: String in CLASSES:
 		if not by_class.has(cls):
 			continue
@@ -212,10 +215,16 @@ func _array_mesh(src: ImporterMesh, auto_lod: bool) -> Dictionary:
 		if idx == null or (idx as PackedInt32Array).is_empty():
 			return {}
 		tris += (idx as PackedInt32Array).size() / 3
+		if auto_lod and cls == "thin":
+			late.append(arrays)        # N2: never decimated (it is the last class: the order stays that of CLASSES)
+			continue
 		im.add_surface(Mesh.PRIMITIVE_TRIANGLES, arrays, [], {}, null, cls, Mesh.ARRAY_FLAG_COMPRESS_ATTRIBUTES)
 	if auto_lod:
 		im.generate_lods(LOD_NORMAL_MERGE_DEG, LOD_NORMAL_SPLIT_DEG, [])
 	var mesh := im.get_mesh()
+	for arrays: Array in late:
+		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays, [], {}, Mesh.ARRAY_FLAG_COMPRESS_ATTRIBUTES)
+		mesh.surface_set_name(mesh.get_surface_count() - 1, "thin")
 	for s in mesh.get_surface_count():
 		mesh.surface_set_material(s, null)
 	return {"mesh": mesh, "tris": tris}
