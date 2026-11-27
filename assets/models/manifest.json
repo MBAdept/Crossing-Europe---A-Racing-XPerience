@@ -89,7 +89,7 @@
     {
      "name": "lod0",
      "max_dist_m": 100000,
-     "tris": 2890,
+     "tris": 2878,
      "parts": [
       {
        "node": "body",
@@ -103,8 +103,8 @@
    "roughness": 0.85,
    "auto_lod": true,
    "tags": ["prop", "landmark"],
-   "bytes": 263097,
-   "hash": "4b63f30cd0176c77f2a5affda9c70c495836332f"
+   "bytes": 263001,
+   "hash": "13ca804974ec6f58b478fe4eef77dddbf44ed129"
   },
   "landmarks/campanile_venezia": {
    "kind": "landmark",
