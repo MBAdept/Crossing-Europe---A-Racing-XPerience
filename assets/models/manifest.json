@@ -704,6 +704,32 @@
    "bytes": 263295,
    "hash": "0c87900cb6a78696757d15fce1c1901f35db091a"
   },
+  "landmarks/stadtpfarrkirche_sibiu": {
+   "kind": "landmark",
+   "object": {"width_m": 30.8, "height_m": 73.3, "length_m": 83},
+   "extent_m": {"left": 38.75, "right": 11.3},
+   "aabb": [-15.4, 0, -84.427, 15.4, 73.3, -3.1],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 1012,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/stadtpfarrkirche_sibiu/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/stadtpfarrkirche_sibiu/albedo.webp", "emit": "landmarks/stadtpfarrkirche_sibiu/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 253965,
+   "hash": "ffa9737fa1def3030fee50107473f6fc9df06880"
+  },
   "landmarks/stephansdom": {
    "kind": "landmark",
    "object": {"width_m": 113, "height_m": 136.4, "length_m": 49},
@@ -10486,10 +10512,7 @@
   "landmarks/riesenrad": {"model": "landmarks/riesenrad"},
   "landmarks/sagrada_familia": {"model": "landmarks/sagrada_familia"},
   "landmarks/st_petri_riga": {"model": "landmarks/st_petri_riga"},
-  "landmarks/stadtpfarrkirche_sibiu": {
-   "fallback": "sprite",
-   "object": {"width_m": 30.8, "height_m": 73.3, "length_m": 83.0}
-  },
+  "landmarks/stadtpfarrkirche_sibiu": {"model": "landmarks/stadtpfarrkirche_sibiu"},
   "landmarks/stephansdom": {"model": "landmarks/stephansdom"},
   "landmarks/veitsdom_prag": {"model": "landmarks/veitsdom_prag"},
   "player/gran_turismo": {
