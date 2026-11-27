@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "landmarks/duomo_milano",
+ "model": {
+  "kind": "landmark",
+  "object": {"width_m": 92, "height_m": 108.5, "length_m": 158},
+  "extent_m": {"left": 70.22, "right": 31.68},
+  "aabb": [-46.75, 0, -158.75, 46.75, 108.5, 2.4],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 5062,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "landmarks/duomo_milano/lod0_body.res",
+      "classes": ["baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "landmarks/duomo_milano/albedo.webp", "emit": "landmarks/duomo_milano/emit.png"},
+  "roughness": 0.85,
+  "auto_lod": true,
+  "tags": ["prop", "landmark"],
+  "bytes": 411377,
+  "hash": "e894641178e1a8e39464a6cd654691bd2b3ff0d9"
+ },
+ "sets": {
+  "landmarks/duomo_milano": {"model": "landmarks/duomo_milano"}
+ }
+}

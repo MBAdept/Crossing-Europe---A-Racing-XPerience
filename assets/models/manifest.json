@@ -158,6 +158,32 @@
    "bytes": 643503,
    "hash": "a1b07ac4f46a3b042cbea4d2435c69ebeb81aace"
   },
+  "landmarks/duomo_milano": {
+   "kind": "landmark",
+   "object": {"width_m": 92, "height_m": 108.5, "length_m": 158},
+   "extent_m": {"left": 70.22, "right": 31.68},
+   "aabb": [-46.75, 0, -158.75, 46.75, 108.5, 2.4],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 5062,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/duomo_milano/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/duomo_milano/albedo.webp", "emit": "landmarks/duomo_milano/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 411377,
+   "hash": "e894641178e1a8e39464a6cd654691bd2b3ff0d9"
+  },
   "landmarks/eiffel_tower": {
    "kind": "landmark",
    "object": {"width_m": 125, "height_m": 330, "length_m": 125},
@@ -10235,10 +10261,7 @@
   "landmarks/dom_fulda": {"model": "landmarks/dom_fulda"},
   "landmarks/dom_passau": {"model": "landmarks/dom_passau"},
   "landmarks/dom_regensburg": {"model": "landmarks/dom_regensburg"},
-  "landmarks/duomo_milano": {
-   "fallback": "sprite",
-   "object": {"width_m": 92.0, "height_m": 108.5, "length_m": 158.0}
-  },
+  "landmarks/duomo_milano": {"model": "landmarks/duomo_milano"},
   "landmarks/eiffel_tower": {"model": "landmarks/eiffel_tower"},
   "landmarks/elbphilharmonie": {"model": "landmarks/elbphilharmonie"},
   "landmarks/fernsehturm_berlin": {"model": "landmarks/fernsehturm_berlin"},
