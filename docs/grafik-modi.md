@@ -172,7 +172,7 @@ Modern-Renderer, den der Build enthält. V-Sync und Bildbegrenzung sind während
 
 ```json
 {"version": 1, "date": "…", "adapter": "…", "api": "…", "tier": "deck", "preset": "deck",
- "quality": {"shadows": 1, "details": 1, "scale": 100, "aa": 1, "effects": 1}, "resolution": [1280, 800],
+ "quality": {"shadows": 2, "details": 2, "scale": 100, "aa": 2, "effects": 2}, "resolution": [1280, 800],
  "scenes": [{"id": "autobahn", "avg_fps": 87.4, "low1_fps": 71.2, "frame_ms_p95": 12.9, "frame_ms_p99": 14.1,
              "script_ms": 1.31, "draw_calls": 412, "primitives": 281400, …}, …],
  "suggested_preset": "deck", "suggested_mode": "modern", "verdict": "ok", …}

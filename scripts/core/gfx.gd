@@ -27,8 +27,12 @@ const QUALITY_MAX := {"shadows": 3, "details": 2, "aa": 2, "effects": 2}
 const BOOT_MARKER := "user://modern_start.lock"
 
 ## Start values of config graphics.presets – used where the configuration has no (valid) entry.
+## "deck" (contract A-30, after the Leistungstest on a Steam Deck OLED with test builds 1 and 2): the Deck is held by
+## its CPU, not its GPU – "high" cost only 1–6 % more frame time than the old deck set {1, 1, 100, 1, 1} (103–115 fps
+## against 108–119 fps at 1280×800). The Deck set is "high" with the shadows of "medium" (2 cascades, 2048, 120 m):
+## every value at or below the measured "high", the least visible saving on the 7-inch screen.
 const DEFAULT_PRESETS := {
-	"deck": {"shadows": 1, "details": 1, "scale": 100, "aa": 1, "effects": 1},
+	"deck": {"shadows": 2, "details": 2, "scale": 100, "aa": 2, "effects": 2},
 	"low": {"shadows": 0, "details": 0, "scale": 75, "aa": 0, "effects": 0},
 	"medium": {"shadows": 2, "details": 1, "scale": 100, "aa": 1, "effects": 1},
 	"high": {"shadows": 3, "details": 2, "scale": 100, "aa": 2, "effects": 2},

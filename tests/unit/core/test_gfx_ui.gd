@@ -152,9 +152,10 @@ func test_frame_stats() -> void:
 
 func test_preset_ladder() -> void:
 	var presets: Dictionary = _gfx_cfg().get("presets", {})
-	assert_eq(Gfx.preset_ladder("deck", presets), ["low", "deck", "medium", "high"], "Steam Deck: mit der Deck-Stufe")
+	assert_eq(Gfx.preset_ladder("deck", presets), ["low", "medium", "deck", "high"], "Steam Deck: mit der Deck-Stufe (A-30: zwischen Mittel und Hoch)")
 	assert_eq(Gfx.preset_ladder("ok", presets), ["low", "medium", "high"], "sonst ohne")
-	assert_true(Gfx.quality_cost(Gfx.preset_values("low", presets)) < Gfx.quality_cost(Gfx.preset_values("deck", presets)), "low < deck")
+	assert_true(Gfx.quality_cost(Gfx.preset_values("medium", presets)) < Gfx.quality_cost(Gfx.preset_values("deck", presets)), "medium < deck")
+	assert_true(Gfx.quality_cost(Gfx.preset_values("deck", presets)) < Gfx.quality_cost(Gfx.preset_values("high", presets)), "deck < high")
 	assert_true(Gfx.quality_cost(Gfx.preset_values("medium", presets)) < Gfx.quality_cost(Gfx.preset_values("high", presets)), "medium < high")
 
 
@@ -188,9 +189,12 @@ func test_bench_suggestion() -> void:
 	assert_eq(str(s["verdict"]), "slow", "langsam")
 	assert_eq(str(s["suggested_preset"]), "low", "eine Stufe tiefer (ohne Deck-Stufe)")
 	s = Gfx.bench_suggestion(medium, [_scene("a", 25.0)], t60, "deck", g)
-	assert_eq(str(s["suggested_preset"]), "deck", "Steam Deck: Mittel -> Steam Deck")
+	assert_eq(str(s["suggested_preset"]), "low", "Steam Deck: Mittel -> Niedrig")
 	s = Gfx.bench_suggestion(deck, [_scene("a", 25.0)], t60, "deck", g)
-	assert_eq(str(s["suggested_preset"]), "low", "Steam Deck: Steam Deck -> Niedrig")
+	assert_eq(str(s["suggested_preset"]), "medium", "Steam Deck: Steam Deck -> Mittel")
+	# the Deck's own measurement (test build 2, A-30): Steam Deck with headroom -> Hoch
+	s = Gfx.bench_suggestion(deck, [_scene("autobahn", 8.24, 9.68, 10.83), _scene("stadt", 9.06, 10.88, 12.26)], t60, "deck", g)
+	assert_eq(str(s["suggested_preset"]), "high", "Steam Deck mit Reserve -> Hoch")
 	# far too slow on the cheapest preset: Arcade
 	s = Gfx.bench_suggestion(low, [_scene("a", 45.0)], t60, "software", g)
 	assert_eq(str(s["verdict"]), "too_slow", "viel zu langsam")

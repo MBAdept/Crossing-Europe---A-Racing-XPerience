@@ -2042,3 +2042,25 @@ KRITIK-R / AU-R2)**
 - `tests/golden/modern_slice.*` stays with the integration (A-18); a package that regenerated it is superseded by the
   assembly, which regenerates once after looking.
 - The paint flicker stays paused (A-21).
+
+### 11.5 After wave 6 (2026-11-27; evidence: the wave 6 report, N6 and N2 with their render checks, the user's Leistungstest on a Steam Deck OLED with test builds 1 and 2)
+
+**A-30 The preset „Steam Deck“ (replaces the `deck` row of §4.10)**
+- `deck` = {shadows 2, details 2, scale 100, aa 2, effects 2}: the shadows of `medium` (2 cascades, 2048, 120 m,
+  buildings and tree proxies cast), everything else as `high`. Evidence (1280×800, three scenes of 20 s, test build 2):
+  old `deck` {1, 1, 100, 1, 1} 108–119 fps (median 8.2–9.1 ms, p99 ≤ 12.3 ms), `high` 103–115 fps (median 8.5–9.6 ms,
+  p99 ≤ 13.3 ms, 1 % low ≥ 72 fps) – `high` costs 1–6 % more: the Deck is held by its CPU, not its GPU. Every value of
+  the new set is at or below the measured `high`.
+- In the cost order of `Gfx.preset_ladder()` `deck` now lies between `medium` and `high`; the watchdog steps it down to
+  `medium` (`Quality.STEPS`). The budget of §4.10 (650 draw calls, 450,000 primitives) stays; measured with `high` on
+  the Deck: at most 325 draw calls and 308,000 primitives per frame.
+- Open for PERF: one frame of 19–24 ms per 20 s on the Autobahn (streamer hook up to 6.7 ms on the Deck, chunk commit
+  1.5 ms); docked at 1080p, battery and fan are not measured.
+
+**A-31 Landmarks after wave 6 (N6, N2; additions to A-25)**
+- A landmark model stands in the view angle of its sprite (`model.json` `view_yaw_deg`), turned in addition to its
+  approach and cut back so that its footprint keeps `HOUSE_BAND_M` (36 m) from the road edge behind its plaza; the
+  drawn node stays within `MAX_NODE_SHIFT_M` of Arcade's anchor (A-25).
+- Surface class `thin` (landmarks only): square beams the shader widens to at least 1.5 pixels of the 3D picture and
+  draws with their coverage (`landmark.gdshader` CE_THIN, `tools/blender/ce3d/thin.py`); never decimated, casts no
+  shadow. Render check `check_thin_render`.

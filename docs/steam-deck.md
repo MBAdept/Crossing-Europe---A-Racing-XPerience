@@ -346,40 +346,44 @@ unten berücksichtigen das.
   dem Spiel den Fokus nimmt (dann pausiert es), Standby (die Regel ist geprüft, ein echter Schlafzustand nicht).
 - **Leistung, Akku und Ton auf dem Gerät**: CPU-Zeiten auf dem Deck, PipeWire-Aussetzer beim Motorstart.
 
-## Leistungstest Modern auf dem Deck (v0.8.0, Testbuild 1, gemessen)
+## Leistungstest Modern auf dem Deck (v0.8.0, gemessen)
 
-Erste Messung auf echter Hardware (27.11.2026): Deck OLED (APU „Custom GPU 0932“, Mesa 26.1, 90 Hz), 1280×800,
-Optionen → Grafik → Leistungstest, je 20 s Autobahn bei Tag, Stadt bei Nacht im Regen, Bergstrecke mit Tunnel.
-Gespielt wurde dabei noch **Testbuild 1** (`0.8.0-zs1` in der Ergebnisdatei).
+Messung auf echter Hardware (27.11.2026): Deck OLED (APU „Custom GPU 0932“, Mesa 26.1, 90 Hz), 1280×800, Optionen →
+Grafik → Leistungstest, je 20 s Autobahn bei Tag, Stadt bei Nacht im Regen, Bergstrecke mit Tunnel; mit Testbuild 1
+(`0.8.0-zs1`) und Testbuild 2 (`0.8.0-zs2`), je mit der alten Voreinstellung „Steam Deck“ {Schatten 1, Details 1,
+100 %, MSAA 2×, Effekte 1} und mit „Hoch“ {3, 2, 100 %, MSAA 4×, 2}.
 
-| Voreinstellung | Bilder/s im Mittel | 1 % langsamste | Bildzeit Median / p95 / p99 | längstes Bild | Reserve zu 60 fps |
+| Build, Voreinstellung | Bilder/s im Mittel (Autobahn / Stadt / Berg) | 1 % langsamste | Bildzeit Median / p99 | längstes Bild | Reserve zu 60 fps |
 |---|---|---|---|---|---|
-| Steam Deck | 111 / 114 / 120 | 74 / 79 / 81 | 8,2–8,9 / 10,7–11,1 / 11,6–12,0 ms | 24,6 ms (Autobahn) | 1,87 × |
-| Hoch | 106 / 109 / 113 | 75 / 79 / 78 | 8,9–9,4 / 11,2–12,0 / 11,8–12,5 ms | 20,3 ms (Autobahn) | 1,77 × |
+| Testbuild 1, Steam Deck (alt) | 111 / 114 / 120 | 74–81 | 8,2–8,9 / 11,6–12,0 ms | 24,6 ms | 1,87 × |
+| Testbuild 1, Hoch | 106 / 109 / 113 | 75–79 | 8,9–9,4 / 11,8–12,5 ms | 20,3 ms | 1,77 × |
+| Testbuild 2, Steam Deck (alt) | 119 / 108 / 118 | 73–82 | 8,2–9,1 / 10,8–12,3 ms | 24,2 ms | 1,84 × |
+| Testbuild 2, Hoch | 115 / 103 / 114 | 72–80 | 8,5–9,6 / 11,3–13,3 ms | 19,0 ms | 1,74 × |
 
 Was das heißt:
 
 - **60 fps hält das Deck mit Reserve, auch mit „Hoch“.** Der Leistungstest schlägt selbst „Hoch“ vor.
-- **„Hoch“ kostet auf dem Deck nur etwa 6 % mehr als „Steam Deck“** (Median 9,4 gegen 8,9 ms) – obwohl „Hoch“ vier
-  Schattenstufen, 4-faches MSAA und alle Effekte zeichnet. Die Grafik ist also nicht die Grenze, sondern der
-  Prozessor (Hauptfaden: Skripte, Simulation und das Abschicken der Zeichenaufrufe, zusammen ~9 ms). Mehr Bildqualität
-  kostet auf dem Deck deshalb wenig; was Prozessorzeit kostet (mehr Objekte, mehr Zeichenaufrufe), zählt.
-- **90 fps gleichmäßig schafft keine Voreinstellung** (p95 um 11 ms, ein 90-Hz-Bild hat 11,1 ms). Auf dem OLED daher
+- **„Hoch“ kostet auf dem Deck nur 1–6 % mehr Bildzeit**, obwohl es vier Schattenstufen, 4-faches MSAA und alle
+  Effekte zeichnet. Die Grafik ist nicht die Grenze, sondern der Prozessor (Hauptfaden: Skripte, Simulation und das
+  Abschicken der Zeichenaufrufe, zusammen 8–10 ms). Bildqualität kostet auf dem Deck deshalb wenig; was Prozessorzeit
+  kostet (mehr Objekte, mehr Zeichenaufrufe), zählt.
+- **Testbuild 2 zeichnet mehr als Testbuild 1** (Stadt bei „Hoch“: 320 statt 205 Zeichenaufrufe, 308 000 statt 49 000
+  Dreiecke – Relief, Wälder, 3D-Stadthäuser) und ist trotzdem kaum langsamer, auf der Autobahn sogar schneller.
+- **90 fps gleichmäßig schafft keine Voreinstellung** (p99 11–13 ms, ein 90-Hz-Bild hat 11,1 ms). Auf dem OLED daher
   weiter: 60 Hz mit Bildrate 60 oder 90 Hz mit Bildrate 45 (Empfohlene Einstellungen unten).
-- **Ein Ruck auf der Autobahn:** Das längste Bild (24,6 ms) fällt mit dem Nachladen der Strecke zusammen
-  (`streamer` bis 9,4 ms). Derselbe Wert ist im heutigen Stand auf dem Entwicklungsrechner 2,6–2,8 ms (Testbuild 2 am
-  PC: 3,2 ms) – das Einhängen wurde nach Testbuild 1 verbessert (FIX-RINT); auf dem Deck noch nachzumessen.
 
-Der heutige Stand zeichnet mehr als Testbuild 1 (gemessen auf dem Entwicklungsrechner in 1280×800, dieselben drei
-Szenen, Zähler unabhängig von der Hardware): Mit „Steam Deck“ 279 / 256 / 220 Zeichenaufrufe je Bild statt 260 / 187 /
-181, in der Stadt 189 000 statt 34 000 Dreiecke (die Stadthäuser sind jetzt 3D-Modelle); mit „Hoch“ in der Stadt 353
-Zeichenaufrufe und 321 000 Dreiecke. Das liegt weiter unter dem Budget der Deck-Stufe (650 Zeichenaufrufe, 450 000
-Dreiecke), kostet auf dem prozessorbegrenzten Deck aber Zeit.
+**Neue Voreinstellung „Steam Deck“** (Vertrag A-30): {Schatten 2, Details 2, 100 %, MSAA 4×, Effekte 2} – die
+Schatten von „Mittel“ (2 Stufen, 2048 Pixel, 120 m, Gebäude und Bäume werfen), alles andere wie „Hoch“: 4-faches MSAA
+gegen flimmernde Masten, Geländer und Leitungen, nasse Spiegelungen und alle Lichter bei Nacht, Details und Gelände
+bis 1 000 m. Jeder Wert liegt auf oder unter dem gemessenen „Hoch“ – die Messung deckt die Stufe also ab (mindestens
+103 Bilder/s im Mittel, p99 höchstens 13,3 ms). Gespart ist nur, was auf dem kleinen Bildschirm am wenigsten zu sehen
+ist und in der Stadt die meisten Zusatzdreiecke bringt (bei „Hoch“ 126 000 Schattendreiecke je Bild). Wer mehr will,
+wählt „Hoch“; ist eine Etappe im Countdown zu langsam, senkt der Wächter „Steam Deck“ auf „Mittel“.
 
-**Offen:** Die Werte der Voreinstellung „Steam Deck“ bleiben vorerst {Schatten 1, Details 1, 100 %, MSAA 2×, Effekte
-1}; abgestimmt wird sie im Paket PERF (Vertrag §7) mit einer Messung eines aktuellen Builds auf dem Deck. Die Messung
-spricht dafür, sie Richtung „Hoch“ anzuheben – vor allem Kantenglättung und Effekte, die nur die Grafik belasten.
-Nicht gemessen: angedockt an 1080p (doppelt so viele Pixel), Akkulaufzeit, Lüfter.
+**Noch offen** (Paket PERF): Auf der Autobahn gibt es je 20 s ein Bild von 19–24 ms (bei 60 Hz ein verpasstes Bild).
+Es fällt mit dem Nachladen der Strecke zusammen – der Streamer braucht dort bis 6,7 ms (Testbuild 1: 9,4 ms), das
+Einhängen der Stücke selbst nur 1,5 ms. Nicht gemessen: angedockt an 1080p (doppelt so viele Pixel), Akkulaufzeit,
+Lüfter.
 
 ## Verbleibende Grenzen
 

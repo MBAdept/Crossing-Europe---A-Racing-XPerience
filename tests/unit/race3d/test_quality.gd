@@ -47,7 +47,7 @@ func test_viewport_states_are_set_and_put_back() -> void:
 func test_step_down_keeps_shader_variants() -> void:
 	assert_eq(Quality.lower_preset("high"), "medium", "Hoch → Mittel")
 	assert_eq(Quality.lower_preset("medium"), "low", "Mittel → Niedrig")
-	assert_eq(Quality.lower_preset("deck"), "low", "Steam Deck → Niedrig")
+	assert_eq(Quality.lower_preset("deck"), "medium", "Steam Deck → Mittel (A-30: zwischen Mittel und Hoch)")
 	assert_eq(Quality.lower_preset("custom"), "low", "Benutzerdefiniert → Niedrig")
 	assert_eq(Quality.lower_preset("low"), "", "unter Niedrig gibt es nichts")
 	var high := _levels("high")

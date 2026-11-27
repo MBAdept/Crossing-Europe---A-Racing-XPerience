@@ -13,8 +13,9 @@ extends RefCounted
 ## quality stay as they were.
 ## Loaded by modern_renderer.gd only (no class name). Owner: renderer core (R1).
 
-## Presets from the most to the least expensive; "deck" and "custom" step down to "low".
-const STEPS := {"high": "medium", "medium": "low", "deck": "low", "custom": "low"}
+## Presets from the most to the least expensive; "deck" (between "medium" and "high" since A-30) steps down to
+## "medium", "custom" to "low".
+const STEPS := {"high": "medium", "medium": "low", "deck": "medium", "custom": "low"}
 ## Keys of the levels a running stage keeps when the watchdog lowers the quality: they select shader variants.
 const FIXED_KEYS: Array[String] = ["shadow_splits", "shadow_blend", "shadow_filter"]
 

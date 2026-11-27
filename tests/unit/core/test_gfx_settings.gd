@@ -169,7 +169,7 @@ func test_sound_matrix() -> void:
 
 func test_presets_of_the_configuration() -> void:
 	var p := _presets()
-	assert_eq(Gfx.quality("deck", {}, p), {"preset": "deck", "shadows": 1, "details": 1, "scale": 100, "aa": 1, "effects": 1}, "Steam Deck")
+	assert_eq(Gfx.quality("deck", {}, p), {"preset": "deck", "shadows": 2, "details": 2, "scale": 100, "aa": 2, "effects": 2}, "Steam Deck (A-30)")
 	assert_eq(Gfx.quality("low", {}, p), {"preset": "low", "shadows": 0, "details": 0, "scale": 75, "aa": 0, "effects": 0}, "Niedrig")
 	assert_eq(Gfx.quality("medium", {}, p), {"preset": "medium", "shadows": 2, "details": 1, "scale": 100, "aa": 1, "effects": 1}, "Mittel")
 	assert_eq(Gfx.quality("high", {}, p), {"preset": "high", "shadows": 3, "details": 2, "scale": 100, "aa": 2, "effects": 2}, "Hoch")
@@ -223,7 +223,7 @@ func test_command_line_overrides_of_the_quality() -> void:
 		{"preset": "custom", "shadows": 0, "details": 1, "scale": 75, "aa": 1, "effects": 1}, "--gfx=shadows=0,scale=75")
 	assert_eq(Gfx.with_cli(base, "high", "aa=0", p),
 		{"preset": "custom", "shadows": 3, "details": 2, "scale": 100, "aa": 0, "effects": 2}, "Voreinstellung und Einzelwert")
-	assert_eq(Gfx.with_cli(base, "", "shadows=1", p)["preset"], "deck", "Einzelwerte, die einer Voreinstellung gleichen, heißen wie sie")
+	assert_eq(Gfx.with_cli(base, "", "details=2,aa=2,effects=2", p)["preset"], "deck", "Einzelwerte, die einer Voreinstellung gleichen, heißen wie sie")
 	assert_eq(Gfx.with_cli(base, "", "shadows=99, nonsense=3, details, aa=x", p),
 		{"preset": "custom", "shadows": 3, "details": 1, "scale": 100, "aa": 1, "effects": 1}, "begrenzt, Unbekanntes ignoriert")
 	assert_eq(Gfx.with_cli(base, "", "aa=1e30,scale=-1e400", p),
@@ -252,9 +252,10 @@ func test_levels_are_flat_typed_renderer_parameters() -> void:
 	assert_true(int(low["msaa"]) == 0 and is_equal_approx(float(low["scale_3d"]), 0.75) and int(low["omni_pool"]) == 2
 		and not bool(low["glow"]) and int(low["particles"]) == 300, "Niedrig: MSAA aus, 75 %, 2 Punktlichter")
 	var deck := Gfx.levels(Gfx.quality("deck", {}, {}), g)
-	assert_true(int(deck["shadow_splits"]) == 2 and int(deck["shadow_atlas"]) == 2048 and is_equal_approx(float(deck["shadow_distance_m"]), 80.0)
-		and int(deck["msaa"]) == 2 and int(deck["omni_pool"]) == 4 and bool(deck["sky_reflections"]) and not bool(deck["ssao"]),
-		"Steam Deck: 2 Stufen, 2048, 80 m, MSAA 2×, 4 Punktlichter")
+	assert_true(int(deck["shadow_splits"]) == 2 and int(deck["shadow_atlas"]) == 2048 and is_equal_approx(float(deck["shadow_distance_m"]), 120.0)
+		and int(deck["msaa"]) == 4 and int(deck["omni_pool"]) == 8 and bool(deck["wet_reflections"])
+		and is_equal_approx(float(deck["terrain_outer_m"]), 1000.0) and is_equal_approx(float(deck["scale_3d"]), 1.0),
+		"Steam Deck (A-30): Schatten wie Mittel (2 Stufen, 2048, 120 m), sonst wie Hoch (MSAA 4×, 8 Punktlichter, nasse Spiegelung, Gelände 1 000 m)")
 	var high := Gfx.levels(Gfx.quality("high", {}, {}), g)
 	assert_true(int(high["shadow_splits"]) == 4 and bool(high["shadow_blend"]) and int(high["shadow_atlas"]) == 4096
 		and is_equal_approx(float(high["shadow_distance_m"]), 200.0) and int(high["msaa"]) == 4 and int(high["omni_pool"]) == 8
