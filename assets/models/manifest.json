@@ -28,6 +28,32 @@
    "bytes": 453173,
    "hash": "8dc74761f956a7d18083ea0b2f39e0f9347f4576"
   },
+  "landmarks/basilika_koekelberg": {
+   "kind": "landmark",
+   "object": {"width_m": 120, "height_m": 89, "length_m": 167},
+   "extent_m": {"left": 93.74, "right": 31.88},
+   "aabb": [-60.5, 0, -167, 60.5, 89, 0],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 3354,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/basilika_koekelberg/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/basilika_koekelberg/albedo.webp", "emit": "landmarks/basilika_koekelberg/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 458131,
+   "hash": "cce5840b425eda61e1c58475a9f3dd62e3e168a3"
+  },
   "landmarks/dom_fulda": {
    "kind": "landmark",
    "object": {"width_m": 48, "height_m": 65, "length_m": 99},
@@ -10166,10 +10192,7 @@
    "fallback": "sprite",
    "object": {"width_m": 141.0, "height_m": 92.0, "length_m": 78.0}
   },
-  "landmarks/basilika_koekelberg": {
-   "fallback": "sprite",
-   "object": {"width_m": 120.0, "height_m": 89.0, "length_m": 167.0}
-  },
+  "landmarks/basilika_koekelberg": {"model": "landmarks/basilika_koekelberg"},
   "landmarks/beffroi_calais": {
    "fallback": "sprite",
    "object": {"width_m": 84.0, "height_m": 75.0, "length_m": 26.0}
