@@ -470,6 +470,32 @@
    "bytes": 924581,
    "hash": "ccf8543495836811325c4be0c350da451bf2160c"
   },
+  "landmarks/kulturpalast_warschau": {
+   "kind": "landmark",
+   "object": {"width_m": 190, "height_m": 237, "length_m": 68},
+   "extent_m": {"left": 114.3, "right": 80.59},
+   "aabb": [-95.45, 0, -79, 95, 237.8, -10.95],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 5788,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/kulturpalast_warschau/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/kulturpalast_warschau/albedo.webp", "emit": "landmarks/kulturpalast_warschau/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 874170,
+   "hash": "a89aff41f4014c48f4de0c41b1f1478ccc604f02"
+  },
   "landmarks/mariendom_linz": {
    "kind": "landmark",
    "object": {"width_m": 60, "height_m": 134.8, "length_m": 130},
@@ -10399,10 +10425,7 @@
   "landmarks/kaiserburg_nuernberg": {"model": "landmarks/kaiserburg_nuernberg"},
   "landmarks/kathedrale_burgos": {"model": "landmarks/kathedrale_burgos"},
   "landmarks/koelner_dom": {"model": "landmarks/koelner_dom"},
-  "landmarks/kulturpalast_warschau": {
-   "fallback": "sprite",
-   "object": {"width_m": 190.0, "height_m": 237.0, "length_m": 68.0}
-  },
+  "landmarks/kulturpalast_warschau": {"model": "landmarks/kulturpalast_warschau"},
   "landmarks/mariendom_linz": {"model": "landmarks/mariendom_linz"},
   "landmarks/michel": {"model": "landmarks/michel"},
   "landmarks/nevsky_kathedrale": {
