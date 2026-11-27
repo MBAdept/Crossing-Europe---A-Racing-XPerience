@@ -153,10 +153,10 @@
    ],
    "textures": {"albedo": "landmarks/catedrala_mantuirii/albedo.webp", "emit": "landmarks/catedrala_mantuirii/emit.png"},
    "roughness": 0.85,
-   "auto_lod": true,
+   "auto_lod": false,
    "tags": ["prop", "landmark"],
-   "bytes": 370614,
-   "hash": "9842d63deb8bdc9b6025bd12ef601443c0bb5c20"
+   "bytes": 351574,
+   "hash": "9789bb712c292c366ff9b128832987f96a4b3c6a"
   },
   "landmarks/catedrala_timisoara": {
    "kind": "landmark",
