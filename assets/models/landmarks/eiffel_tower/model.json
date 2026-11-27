@@ -11,7 +11,7 @@
    {
     "name": "lod0",
     "max_dist_m": 100000,
-    "tris": 25152,
+    "tris": 17072,
     "parts": [
      {
       "node": "body",
@@ -25,8 +25,8 @@
   "roughness": 0.85,
   "auto_lod": true,
   "tags": ["prop", "landmark"],
-  "bytes": 1204797,
-  "hash": "e2e43523e60ac57bf2eeb9e08b0967d68060d22b"
+  "bytes": 1013605,
+  "hash": "326757aee2210780b25a4167524baa89abd3638f"
  },
  "sets": {
   "landmarks/eiffel_tower": {"model": "landmarks/eiffel_tower"}
