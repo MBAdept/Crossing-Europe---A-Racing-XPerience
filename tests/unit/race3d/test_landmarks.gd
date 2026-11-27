@@ -99,7 +99,11 @@ func test_every_city_landmark_has_a_representation() -> void:
 	assert_eq(int(Landmarks.resolve_item({"set": "landmarks/michel", "side": 1, "x": 70.0, "z": 0.0, "align": "edge"}, lib.sets, {})["rep"]),
 		Landmarks.MODEL, "Michel: das Modell")
 	assert_eq(int(Landmarks.resolve_item({"set": "landmarks/elbphilharmonie", "side": -1, "x": -55.0, "z": 0.0, "align": "edge"}, lib.sets, {})["rep"]),
-		Landmarks.PICTURE, "Elbphilharmonie: Arcades Bild (noch kein Modell)")
+		Landmarks.MODEL, "Elbphilharmonie: das Modell (AS6)")
+	# since AS6 every landmark sprite has a model: Arcade's picture for a set without one (a sprite-only set)
+	var only_sprite := {"landmarks/only_sprite": {"kind": PropLibrary.SPRITE, "extent_l": 10.0, "extent_r": 10.0, "variants": []}}
+	assert_eq(int(Landmarks.resolve_item({"set": "landmarks/only_sprite", "side": 1, "x": 30.0, "z": 0.0, "align": "edge"}, only_sprite, {})["rep"]),
+		Landmarks.PICTURE, "ein Set nur mit Sprite: Arcades Bild")
 	lib.clear(self)
 	_cleanup()
 
@@ -159,8 +163,9 @@ func test_anchor_and_mirror_like_arcade_network_wide() -> void:
 			continue
 		worst = maxf(worst, absf(float(p["x"]) - float(pc[3])))
 		# a model's extents may differ from its sprite's by the validator's tolerance (A-4: max(2 %, half a sprite pixel
-		# + 5 mm)) – measured at most 0.15 m (props/building_tall × 3.6), 0.2 px at 600 m
-		assert_near(float(p["x"]), float(pc[3]), 0.25, "%s: Anker wie Arcade" % what)
+		# + 5 mm)) – measured at most 0.34 m since AS6 (landmarks/catedrala_mantuirii: the sprite measures its extents
+		# in whole pixels of 0.23 m, the model on its geometry; 1.5 sprite pixels), 0.4 px at 600 m
+		assert_near(float(p["x"]), float(pc[3]), 0.4, "%s: Anker wie Arcade" % what)
 		var info: Array = pc[1]
 		var flip := not info.is_empty() and RoadRenderer.prop_flipped(int(it.get("side", 1)), bool(it.get("mirror", false)),
 			bool(info[RoadRenderer.SI_MIRROR]))
@@ -275,6 +280,31 @@ func test_facing_the_approach() -> void:
 				assert_true(near_t >= near_a - 1.0e-3, "Seite %d, Drehung %.2f, Spiegel %.0f: keine Ecke näher an der Straße (%.2f gegen %.2f)" % [side, turn, mirror, near_t, near_a])
 	assert_near(Landmarks.near_shift(Landmarks.heading_basis(a, Vector3.ONE), Landmarks.heading_basis(a, Vector3.ONE), box, a, 1), 0.0, 1.0e-4, "ungedreht: keine Verschiebung")
 	assert_true(Landmarks.heading_basis(a, Vector3(-1.0, 1.0, 1.0)).determinant() < 0.0, "gespiegelt: negative Determinante (ein MeshInstance3D zeichnet richtig, D24)")
+
+
+## Welle 6 (AS6): a long footprint – the Milan cathedral is 158 m deep – turned to its approach swings its far end
+## towards the road, and near_shift() would move the node 26.7 m from Arcade's anchor. capped_turn() turns it only as
+## far as the node may move (MAX_NODE_SHIFT_M); a short footprint keeps its whole turn.
+func test_long_footprint_turns_only_as_far_as_the_node_may_move() -> void:
+	var a := 0.4
+	var long_box := AABB(Vector3(-30.0, 0.0, -160.0), Vector3(60.0, 100.0, 160.0))
+	var cut := 0
+	for side: int in [1, -1]:
+		for turn: float in [0.17, -0.17, 0.6, -0.6]:
+			for mirror: float in [1.0, -1.0]:
+				var s := Vector3(mirror, 1.0, 1.0)
+				var t := Landmarks.capped_turn(a, a + turn, long_box, side, s)
+				var shift := Landmarks.near_shift(Landmarks.heading_basis(a, s), Landmarks.heading_basis(t, s), long_box, a, side)
+				assert_true(shift <= Landmarks.MAX_NODE_SHIFT_M + 1.0e-3, "Seite %d, Drehung %.2f: Verschiebung %.2f m (höchstens %.0f m)" % [side, turn, shift, Landmarks.MAX_NODE_SHIFT_M])
+				assert_true((t - a) * turn >= 0.0 and absf(t - a) <= absf(turn) + 1.0e-6, "Seite %d, Drehung %.2f: in dieselbe Richtung, höchstens so weit (%.3f)" % [side, turn, t - a])
+				if absf(t - a) < absf(turn) - 1.0e-3:
+					cut += 1
+					var full := Landmarks.near_shift(Landmarks.heading_basis(a, s), Landmarks.heading_basis(a + turn, s), long_box, a, side)
+					assert_true(full > Landmarks.MAX_NODE_SHIFT_M, "gekürzt nur, wo die ganze Drehung zu weit schöbe (%.2f m)" % full)
+	assert_true(cut > 0, "die lange Kirche wird in manchen Fällen weniger gedreht (%d)" % cut)
+	var short_box := AABB(Vector3(-10.0, 0.0, -20.0), Vector3(20.0, 30.0, 20.0))
+	for turn: float in [0.5, -0.5]:
+		assert_near(Landmarks.capped_turn(a, a + turn, short_box, 1, Vector3.ONE), a + turn, 1.0e-6, "kurzer Grundriss: ganze Drehung %.1f" % turn)
 
 
 ## The procedural shapes: the size of the real landmark (height_m × scale up to its tip; skyscrapers with their

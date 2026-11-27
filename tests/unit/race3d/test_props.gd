@@ -23,9 +23,16 @@ class FakeRenderer extends RefCounted:
 
 
 ## Leaves nothing behind for the tests that follow (and for the end of the run): model caches and class materials.
+const STANDIN_SET := "props/bush_round"   ## W6: the set a test manifest leaves without a model (_standin_set())
+var _test_manifest := false
+
+
 func _cleanup() -> void:
 	ModelDB.release_all()
 	ModernMaterials.drop_shared()
+	if _test_manifest:
+		ModelDB.load_manifest()        # the shipped manifest again (see _standin_set())
+		_test_manifest = false
 
 
 ## 1,200 segments: straight, then a right bend of 200 m radius from segment 400 to 700, then straight.
@@ -56,7 +63,24 @@ func _standin_set() -> String:
 	for sid: String in ModelDB.set_ids():
 		if sid.begins_with("props/") and str(ModelDB.resolve(sid).get("fallback", "")) == "sprite":
 			return sid
-	return ""
+	# since wave 6 every prop set has a model: a test manifest takes the model of STANDIN_SET away (as
+	# check_vehicles "kasten", A-13); _cleanup() loads the shipped manifest again
+	var src: Variant = JSON.parse_string(FileAccess.get_file_as_string(ModelDB.ROOT + ModelDB.MANIFEST))
+	if not src is Dictionary or not ((src as Dictionary).get("sets", {}) as Dictionary).has(STANDIN_SET):
+		return ""
+	var m: Dictionary = src
+	m["root"] = ModelDB.ROOT
+	(m["sets"] as Dictionary)[STANDIN_SET] = {"fallback": "sprite", "object": ModelDB.object_size(STANDIN_SET)}
+	var path := "user://test_props_standin_manifest.json"
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	if f == null:
+		return ""
+	f.store_string(JSON.stringify(m))
+	f.close()
+	_test_manifest = true
+	if not ModelDB.load_manifest(path) or ModelDB.has_model(STANDIN_SET):
+		return ""
+	return STANDIN_SET
 
 
 func _put(t: Track, seg: int, item: Dictionary) -> void:
@@ -167,6 +191,7 @@ func test_library_resolves_every_prop_set() -> void:
 		if id.begins_with("props/") or id.begins_with("landmarks/"):
 			ids.append(id)
 	assert_true(ids.size() >= 100, "Requisiten- und Wahrzeichen-Sets im Sprite-Manifest (%d)" % ids.size())
+	var sb := _standin_set()     # before the library resolves the sets (a test manifest since wave 6)
 	var lib := PropLibrary.new()
 	lib.request(ids, self)
 	var guard := 0
@@ -216,8 +241,7 @@ func test_library_resolves_every_prop_set() -> void:
 	assert_near(float(birch["w"]), 7.4396, 0.001, "Zellbreite in Metern aus dem Sprite-Manifest")
 	assert_near(float(birch["h"]), 7.4396 * 320.0 / 176.0, 0.001, "… und Zellhöhe")
 	assert_eq((birch["variants"] as Array).size(), 2, "Birke: zwei Samen-Varianten (AS1b)")
-	var sb := _standin_set()
-	assert_true(sb != "", "es gibt noch ein Requisiten-Set ohne Modell (sonst: Test-Manifest wie check_vehicles „kasten“)")
+	assert_true(sb != "", "ein Requisiten-Set ohne Modell (seit Welle 6 aus einem Test-Manifest wie check_vehicles „kasten“)")
 	if sb != "":
 		assert_eq(int((lib.sets[sb] as Dictionary)["kind"]), PropLibrary.SPRITE, "%s: noch eine Vertretung" % sb)
 	assert_eq(str((lib.sets["props/wind_turbine"] as Dictionary)["cls"]), "other", "Windrad: kein Baum, kein Haus")
@@ -230,7 +254,7 @@ func test_library_resolves_every_prop_set() -> void:
 func test_placement_drops_and_lamps() -> void:
 	var t := _track()
 	var sb := _standin_set()     # a set the manifest still draws as its Arcade sprite (AS3: no longer the beech)
-	assert_true(sb != "", "es gibt noch ein Requisiten-Set ohne Modell")
+	assert_true(sb != "", "ein Requisiten-Set ohne Modell (seit Welle 6 aus einem Test-Manifest)")
 	# chunk 6 = segments 192..224 (straight)
 	_put(t, 195, {"kind": "prop", "set": "props/farmhouse", "side": 1, "x": _x(t, 1, 40.0), "scale": 1.0, "align": "edge"})
 	_put(t, 196, {"kind": "prop", "set": "props/farmhouse", "side": -1, "x": _x(t, -1, 40.0), "scale": 0.9, "align": "edge"})

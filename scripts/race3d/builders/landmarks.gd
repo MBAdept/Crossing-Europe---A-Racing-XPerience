@@ -43,7 +43,8 @@ const APPROACH_M := 600.0           ## FIX-R7b (B-05): a model or shape faces th
 const MAX_TURN := 0.6981317         ## … turned at most this far (40°) from the road's heading at the anchor
 ## A-25 (RINT-M3, NACH-R7b N-1): the node that is drawn stays within this many metres (horizontally) of Arcade's anchor –
 ## the turn to the approach moves it away from the road by near_shift(); measured network-wide at most 11.89 m (a church
-## of Bremen – Amsterdam, turned 10.6°), checked by test_landmarks "test_anchor_and_mirror_like_arcade_network_wide"
+## of Bremen – Amsterdam, turned 10.6°) before AS6; since the long AS6 models capped_turn() turns a footprint only as far
+## as the node may move. Checked by test_landmarks "test_drawn_node_stays_near_arcades_anchor_network_wide"
 const MAX_NODE_SHIFT_M := 12.0
 const PROC_KINDS: Array[String] = ["domed_church", "tv_tower", "lighthouse", "skyscrapers"]
 ## Arcade's procedural reference heights (RoadRenderer._lm_*: s = px per m × height / reference)
@@ -484,10 +485,30 @@ static func place_model(rp: RoadPath3D, z: float, origin: Vector3, side: int, sc
 	var mx := -sc if mirror else sc
 	var a := rp.heading_at(z)
 	var from := rp.world(maxf(z - APPROACH_M, rp.z_min()), 0.0, 0.0)
-	var t := face_heading(a, from, origin)
+	var t := capped_turn(a, face_heading(a, from, origin), box, side, Vector3(mx, sc, sc))
 	var basis := heading_basis(t, Vector3(mx, sc, sc))
 	var shift := near_shift(heading_basis(a, Vector3(mx, sc, sc)), basis, box, a, side)
 	return {"transform": Transform3D(basis, origin + RoadPath3D.right_of(a) * float(side) * shift), "turn": t - a, "shift": shift}
+
+
+## The heading `t` towards the approach, turned back towards the road's heading `a` as far as needed so that
+## near_shift() stays within MAX_NODE_SHIFT_M (Welle 6, AS6): a long footprint turned to its approach swings its far
+## end towards the road – the Milan cathedral (158 m) was moved 26.7 m from Arcade's anchor, the Atomium 15.9 m. Such
+## a landmark then shows a little of its side in the bend instead. Bisection on the share of the turn (the move grows
+## with it); a footprint that stays within the limit keeps its whole turn. s: the node's scale (x < 0 mirrors).
+static func capped_turn(a: float, t: float, box: AABB, side: int, s: Vector3) -> float:
+	var along := heading_basis(a, s)
+	if near_shift(along, heading_basis(t, s), box, a, side) <= MAX_NODE_SHIFT_M:
+		return t
+	var lo := 0.0
+	var hi := 1.0
+	for i in 24:
+		var mid := (lo + hi) * 0.5
+		if near_shift(along, heading_basis(a + (t - a) * mid, s), box, a, side) <= MAX_NODE_SHIFT_M:
+			lo = mid
+		else:
+			hi = mid
+	return a + (t - a) * lo
 
 
 ## Footprint of a model in its own space: the box of its drawn parts (not the shadow caster, not a billboard).
