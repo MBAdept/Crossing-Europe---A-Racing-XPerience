@@ -37,8 +37,8 @@
   "roughness": 0.86,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "belgian", "center"],
-  "bytes": 644231,
-  "hash": "2d06ee95c09e61fc16432395a6a3b4768474d3b7"
+  "bytes": 646778,
+  "hash": "154526432cd45196fe7cbb63fa3f83e7be27fb99"
  },
  "sets": {
   "props/city_belgian_stone": {"model": "props/city_belgian_stone"}

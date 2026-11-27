@@ -37,8 +37,8 @@
   "roughness": 0.86,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "german", "center"],
-  "bytes": 383467,
-  "hash": "a72520e5e2327939e1bf201ba7066ca68d87dfcd"
+  "bytes": 385536,
+  "hash": "12430a1c689f8bcf61e004f2048ed4f32c0dc075"
  },
  "sets": {
   "props/city_german_gruenderzeit": {"model": "props/city_german_gruenderzeit"}

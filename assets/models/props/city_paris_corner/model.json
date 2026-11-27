@@ -37,8 +37,8 @@
   "roughness": 0.86,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "paris", "center"],
-  "bytes": 425778,
-  "hash": "2640ba9536a89efbe8414d157152f6c265432c00"
+  "bytes": 428655,
+  "hash": "400acb1e7b4a977ee99051e2a3658291893b1474"
  },
  "sets": {
   "props/city_paris_corner": {"model": "props/city_paris_corner"}

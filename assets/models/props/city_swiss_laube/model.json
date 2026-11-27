@@ -37,8 +37,8 @@
   "roughness": 0.86,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "swiss", "center"],
-  "bytes": 310693,
-  "hash": "d859393c1bd11d2053fe758618049055b8a9fe58"
+  "bytes": 314558,
+  "hash": "973acc1d45fb84534ccedbe7b236b66461a26ef2"
  },
  "sets": {
   "props/city_swiss_laube": {"model": "props/city_swiss_laube"}

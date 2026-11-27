@@ -37,8 +37,8 @@
   "roughness": 0.88,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "dutch", "outskirts"],
-  "bytes": 774929,
-  "hash": "279ca4a63c598cf709cf60b3d5b9f0f2abe9881f"
+  "bytes": 776145,
+  "hash": "b439cf052d0fa4276cc3190673a5975b5c3b924e"
  },
  "sets": {
   "props/city_dutch_terrace": {"model": "props/city_dutch_terrace"}

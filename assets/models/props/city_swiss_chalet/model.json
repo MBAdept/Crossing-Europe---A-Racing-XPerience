@@ -37,8 +37,8 @@
   "roughness": 0.86,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "swiss", "outskirts"],
-  "bytes": 749671,
-  "hash": "f78f2f398a355d8f4f26631cc2406487a232846c"
+  "bytes": 751171,
+  "hash": "2fc50f2a4fc7de717261072b0c5488ad594494ff"
  },
  "sets": {
   "props/city_swiss_chalet": {"model": "props/city_swiss_chalet"}

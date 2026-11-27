@@ -37,8 +37,8 @@
   "roughness": 0.88,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "french", "outskirts"],
-  "bytes": 971679,
-  "hash": "dc44697becf49dac357c10b5cd9602b3d06f7a27"
+  "bytes": 973795,
+  "hash": "bd08b7158c214b61126b6ae2359850b788c6ced0"
  },
  "sets": {
   "props/city_french_maison": {"model": "props/city_french_maison"}

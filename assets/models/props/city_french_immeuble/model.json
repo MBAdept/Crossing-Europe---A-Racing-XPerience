@@ -37,8 +37,8 @@
   "roughness": 0.86,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "french", "center"],
-  "bytes": 358687,
-  "hash": "714de735fe81e99460a9e5541012f5ef33e92c34"
+  "bytes": 362916,
+  "hash": "029be8343a19a288d0bcfe8f504bd7ce54546723"
  },
  "sets": {
   "props/city_french_immeuble": {"model": "props/city_french_immeuble"}

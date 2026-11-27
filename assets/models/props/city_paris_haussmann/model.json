@@ -37,8 +37,8 @@
   "roughness": 0.86,
   "auto_lod": false,
   "tags": ["prop", "building", "city", "mirror_left", "paris", "center"],
-  "bytes": 457936,
-  "hash": "649cf51ba9f23c567f6c1e238c8078ef96b63266"
+  "bytes": 460756,
+  "hash": "2285c3270afbe6b690a462b5e95bf252658b9337"
  },
  "sets": {
   "props/city_paris_haussmann": {"model": "props/city_paris_haussmann"}
