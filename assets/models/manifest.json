@@ -392,6 +392,32 @@
    "bytes": 1060860,
    "hash": "47390a30a848086f7fef770649a9d822d11b7231"
   },
+  "landmarks/veitsdom_prag": {
+   "kind": "landmark",
+   "object": {"width_m": 174, "height_m": 96.5, "length_m": 80},
+   "extent_m": {"left": 93.79, "right": 80.68},
+   "aabb": [-92.4, 0, -80, 82.4, 96.5, 1.9],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 1718,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/veitsdom_prag/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/veitsdom_prag/albedo.webp", "emit": "landmarks/veitsdom_prag/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 286606,
+   "hash": "0828a8e27f75dd6cbdaf9ba5010cf22e94048356"
+  },
   "player/gran_turismo": {
    "kind": "vehicle",
    "object": {"width_m": 1.95, "length_m": 4.95, "height_m": 1.285},
@@ -10166,10 +10192,7 @@
    "object": {"width_m": 30.8, "height_m": 73.3, "length_m": 83.0}
   },
   "landmarks/stephansdom": {"model": "landmarks/stephansdom"},
-  "landmarks/veitsdom_prag": {
-   "fallback": "sprite",
-   "object": {"width_m": 174.0, "height_m": 96.5, "length_m": 80.0}
-  },
+  "landmarks/veitsdom_prag": {"model": "landmarks/veitsdom_prag"},
   "player/gran_turismo": {
    "model": "player/gran_turismo",
    "paint": {"paint": "#b2b7bd", "metal": 0.9}

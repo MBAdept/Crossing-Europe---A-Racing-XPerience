@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "landmarks/veitsdom_prag",
+ "model": {
+  "kind": "landmark",
+  "object": {"width_m": 174, "height_m": 96.5, "length_m": 80},
+  "extent_m": {"left": 93.79, "right": 80.68},
+  "aabb": [-92.4, 0, -80, 82.4, 96.5, 1.9],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 1718,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "landmarks/veitsdom_prag/lod0_body.res",
+      "classes": ["baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "landmarks/veitsdom_prag/albedo.webp", "emit": "landmarks/veitsdom_prag/emit.png"},
+  "roughness": 0.85,
+  "auto_lod": true,
+  "tags": ["prop", "landmark"],
+  "bytes": 286606,
+  "hash": "0828a8e27f75dd6cbdaf9ba5010cf22e94048356"
+ },
+ "sets": {
+  "landmarks/veitsdom_prag": {"model": "landmarks/veitsdom_prag"}
+ }
+}
