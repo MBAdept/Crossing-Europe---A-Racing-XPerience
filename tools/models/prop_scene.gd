@@ -5,7 +5,7 @@ extends SceneTree
 ## or the last level). Needs OpenGL - run it through tools/models/prop_scene.sh (Xvfb):
 ##   godot --path . --rendering-driver opengl3 --audio-driver Dummy -s res://tools/models/prop_scene.gd --
 ##       --out=<abs.png> --models=<id>,<id>... [--dist=15,40,100,250] [--x=9] [--night] [--zoom=2]
-##       [--mode=dist|road|lods|clip] [--tile=360x300] [--sun=x,y,z]
+##       [--mode=dist|road|lods|clip] [--tile=360x300] [--sun=x,y,z] [--yaw=<deg> (dist: models turned)]
 ##       [--look=race [--hour=12] [--weather=normal] [--preset=medium] [--vis=<m>]] [--sprite] [--d0=60 --d1=200]
 ## --mode=dist  one row per model, one tile per distance: a crop of the 1280x720 game picture around the model,
 ##              magnified by --zoom with whole pixels (what the player sees, pixel for pixel)
@@ -486,7 +486,8 @@ func _dist(models: Array) -> Image:
 			_clear()
 			var lod := str(rows[r][1]) if str(rows[r][1]) != "" else _level_for(mid, d)
 			var pos := Vector3(x, 0.0, -d)
-			_place(mid, lod, pos)
+			# --yaw=<deg>: the models (not the sprite) turned about their vertical axis (W6: the sprite's view_yaw)
+			_place(mid, lod, pos, deg_to_rad(float(str(_args.get("yaw", "0")))) if lod != "sprite" else 0.0)
 			var img := await _frame()
 			var rect := _screen_rect(mid, pos)
 			# zoom: as large as the tile allows, at most --zoom, whole pixels
