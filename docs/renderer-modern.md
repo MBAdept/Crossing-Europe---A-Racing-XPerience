@@ -2725,6 +2725,12 @@ Zielstadt wie Arcade. Vorlage ist in beiden Fällen Arcades eingefrorener Code (
   (`MAX_NODE_SHIFT_M`); `test_landmarks` „drawn_node_stays_near_arcades_anchor_network_wide“ rechnet den Knoten mit
   derselben Funktion, mit der `_place()` zeichnet (`place_model()`, Grundriss `parts_box()` bzw. der prozeduralen
   Form), und prüft ihn gegen den Anker (Mutation „Verschiebung × 1,1“: rot).
+- **Lange Grundrisse drehen weniger** (Welle 6, AS6): Mit den Wahrzeichen-Modellen kamen Grundrisse bis 158 m Tiefe
+  (Mailänder Dom). Zur Anfahrt gedreht schwenkt ihr Ende zur Straße, und `near_shift()` rückte den Knoten bis 26,7 m
+  vom Anker (Atomium 15,9 m, Elbphilharmonie auf Hamburg – Bremen 12,5 m). `capped_turn()` kürzt die Drehung per
+  Bisektion gerade so weit, dass die Verschiebung höchstens `MAX_NODE_SHIFT_M` beträgt; ein solches Wahrzeichen zeigt
+  in der Kurve etwas Seitenwand. Kurze Grundrisse behalten die ganze Drehung (`test_landmarks`
+  „long_footprint_turns_only_as_far_as_the_node_may_move“).
 - `builders/props.gd` lässt alle Wahrzeichen-Einträge diesem Builder, sobald es ihn gibt (seine Ente-Typ-Weiche
   `_skip_landmarks = renderer.builder("landmarks") != null`, Zeilen 88, 122, 329, 539, 741 – sie stand schon im Code;
   R7b hat `props.gd` nicht geändert).
