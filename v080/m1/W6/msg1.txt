@@ -1,0 +1,8 @@
+Welle 6 AS5b: Katalogeinträge der Stadtgebäude Teil 2, Charge 1 (WIP)
+
+Plattenbau, Wiener Zinshaus, Palais und Kirche, spanisches Haus, Block und
+Ziegelbau, italienischer Block, Palazzo und Venedig - Bauer "city", eigener
+Block "AS5b" im Katalog. Die Modelle selbst folgen nach Export und Ansicht.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

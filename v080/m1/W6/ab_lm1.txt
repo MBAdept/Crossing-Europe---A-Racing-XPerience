@@ -1,0 +1,15 @@
+lm_elbphilharmonie kiel_hamburg kiel 91.0 12
+lm_elbphilharmonie_nacht kiel_hamburg kiel 85.6 22
+lm_kaiserburg wuerzburg_nuernberg wuerzburg 107.4 12
+lm_dom_fulda nuernberg_fulda nuernberg 202.9 12
+lm_frankfurt_skyline dortmund_frankfurt dortmund 221.0 12
+lm_frankfurt_skyline_nacht dortmund_frankfurt dortmund 221.0 22
+lm_koelner_dom frankfurt_koeln frankfurt 188.2 12
+lm_fernsehturm leipzig_berlin leipzig 185.8 12
+lm_frauenkirche_dresden dresden_leipzig leipzig 112.7 12
+lm_frauenkirche_muenchen muenchen_nuernberg nuernberg 167.5 12
+lm_st_petri_rostock rostock_kiel kiel 207.5 12
+lm_kaiserburg_nacht wuerzburg_nuernberg wuerzburg 107.4 22
+lm_dom_fulda_nacht nuernberg_fulda nuernberg 202.9 22
+lm_elbphilharmonie_fern kiel_hamburg kiel 85.6 12
+lm_elbphilharmonie_fern_nacht kiel_hamburg kiel 85.6 22

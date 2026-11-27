@@ -1,0 +1,12 @@
+warschau_zentrum posen_warschau posen 301.5 12
+warschau_nacht posen_warschau posen 301.5 22
+leipzig_rand dresden_leipzig dresden 104.5 12
+wien_zentrum budapest_wien budapest 241.5 12
+wien_nacht budapest_wien budapest 241.5 22
+linz_zentrum wien_linz wien 181.5 12
+madrid_zentrum burgos_madrid burgos 236.5 12
+madrid_rand burgos_madrid burgos 228.5 12
+mailand_zentrum bern_mailand bern 361.5 12
+mailand_nacht bern_mailand bern 361.5 22
+venedig_zentrum mailand_venedig mailand 271.5 12
+bordeaux_rand tours_bordeaux tours 334.5 12

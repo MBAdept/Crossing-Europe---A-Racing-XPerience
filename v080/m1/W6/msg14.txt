@@ -1,0 +1,11 @@
+Welle 6 AS6: Stirnflaechen der Gittertraeger beim Eiffelturm weglassen
+
+Der Eiffelturm kam mit 25.152 Dreiecken in lod0 ueber das Wahrzeichen-Budget von
+25.000. Seine Gittertraeger sind Quader (meshutil.bm_beam); ihre zwei Stirnflaechen
+stecken in den Gurten, im Boden oder unter einer Plattform und sind ein Drittel der
+Gitter-Dreiecke. Neue Option drop_caps (Objekt-Praefixe) des Bauers prop_baked:
+je Quader-Bauteil (8 Ecken, 6 Vierecke) die zwei Flaechen entlang der laengsten
+Kante. Ohne die Option aendert sich nichts.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

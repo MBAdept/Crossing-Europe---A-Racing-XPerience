@@ -1,0 +1,7 @@
+Welle 6 AS5b: docs/modelle.md Abschnitt 23 (Stadthaeuser Teil 2)
+
+Tabelle der 23 Sets (Platzierungen, Dreiecke, Klassen, Dichte, Archivanteil der
+importierten Texturen), Lueckenfarbe-Regel, Messungen, ehrliche Einordnung.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

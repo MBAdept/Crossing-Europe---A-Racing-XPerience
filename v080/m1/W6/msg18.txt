@@ -1,0 +1,10 @@
+Welle 6 AS6: Wahrzeichen-Atlas immer als WebP
+
+validate_models: Texturquellen 62.953.675 Bytes ueber dem Budget von 60 MB. Ein
+1024er-Atlas wurde bisher als PNG geschrieben (Belfried Calais 606 kB, Campanile
+592 kB) - mehr als ein 2048x1024-WebP. prop_baked schreibt den Albedo-Atlas eines
+Wahrzeichens jetzt immer als WebP (Qualitaet 95); andere Modelle unveraendert.
+Neu-Export der drei 1024er-Wahrzeichen folgt.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

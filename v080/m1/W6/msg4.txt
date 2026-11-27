@@ -1,0 +1,7 @@
+Welle 6 AS5b: dunkle Lückenfarbe der Geländer (Rejas und Balkone ab 100 m nicht mehr grau)
+
+Die Lücken eines ausgeschnittenen Geländers tragen die Farbe dessen, was dahinter steht - meist ein dunkles
+Fenster. Mit der hellen Füllfarbe wurden die spanischen Rejas in den kleinen Mips zu grauen Kästen.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

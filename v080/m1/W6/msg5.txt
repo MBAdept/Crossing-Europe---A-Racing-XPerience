@@ -1,0 +1,7 @@
+Welle 6 AS5b: Katalogeinträge der Charge 2 (Mitteleuropa, Osteuropa, Balkan, Baltikum; WIP)
+
+Dreizehn Sets mit dem Bauer "city"; Gartenbäume auf Blattkarten (_leaf), die Thujen des neueren Hauses
+stark reduziert (Ausreißer des Vertrags mit 23.000 Garten-Dreiecken).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

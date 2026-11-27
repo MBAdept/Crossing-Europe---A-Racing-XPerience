@@ -1,0 +1,7 @@
+Welle 6 AS5b: Lückenfarbe nach dem, was hinter dem Geländer steht (Jugendstil-Balkone hell)
+
+Offenes Gitter und weiße Baluster vor heller Wand bekommen die beschattete Wandfarbe: mit dunkler
+Füllung wurden die Jugendstil-Balkone ab 30 m zu schwarzen Blöcken (die Lücken wiegen in den Mips 0,4).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

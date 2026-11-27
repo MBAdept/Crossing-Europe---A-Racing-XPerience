@@ -1,0 +1,4 @@
+Welle 6 AS6: catedrala_mantuirii ohne automatische Stufen (Lampenkanal auf vpbr, Vertrag A-4)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

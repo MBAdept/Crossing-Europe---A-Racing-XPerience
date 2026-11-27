@@ -1,0 +1,10 @@
+Welle 6 AS6: Atomium mit Stahl als Vertex-PBR statt eingebacken
+
+Im Atlas wurden die polierten Stahlkugeln und -roehren (metallic 1, Rauheit 0,22/0,3)
+matt grau, das Sprite zeigt Chrom. Neue Optionen des Bauers prop_baked: vpbr
+(Material-Praefixe) und overrides (flache Farbe, Rauheit, Metall fuer prozedurale
+Materialien) - diese Flaechen werden als vpbr gezeichnet (landmark.gdshader CE_VCOL)
+und nicht gebacken. Ohne die Optionen aendert sich nichts.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

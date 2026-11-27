@@ -1,0 +1,4 @@
+Welle 6 AS5b: city_eastern_house_c Runde 2 (Thujen in lod1 nicht noch einmal dezimiert)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

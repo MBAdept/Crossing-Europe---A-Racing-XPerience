@@ -1,0 +1,9 @@
+n6_elbphilharmonie kiel_hamburg kiel 90.0 12
+n6_dom_fulda nuernberg_fulda nuernberg 201.8 12
+n6_frauenkirche_dresden dresden_leipzig leipzig 111.6 12
+n6_riesenrad_nacht budapest_wien budapest 238.8 22
+n6_atomium koeln_bruessel koeln 210.8 12
+n6_basilika_koekelberg koeln_bruessel koeln 212.2 12
+n6_duomo_milano bern_mailand bern 361.4 12
+n6_sagrada_familia saragossa_barcelona saragossa 296.0 12
+n6_stadtpfarrkirche_sibiu bukarest_sibiu bukarest 277.2 12

@@ -1,0 +1,9 @@
+Welle 6 AS6: Goldkuppeln der Kathedrale der Erloesung als Vertex-PBR
+
+Wie bei der Newski-Kathedrale: cm_gilded (metallic 1, Rauheit 0,3) war im Atlas matt
+gelb; jetzt vpbr mit Anstrahlung Kanal 14 (Anteil 0,7 des Generators). Damit sind
+alle polierten Metalle der Wahrzeichen-Generatoren (Atomium, Newski, Erloesung)
+vpbr; der Michel behaelt seine kleinen Goldteile im Atlas.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

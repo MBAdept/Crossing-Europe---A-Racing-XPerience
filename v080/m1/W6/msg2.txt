@@ -1,0 +1,6 @@
+Welle 6 AS5b: Plattenbau als Modell, erster Export (WIP, noch nicht abgenommen)
+
+lod0 4.433, lod1 1.390 Dreiecke; Bake in 206 s. Ansicht und Nacharbeit folgen.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

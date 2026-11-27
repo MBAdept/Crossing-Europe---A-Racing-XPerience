@@ -1,0 +1,8 @@
+Welle 6 AS5b: Thujen von city_eastern_house_c in lod1 nicht noch einmal dezimieren
+
+validate_models: 89 von 3060 Dreiecken der lod1 gegen ihre Normalen gewickelt - das
+zweite Dezimieren (0,4) der schon auf 0,12 dezimierten Hecke kippt duenne Dreiecke.
+lod1 nimmt die Hecke jetzt wie lod0; Neu-Export folgt.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

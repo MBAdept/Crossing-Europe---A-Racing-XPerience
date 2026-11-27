@@ -1,0 +1,7 @@
+Welle 6 AS6: Wahrzeichen L2 und L3 in den Modellkatalog
+
+Dreiundzwanzig weitere Wahrzeichen aus props_landmarks.py mit dem Bauer prop_baked
+(Atlas 2048x2048, Dichte nach Groesse 16-32 px/m, auto_lod), Export folgt.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

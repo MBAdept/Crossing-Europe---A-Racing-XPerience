@@ -1,0 +1,10 @@
+prag_zentrum wien_prag wien 331.5 12
+prag_nacht wien_prag wien 331.5 22
+budapest_zentrum belgrad_budapest belgrad 396.5 12
+budapest_rand timisoara_budapest timisoara 309.5 12
+belgrad_zentrum slavonski_brod_belgrad slavonski_brod 201.5 12
+sofia_rand belgrad_sofia belgrad 384.5 12
+sofia_nacht belgrad_sofia belgrad 391.5 22
+kaunas_rand bialystok_kaunas bialystok 219.5 12
+riga_zentrum kaunas_riga kaunas 251.5 12
+sibiu_zentrum bukarest_sibiu bukarest 276.5 12

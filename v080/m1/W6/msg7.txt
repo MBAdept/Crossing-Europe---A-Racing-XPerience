@@ -1,0 +1,7 @@
+Welle 6 AS6: Katalogeinträge der Wahrzeichen, Charge L1 (WIP)
+
+Neun Wahrzeichen von Rennen Kiel - Nürnberg und Deutschland mit dem Bake-Bauer des Michel
+(prop_baked: Geometrie des Generators in echter Größe, Farbe und Nachtlicht im Atlas, auto_lod).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

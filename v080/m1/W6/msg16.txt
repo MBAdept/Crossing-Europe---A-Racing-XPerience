@@ -1,0 +1,8 @@
+Welle 6 AS6: Goldkuppeln der Newski-Kathedrale als Vertex-PBR
+
+Gebacken wurden die vergoldeten Kuppeln (gold(): metallic 1, Rauheit 0,28) matt
+senfgelb, das Sprite zeigt Gold mit Glanzlicht. Wie beim Atomium als vpbr mit
+flacher Farbe; nachts angestrahlt ueber Lampenkanal 14 (Anteil 0,75 des Generators).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

@@ -1,0 +1,10 @@
+Welle 6 AS6: Atlasgroesse der Wahrzeichen L2/L3 nach Groesse
+
+Nach L1 stehen die Texturquellen bei 50,4 von 60 MB und der Grafikspeicher bei
+159 von 240 MB (validate_models). 23 weitere Wahrzeichen mit 2048x2048 haetten
+die Quellen ueberschritten: grosse und reich gegliederte bleiben 2048x2048,
+mittlere 2048x1024, schlanke Tuerme und das Freiheitsdenkmal 1024x1024.
+L1 unveraendert (gleiche Schluessel).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq
