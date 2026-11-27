@@ -292,7 +292,11 @@ def build_baked(model_id, spec3d):
                 tr.anchors.append((lamp[0], soup.pos[sel].mean(axis=1), core.tri_areas(soup.pos[sel]), lamp[2]))
     pts = mb.points()
     model = _finish_model(model_id, spec3d, sspec, info, pts)
-    model.lods = [Lod("lod0", 100000, [Part("body", "lod0_body", mb.finish(), auto_lod=model.auto_lod)])]
+    # slivers below 0.1 mm dropped as in the city and bridge builders: n-gon caps with collinear corners (the
+    # Frankfurt towers' foot and roof, the belfry) triangulate into zero-height triangles, and the 16-bit positions
+    # of a 300 m model (5 mm steps) turn some of them over - validate_models counted 11 inside-out faces
+    model.lods = [Lod("lod0", 100000, [Part("body", "lod0_body", mb.finish(min_height=1e-4),
+                                            auto_lod=model.auto_lod)])]
     model.lights = tr.lights()
     model.roughness = float(spec3d.get("roughness", 0.9))
     # WebP (quality 95) above 1024 px; a landmark always (wave 6: a 1024² landmark atlas as PNG was 590-610 kB, more

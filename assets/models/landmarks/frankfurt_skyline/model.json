@@ -11,7 +11,7 @@
    {
     "name": "lod0",
     "max_dist_m": 100000,
-    "tris": 1936,
+    "tris": 1915,
     "parts": [
      {
       "node": "body",
@@ -25,8 +25,8 @@
   "roughness": 0.85,
   "auto_lod": true,
   "tags": ["prop", "landmark"],
-  "bytes": 1338336,
-  "hash": "c02f2fff43b07da6164fc4810eabf5e68902396f"
+  "bytes": 1338927,
+  "hash": "5dd0a6f357b7576fc9f825e2237c1c0309a184a9"
  },
  "sets": {
   "landmarks/frankfurt_skyline": {"model": "landmarks/frankfurt_skyline"}
