@@ -46,6 +46,11 @@ const MAX_TURN := 0.6981317         ## … turned at most this far (40°) from t
 ## of Bremen – Amsterdam, turned 10.6°) before AS6; since the long AS6 models capped_turn() turns a footprint only as far
 ## as the node may move. Checked by test_landmarks "test_drawn_node_stays_near_arcades_anchor_network_wide"
 const MAX_NODE_SHIFT_M := 12.0
+## N6 (after wave 6): a landmark model is turned by its sprite's view_yaw (model.json "view_yaw_deg") so that the
+## road sees the 3/4 view Arcade's picture shows. Behind its plaza (Track: clear_m[1] after the anchor) the turned
+## footprint keeps this far from the road edge – the town houses there stand 0.5 – 4 m from it and are up to ~30 m deep;
+## a turn that would swing a long nave into them is cut back (yaw_within_band()).
+const HOUSE_BAND_M := 36.0
 const PROC_KINDS: Array[String] = ["domed_church", "tv_tower", "lighthouse", "skyscrapers"]
 ## Arcade's procedural reference heights (RoadRenderer._lm_*: s = px per m × height / reference)
 const PROC_REF := {"domed_church": 80.0, "tv_tower": 368.0, "lighthouse": 51.0, "skyscrapers": 259.0}
@@ -70,6 +75,7 @@ var _resolved := false
 var _live: Dictionary = {}          ## index -> live landmark (_make)
 var _shaders: Dictionary = {}       ## variant key -> Shader
 var _proc_cache: Dictionary = {}    ## proc key -> {"mesh", "glows"}
+var _hulls: Dictionary = {}         ## model id -> its footprint hull (footprint_hull(), N6)
 var _last_view: Dictionary = {}
 
 
@@ -257,6 +263,11 @@ static func resolve_item(it: Dictionary, sets: Dictionary, plan_fb: Dictionary) 
 	if kind == PropLibrary.MODEL:
 		var variants: Array = e.get("variants", [])
 		p["model"] = str(variants[0]) if not variants.is_empty() else ""
+		# N6: the turn of the sprite's 3/4 view (landmark models only; 0 for a plain prop standing as a landmark)
+		p["view_yaw"] = deg_to_rad(float(ModelDB.model(str(p["model"])).get("view_yaw_deg", 0.0)))
+	# N6: how far behind the anchor the plaza keeps the town houses away (Track._build_landmark; "none": no plaza)
+	var cl: Array = it.get("clear_m", CityData.DEFAULT_CLEAR_M)
+	p["clear_after"] = -1.0e9 if str(it.get("plaza", "park")) == "none" else float(cl[1])
 	# a plain prop standing as a landmark (props/church as a cathedral …): Arcade floodlights its facade at night
 	p["flood"] = not str(p["set"]).begins_with("landmarks/")
 	# FIX-R7b (B-04): mirrored where Arcade mirrors the picture (RoadRenderer.prop_flipped in _draw_landmark: a set
@@ -392,6 +403,9 @@ func _make(li: int, p: Dictionary, world: Node3D) -> Variant:
 				return null
 			var parts := _lib().mesh_parts(str(p["model"]), str(reps[0]))
 			box = parts_box(parts)
+			if not _hulls.has(str(p["model"])):
+				_hulls[str(p["model"])] = footprint_hull(parts)
+			p["hull"] = _hulls[str(p["model"])]
 			for pv: Variant in parts:
 				var part: Dictionary = pv
 				if bool(part.get("shadow", false)) or bool(part.get("billboard", false)):
@@ -471,24 +485,102 @@ func _place(p: Dictionary, rep: int, box: AABB) -> Transform3D:
 	var path: Variant = _renderer.get("path")
 	if rep == PICTURE or not (path is RoadPath3D):
 		return Transform3D(Basis.from_scale(Vector3(mx if rep != PICTURE else sc, sc, sc)), origin)
-	var pm := place_model(path as RoadPath3D, z, origin, side, sc, bool(p.get("mirror", false)), box)
+	var pm := place_model(path as RoadPath3D, z, origin, side, sc, bool(p.get("mirror", false)), box,
+		float(p.get("view_yaw", 0.0)), placement_guard(p, _track))
 	p["turn_deg"] = rad_to_deg(float(pm["turn"]))
 	p["shift_m"] = float(pm["shift"])
+	p["yaw_deg"] = rad_to_deg(float(pm["yaw"]))
 	return pm["transform"]
+
+
+## N6: what yaw_within_band() needs of a resolved landmark `p` on track `t`: its footprint hull (set by _make, or by a
+## test), the anchor's distance from the road edge on its side (the reference of Track._prop_x "edge" – the x_m of the
+## city data and the offsets of the town houses) and how far behind the anchor its plaza reaches. {} without a hull.
+static func placement_guard(p: Dictionary, t: Track) -> Dictionary:
+	var hull: Variant = p.get("hull")
+	if not hull is PackedVector2Array or (hull as PackedVector2Array).is_empty() or t == null:
+		return {}
+	var side := int(p["side"])
+	var edges := t.road_edges_at(float(p["z"]))
+	var edge_m := float(side) * float(p["x"]) - (edges.y if side > 0 else -edges.x)
+	return {"hull": hull, "edge_m": edge_m, "clear_after": float(p.get("clear_after", CityData.DEFAULT_CLEAR_M[1])),
+		"band": HOUSE_BAND_M}
 
 
 ## The node of a model or shape at road z with its anchor at `origin` (origin-relative world, on the ground): turned to
 ## its approach (face_heading()), mirrored in x when `mirror`, moved away from the road by near_shift() so that no
 ## corner of its footprint `box` comes nearer the road – {"transform": Transform3D, "turn": rad, "shift": m}. Pure:
 ## _place() draws with it, the network test of A-25 checks the node it gives (≤ MAX_NODE_SHIFT_M from the anchor).
-static func place_model(rp: RoadPath3D, z: float, origin: Vector3, side: int, sc: float, mirror: bool, box: AABB) -> Dictionary:
+static func place_model(rp: RoadPath3D, z: float, origin: Vector3, side: int, sc: float, mirror: bool, box: AABB,
+		view_yaw: float = 0.0, guard: Dictionary = {}) -> Dictionary:
 	var mx := -sc if mirror else sc
+	var s := Vector3(mx, sc, sc)
 	var a := rp.heading_at(z)
+	# N6: the sprite's 3/4 view (a mirrored picture shows the other flank), within the band of the town houses
+	var y := view_yaw * (-1.0 if mirror else 1.0)
+	if y != 0.0 and not guard.is_empty():
+		y = yaw_within_band(a, y, s, side, guard)
 	var from := rp.world(maxf(z - APPROACH_M, rp.z_min()), 0.0, 0.0)
-	var t := capped_turn(a, face_heading(a, from, origin), box, side, Vector3(mx, sc, sc))
-	var basis := heading_basis(t, Vector3(mx, sc, sc))
-	var shift := near_shift(heading_basis(a, Vector3(mx, sc, sc)), basis, box, a, side)
-	return {"transform": Transform3D(basis, origin + RoadPath3D.right_of(a) * float(side) * shift), "turn": t - a, "shift": shift}
+	var t := capped_turn(a, face_heading(a, from, origin) + y, box, side, s, a + y)
+	var basis := heading_basis(t, s)
+	# the move away from the road against the placement in the sprite's view (heading a + y): with the sprite's turn
+	# the nearest corner lies on Arcade's picture edge (its extents are measured in that view) – no move on a straight
+	var shift := near_shift(heading_basis(a + y, s), basis, box, a, side)
+	return {"transform": Transform3D(basis, origin + RoadPath3D.right_of(a) * float(side) * shift), "turn": t - a,
+		"shift": shift, "yaw": y}
+
+
+## N6: the turn `y` of the sprite's view, cut back (bisection on its share) as far as needed so that no point of the
+## footprint hull lying more than guard.clear_after behind the anchor (along the road's heading `a`) comes nearer the
+## road edge than guard.band – the town houses stand there. 0 when even the frontal model reaches into the band (the
+## placement before N6), `y` when the whole turn keeps out of it.
+static func yaw_within_band(a: float, y: float, s: Vector3, side: int, guard: Dictionary) -> float:
+	if _keeps_band(a, a + y, s, side, guard):
+		return y
+	if not _keeps_band(a, a, s, side, guard):
+		return 0.0
+	var lo := 0.0
+	var hi := 1.0
+	for i in 20:
+		var mid := (lo + hi) * 0.5
+		if _keeps_band(a, a + y * mid, s, side, guard):
+			lo = mid
+		else:
+			hi = mid
+	return y * lo
+
+
+static func _keeps_band(a: float, h: float, s: Vector3, side: int, guard: Dictionary) -> bool:
+	var b := heading_basis(h, s)
+	var r := RoadPath3D.right_of(a)
+	var fw := RoadPath3D.fwd_of(a)
+	var edge_m := float(guard.get("edge_m", 0.0))
+	var after := float(guard.get("clear_after", CityData.DEFAULT_CLEAR_M[1]))
+	var band := float(guard.get("band", HOUSE_BAND_M))
+	for q: Vector2 in (guard.get("hull", PackedVector2Array()) as PackedVector2Array):
+		var w := b * Vector3(q.x, 0.0, q.y)
+		if w.dot(fw) > after and edge_m + float(side) * w.dot(r) < band:
+			return false
+	return true
+
+
+## N6: the convex hull (x, z in the model's own space) of the drawn parts' vertices – the footprint the band test turns;
+## the AABB would count the empty corners of a cross-shaped church.
+static func footprint_hull(parts: Array) -> PackedVector2Array:
+	var pts := PackedVector2Array()
+	for pv: Variant in parts:
+		var part: Dictionary = pv
+		if bool(part.get("shadow", false)) or bool(part.get("billboard", false)):
+			continue
+		var mesh: Mesh = part["mesh"]
+		var tr: Transform3D = part.get("transform", Transform3D.IDENTITY)
+		for si in mesh.get_surface_count():
+			var verts: Variant = mesh.surface_get_arrays(si)[Mesh.ARRAY_VERTEX]
+			if verts is PackedVector3Array:
+				for v: Vector3 in (verts as PackedVector3Array):
+					var w := tr * v
+					pts.append(Vector2(w.x, w.z))
+	return Geometry2D.convex_hull(pts) if pts.size() >= 3 else pts
 
 
 ## The heading `t` towards the approach, turned back towards the road's heading `a` as far as needed so that
@@ -496,19 +588,21 @@ static func place_model(rp: RoadPath3D, z: float, origin: Vector3, side: int, sc
 ## end towards the road – the Milan cathedral (158 m) was moved 26.7 m from Arcade's anchor, the Atomium 15.9 m. Such
 ## a landmark then shows a little of its side in the bend instead. Bisection on the share of the turn (the move grows
 ## with it); a footprint that stays within the limit keeps its whole turn. s: the node's scale (x < 0 mirrors).
-static func capped_turn(a: float, t: float, box: AABB, side: int, s: Vector3) -> float:
-	var along := heading_basis(a, s)
+static func capped_turn(a: float, t: float, box: AABB, side: int, s: Vector3, ref: float = INF) -> float:
+	# ref: the heading the move is measured against and the turn is cut back towards (N6: a + the sprite's yaw)
+	var r0 := a if is_inf(ref) else ref
+	var along := heading_basis(r0, s)
 	if near_shift(along, heading_basis(t, s), box, a, side) <= MAX_NODE_SHIFT_M:
 		return t
 	var lo := 0.0
 	var hi := 1.0
 	for i in 24:
 		var mid := (lo + hi) * 0.5
-		if near_shift(along, heading_basis(a + (t - a) * mid, s), box, a, side) <= MAX_NODE_SHIFT_M:
+		if near_shift(along, heading_basis(r0 + (t - r0) * mid, s), box, a, side) <= MAX_NODE_SHIFT_M:
 			lo = mid
 		else:
 			hi = mid
-	return a + (t - a) * lo
+	return r0 + (t - r0) * lo
 
 
 ## Footprint of a model in its own space: the box of its drawn parts (not the shadow caster, not a billboard).

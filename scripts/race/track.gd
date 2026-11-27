@@ -880,6 +880,10 @@ func _build_landmark(lm: Dictionary, index: int) -> void:
 	var far := ev.duplicate()
 	far["z"] = z
 	far["x"] = _prop_x(road_edges_at(z), side, "edge", x_m)
+	# Modern (N6): the plaza, so that a landmark model turned to its sprite's view keeps out of the town houses behind
+	# it; Arcade does not read these keys
+	far["clear_m"] = cl
+	far["plaza"] = plaza
 	landmarks.append(far)
 
 

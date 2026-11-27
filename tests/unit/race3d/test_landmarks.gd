@@ -206,9 +206,13 @@ func test_drawn_node_stays_near_arcades_anchor_network_wide() -> void:
 		OS.delay_msec(1)
 		guard += 1
 	var boxes := {}
+	var hulls := {}
 	var n := 0
 	var worst := 0.0
 	var worst_what := ""
+	var turned := 0
+	var cut := 0
+	var cut_what: Array = []
 	for row: Array in rows:
 		var t := Track.new()
 		t.setup(row[1], cfg, net["scenery"])
@@ -225,14 +229,23 @@ func test_drawn_node_stays_near_arcades_anchor_network_wide() -> void:
 				var mid := str(p["model"])
 				if not boxes.has(mid):
 					var reps: Array = (lib.models.get(mid, {}) as Dictionary).get("reps", [])
-					boxes[mid] = Landmarks.parts_box(lib.mesh_parts(mid, str(reps[0]))) if not reps.is_empty() else AABB()
+					var parts: Array = lib.mesh_parts(mid, str(reps[0])) if not reps.is_empty() else []
+					boxes[mid] = Landmarks.parts_box(parts) if not parts.is_empty() else AABB()
+					hulls[mid] = Landmarks.footprint_hull(parts)
 				box = boxes[mid]
+				p["hull"] = hulls[mid]
 			var z := float(p["z"])
 			var path := RoadPath3D.new()
 			path.setup(t, maxi(0, int(floor((z - 800.0) / t.seg_len))), r1)
 			path.ensure(int(ceil(z / t.seg_len)) + 2)
 			var origin := path.world(z, float(p["x"]), 0.0)
-			var pm := Landmarks.place_model(path, z, origin, int(p["side"]), float(p["scale"]), bool(p.get("mirror", false)), box)
+			var pm := Landmarks.place_model(path, z, origin, int(p["side"]), float(p["scale"]), bool(p.get("mirror", false)), box,
+				float(p.get("view_yaw", 0.0)), Landmarks.placement_guard(p, t))
+			if absf(float(p.get("view_yaw", 0.0))) > 1.0e-4:
+				turned += 1
+				if absf(float(pm["yaw"])) < absf(float(p["view_yaw"])) - 1.0e-3:
+					cut += 1
+					cut_what.append("%s %.0f/%.0f°" % [str(p["set"]).trim_prefix("landmarks/"), rad_to_deg(float(pm["yaw"])), rad_to_deg(float(p["view_yaw"]))])
 			var o: Vector3 = (pm["transform"] as Transform3D).origin
 			var d := Vector2(o.x - origin.x, o.z - origin.z).length()
 			var what := "%s km %.1f %s" % [str(row[0]), z / 1000.0, str(p["set"])]
@@ -243,6 +256,8 @@ func test_drawn_node_stays_near_arcades_anchor_network_wide() -> void:
 			assert_true(d <= Landmarks.MAX_NODE_SHIFT_M, "%s: gezeichneter Knoten %.2f m von Arcades Anker (höchstens %.0f m)" % [what, d, Landmarks.MAX_NODE_SHIFT_M])
 	assert_true(n >= 40, "Modelle und Formen des Netzes geprüft (%d)" % n)
 	print("    gezeichneter Knoten: %d Modelle/Formen, größte Verschiebung %.2f m – %s" % [n, worst, worst_what])
+	assert_true(turned >= 40, "Wahrzeichen-Modelle im Blickwinkel ihres Sprites (N6): %d" % turned)
+	print("    N6: %d im Blickwinkel des Sprites, %d davon wegen der Häuserzeile weniger gedreht: %s" % [turned, cut, ", ".join(cut_what)])
 	lib.clear(self)
 	_cleanup()
 
@@ -280,6 +295,49 @@ func test_facing_the_approach() -> void:
 				assert_true(near_t >= near_a - 1.0e-3, "Seite %d, Drehung %.2f, Spiegel %.0f: keine Ecke näher an der Straße (%.2f gegen %.2f)" % [side, turn, mirror, near_t, near_a])
 	assert_near(Landmarks.near_shift(Landmarks.heading_basis(a, Vector3.ONE), Landmarks.heading_basis(a, Vector3.ONE), box, a, 1), 0.0, 1.0e-4, "ungedreht: keine Verschiebung")
 	assert_true(Landmarks.heading_basis(a, Vector3(-1.0, 1.0, 1.0)).determinant() < 0.0, "gespiegelt: negative Determinante (ein MeshInstance3D zeichnet richtig, D24)")
+
+
+## N6: turned by its sprite's view, a long church swings its far end towards the road; behind the plaza (clear_after)
+## no point of the footprint may come nearer the road edge than the band of the town houses – yaw_within_band() cuts
+## the turn back as far as needed, keeps it whole when the church stands far enough out, and gives 0 when even the
+## frontal footprint reaches into the band (the placement before N6).
+func test_sprite_view_keeps_out_of_the_town_houses() -> void:
+	var a := 0.2
+	var s := Vector3.ONE
+	# a church 30 m wide (x −15 … 15) and 100 m deep (z 0 … −100), its front face on the anchor
+	var hull := PackedVector2Array([Vector2(-15.0, 0.0), Vector2(15.0, 0.0), Vector2(15.0, -100.0), Vector2(-15.0, -100.0)])
+	var y := deg_to_rad(22.0)
+	for side: int in [1, -1]:
+		var ys := y      # sprites are never mirrored: the same turn on both sides
+		# far out: the whole turn
+		var far := {"hull": hull, "edge_m": 120.0, "clear_after": 40.0, "band": Landmarks.HOUSE_BAND_M}
+		assert_near(Landmarks.yaw_within_band(a, ys, s, side, far), ys, 1.0e-6, "Seite %d, weit draußen: ganzer Winkel" % side)
+		# near the road: cut back, and the result keeps the band
+		var near := {"hull": hull, "edge_m": 60.0, "clear_after": 40.0, "band": Landmarks.HOUSE_BAND_M}
+		var yc := Landmarks.yaw_within_band(a, ys, s, side, near)
+		var b := Landmarks.heading_basis(a + yc, s)
+		var worst := INF
+		for q: Vector2 in hull:
+			var w := b * Vector3(q.x, 0.0, q.y)
+			if w.dot(RoadPath3D.fwd_of(a)) > 40.0:
+				worst = minf(worst, 60.0 + float(side) * w.dot(RoadPath3D.right_of(a)))
+		if yc * ys > 0.0 and absf(yc) < absf(ys) - 1.0e-3:
+			assert_true(worst >= Landmarks.HOUSE_BAND_M - 0.05, "Seite %d: gekürzt auf %.1f°, hinter dem Platz %.2f m von der Kante" % [side, rad_to_deg(yc), worst])
+		assert_true(absf(yc) <= absf(ys) + 1.0e-6 and yc * ys >= 0.0, "Seite %d: höchstens der Winkel des Sprites (%.1f°)" % [side, rad_to_deg(yc)])
+		# already frontal inside the band: no turn at all
+		var inside := {"hull": hull, "edge_m": 10.0, "clear_after": 40.0, "band": Landmarks.HOUSE_BAND_M}
+		assert_near(Landmarks.yaw_within_band(a, ys, s, side, inside), 0.0, 1.0e-6, "Seite %d, schon frontal in der Häuserzeile: keine Drehung" % side)
+	# no plaza ("none"): every point behind the anchor counts
+	var none := {"hull": hull, "edge_m": 60.0, "clear_after": -1.0e9, "band": Landmarks.HOUSE_BAND_M}
+	assert_true(absf(Landmarks.yaw_within_band(a, y, s, 1, none)) <= absf(Landmarks.yaw_within_band(a, y, s, 1,
+		{"hull": hull, "edge_m": 60.0, "clear_after": 40.0, "band": Landmarks.HOUSE_BAND_M})) + 1.0e-6, "ohne Platz höchstens so weit wie mit Platz")
+	# a convex hull of a cross: the empty corners do not count (footprint_hull of a mesh)
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for v: Vector3 in [Vector3(-5, 0, 0), Vector3(5, 0, 0), Vector3(0, 10, -40), Vector3(-20, 0, -20), Vector3(20, 0, -20), Vector3(0, 5, -10)]:
+		st.add_vertex(v)
+	var hull_x := Landmarks.footprint_hull([{"mesh": st.commit()}])
+	assert_true(hull_x.size() >= 4 and hull_x.size() <= 6, "Hülle aus den Netzpunkten (%d Ecken)" % hull_x.size())
 
 
 ## Welle 6 (AS6): a long footprint – the Milan cathedral is 158 m deep – turned to its approach swings its far end
