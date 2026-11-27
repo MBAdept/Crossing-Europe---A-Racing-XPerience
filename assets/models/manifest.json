@@ -146,7 +146,7 @@
       {
        "node": "body",
        "mesh": "landmarks/catedrala_mantuirii/lod0_body.res",
-       "classes": ["baked"]
+       "classes": ["vpbr", "baked"]
       }
      ]
     }
@@ -155,8 +155,8 @@
    "roughness": 0.85,
    "auto_lod": true,
    "tags": ["prop", "landmark"],
-   "bytes": 400689,
-   "hash": "481c26fa987698bd6af2cf11833a29572a96fa25"
+   "bytes": 370614,
+   "hash": "9842d63deb8bdc9b6025bd12ef601443c0bb5c20"
   },
   "landmarks/catedrala_timisoara": {
    "kind": "landmark",
