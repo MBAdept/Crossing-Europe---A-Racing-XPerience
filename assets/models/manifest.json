@@ -132,6 +132,32 @@
    "bytes": 685968,
    "hash": "254cbc994bcb7a3fccb4830c78413545ea4425f5"
   },
+  "landmarks/catedrala_timisoara": {
+   "kind": "landmark",
+   "object": {"width_m": 48, "height_m": 90.5, "length_m": 63},
+   "extent_m": {"left": 36.84, "right": 11.33},
+   "aabb": [-24.4, 0, -63.5, 24.4, 90.5, 0],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 8228,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/catedrala_timisoara/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/catedrala_timisoara/albedo.webp", "emit": "landmarks/catedrala_timisoara/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 831634,
+   "hash": "0d90831f36d3a2fe4eb2c5ee51ef7a722eead55a"
+  },
   "landmarks/dom_fulda": {
    "kind": "landmark",
    "object": {"width_m": 48, "height_m": 65, "length_m": 99},
@@ -10482,10 +10508,7 @@
    "fallback": "sprite",
    "object": {"width_m": 67.5, "height_m": 127.0, "length_m": 126.0}
   },
-  "landmarks/catedrala_timisoara": {
-   "fallback": "sprite",
-   "object": {"width_m": 48.0, "height_m": 90.5, "length_m": 63.0}
-  },
+  "landmarks/catedrala_timisoara": {"model": "landmarks/catedrala_timisoara"},
   "landmarks/dom_fulda": {"model": "landmarks/dom_fulda"},
   "landmarks/dom_passau": {"model": "landmarks/dom_passau"},
   "landmarks/dom_regensburg": {"model": "landmarks/dom_regensburg"},
