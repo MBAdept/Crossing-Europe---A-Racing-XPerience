@@ -35,6 +35,9 @@ from .export import Lod, ModelData, Part, sprite_extent
 #   order    {list: [index, ...]} - the entries of a list in another order (applied first). The cut stacks the
 #            decals by material group in the order the groups first appear: a lamp without an outline ring in
 #            front of a ringed one (the sports car's light bar) put the black ring on top of the red lamp
+#   patch    {list: {index: {key: value}}} - values of one entry of the design's own list (index before "order")
+#            that the 3D build changes, e.g. a taller outline (A-29: the sports car's light bar)
+#   design   design values only the 3D builds read (a third brake light "chmsl" ...)
 # Indicators are what the following driver reacts to (Rule 9): they lie INSIDE the face that looks at him - the
 # flat part of the rear / front end, not the corner the lamp wraps around - and they are the last material group
 # of the list, i.e. on top of the tail lamp in the stacking order. Seen from straight behind / ahead each one
@@ -144,6 +147,10 @@ CAR_3D = {
     "sports": dict(
         # the outer lamps (ring + lens) before the light bar (lens only)
         order=dict(tail_lamps=[1, 2, 0]),
+        # A-29 (FIX-M2 B-04, QA-M2-BILD): braking at 60 m by day the model showed 12 red pixels against Arcade's 34 -
+        # the 3 cm light bar of the design is under half a pixel high there, only the outer lamps counted. In 3D the
+        # bar is 5.5 cm high (grown downwards: the badge sits at 0.762 m, the bar's top stays at 0.735 m) ...
+        patch=dict(tail_lamps={0: dict(poly=[(0.0, 0.68), (0.72, 0.68), (0.72, 0.735), (0.0, 0.735)])}),
         add=dict(
             tail_lamps=[
                 dict(part="reverse", poly=[(0.684, 0.662), (0.738, 0.659), (0.738, 0.69), (0.69, 0.69)], outline=False),
@@ -156,8 +163,10 @@ CAR_3D = {
                      outline=False),
             ],
         ),
-        # the fastback pane (17 degrees) is a pane at the far level as well (decalgeo.car_surfaces, far_glass)
-        design=dict(far_pane_ny=0.25),
+        # the fastback pane (17 degrees) is a pane at the far level as well (decalgeo.car_surfaces, far_glass);
+        # ... and it gets the third brake light the other traffic cars have: at the top of the rear window, above
+        # the wing (top at 1.03 m), 0.4 m wide (A-29)
+        design=dict(far_pane_ny=0.25, chmsl=(1.10, 1.135, 0.2)),
     ),
 }
 PLATE_CHARS = [1, 1, 0, 1, 1, 0, 1, 1, 1]
@@ -209,6 +218,12 @@ def traffic_design(name):
     d = copy.deepcopy(designs.TRAFFIC_MODELS[name])
     d["chmsl_lamp"] = CHMSL_LAMP
     spec = CAR_3D.get(name, {})
+    for k, by_idx in spec.get("patch", {}).items():
+        lst = d.get(k, [])
+        for i, fields in by_idx.items():
+            if not 0 <= int(i) < len(lst):
+                raise KeyError("CAR_3D[%s].patch: no entry %s in %s" % (name, i, k))
+            lst[int(i)] = dict(lst[int(i)], **copy.deepcopy(fields))
     for k, idx in spec.get("order", {}).items():
         lst = list(d.get(k, []))
         if sorted(idx) != list(range(len(lst))):

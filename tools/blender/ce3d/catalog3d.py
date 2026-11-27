@@ -98,8 +98,10 @@ MODELS = {
         sets={"traffic/van_white": {}, "traffic/van_silver": {}, "traffic/van_red": {}, "traffic/van_darkblue": {}}),
     "traffic/sports": dict(
         builder="car", source="traffic/sports_red", kind="vehicle", design="sports",
-        detail={"lod0": {"step": 8.2}, "lod2": {"step": 100.0, "gstep": 60.0}},      # the wing and four tail pipes
-        # (lod2 gstep 60, AS2R: the rear pane cut along the design's outline is cheaper on a finer greenhouse)
+        detail={"lod0": {"step": 8.2}, "lod2": {"step": 110.0, "gstep": 60.0}},      # the wing and four tail pipes
+        # (lod2 gstep 60, AS2R: the rear pane cut along the design's outline is cheaper on a finer greenhouse;
+        # step 110, A-29: the taller light bar and the third brake light of the 3D build cost 51 triangles - 1 187 of
+        # the 1 200 of lod2 with lengthwise sections a little further apart, a level drawn beyond 120 m)
         sets={"traffic/sports_red": {}, "traffic/sports_yellow": {}, "traffic/sports_orange": {}, "traffic/sports_black": {},
               "traffic/sports_blue": {}}),
     # the semitrailer: one model per kind of trailer of cesprites.heavy.TRUCK_VARIANTS (the word on the box and the
