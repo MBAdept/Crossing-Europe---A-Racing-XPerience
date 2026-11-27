@@ -23,6 +23,7 @@
   ],
   "textures": {"albedo": "landmarks/fernsehturm_berlin/albedo.webp", "emit": "landmarks/fernsehturm_berlin/emit.png"},
   "roughness": 0.85,
+  "view_yaw_deg": -20,
   "auto_lod": true,
   "tags": ["prop", "landmark"],
   "bytes": 280769,

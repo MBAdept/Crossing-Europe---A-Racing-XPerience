@@ -23,6 +23,7 @@
   ],
   "textures": {"albedo": "landmarks/st_petri_riga/albedo.webp", "emit": "landmarks/st_petri_riga/emit.png"},
   "roughness": 0.85,
+  "view_yaw_deg": -20,
   "auto_lod": true,
   "tags": ["prop", "landmark"],
   "bytes": 263295,

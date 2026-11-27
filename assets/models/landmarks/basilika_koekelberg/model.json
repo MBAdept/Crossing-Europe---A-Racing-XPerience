@@ -23,6 +23,7 @@
   ],
   "textures": {"albedo": "landmarks/basilika_koekelberg/albedo.webp", "emit": "landmarks/basilika_koekelberg/emit.png"},
   "roughness": 0.85,
+  "view_yaw_deg": -22,
   "auto_lod": true,
   "tags": ["prop", "landmark"],
   "bytes": 458131,

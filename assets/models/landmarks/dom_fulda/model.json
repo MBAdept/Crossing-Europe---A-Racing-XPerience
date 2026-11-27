@@ -23,6 +23,7 @@
   ],
   "textures": {"albedo": "landmarks/dom_fulda/albedo.webp", "emit": "landmarks/dom_fulda/emit.png"},
   "roughness": 0.85,
+  "view_yaw_deg": -22,
   "auto_lod": true,
   "tags": ["prop", "landmark"],
   "bytes": 349476,

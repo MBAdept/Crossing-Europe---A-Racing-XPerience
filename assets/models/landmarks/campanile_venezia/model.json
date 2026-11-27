@@ -23,6 +23,7 @@
   ],
   "textures": {"albedo": "landmarks/campanile_venezia/albedo.webp", "emit": "landmarks/campanile_venezia/emit.png"},
   "roughness": 0.85,
+  "view_yaw_deg": -16,
   "auto_lod": true,
   "tags": ["prop", "landmark"],
   "bytes": 180156,
