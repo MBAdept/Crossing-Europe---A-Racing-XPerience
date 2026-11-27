@@ -221,8 +221,8 @@
 	},
 
 	"radar": {
-		"_doc": "Warnung warning_km vorher mit Tempolimit; Auslösefeld zone_length_km lang; Toleranz 15 %: löst ab limit * (1 + tolerance) aus (120 -> 138). In den letzten no_radar_before_city_km vor den City Limits gibt es kein Radar.",
-		"warning_km": 10.0,
+		"_doc": "Warnung mit Tempolimit (Schild, Meldung, HUD) warning_km vor dem Feld: je Radar eine ganze Zahl Kilometer aus [min, max], gezogen aus dem Etappen-Seed (StagePlan.radar_warn_distance; seit v0.8.0 auf Nutzerwunsch 5–10 statt immer 10); Auslösefeld zone_length_km lang; Toleranz 15 %: löst ab limit * (1 + tolerance) aus (120 -> 138). In den letzten no_radar_before_city_km vor den City Limits gibt es kein Radar.",
+		"warning_km": [5, 10],
 		"zone_length_km": 5.0,
 		"tolerance": 0.15,
 		"no_radar_before_city_km": 30.0,

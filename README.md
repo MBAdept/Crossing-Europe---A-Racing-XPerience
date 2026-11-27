@@ -227,7 +227,7 @@ Einrichten steht in [marketing/steam/README.md](marketing/steam/README.md).
   „Volltanken? – Gas = Weiterfahren“, Abschleppdienst bei leerem Tank. Seit v0.7.0 je Fahrtrichtung die erste
   Tankstelle spätestens 20 km nach dem Start; im Rennen geht der Tank in die nächste Etappe mit (reicht er nicht
   einmal mit 60 km/h bis zur ersten Tankstelle, kommt vor dem Start der Abschleppdienst).
-- **Radar und Polizei**: Warnung 10 km vorher, 5-km-Feld, 15 % Toleranz, Verfolgung mit Flucht ab 220 km/h – in
+- **Radar und Polizei**: Warnung 5–10 km vorher (je Radar verschieden), 5-km-Feld, 15 % Toleranz, Verfolgung mit Flucht ab 220 km/h – in
   Kurven muss auch die Polizei bremsen, dort reicht weniger –, „Führerschein, bitte!“; City Limits in den letzten 20 km
   jeder Etappe.
 - **Tageszeit und Wetter**: frei wählbare Startzeit, nächste Etappe 8 h Weltzeit nach dem Ende der vorigen (die

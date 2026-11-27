@@ -119,7 +119,10 @@ Weitere Festlegungen:
   Schwellen still übersprungen (nie eine falsche Entfernung). *(seit v0.7.0)* Eine erste Tankstelle, die näher als
   die 30-km-Ansage am Start liegt, wird direkt nach dem Start mit ihrer echten Entfernung angesagt („Tankstelle in
   12 km“) – Abschnitt „Tank im Rennen“.
-- **Radar**: Warnung einmal bei `warn_km`; Auslösen ab limit · 1,15 (120 → 138,0 km/h, „ab“ = ≥) irgendwo im Feld,
+- **Radar**: Warnung einmal bei `warn_km`: *(seit v0.8.0, Spielerwunsch)* je Radar zufällig 5–10 ganze km vor dem Feld
+  (`radar.warning_km` = [5, 10], `StagePlan.radar_warn_distance` zieht aus dem Etappen-Seed – dieselbe Etappe in
+  derselben Richtung hat immer dieselben Abstände, im ganzen Netz verteilen sich die 281 Radare fast gleichmäßig auf
+  5 bis 10 km; bis v0.7.0 immer 10 km). Schild, Meldung und HUD nennen diese Entfernung. Auslösen ab limit · 1,15 (120 → 138,0 km/h, „ab“ = ≥) irgendwo im Feld,
   jedes Radar höchstens einmal, nie während Verfolgung/Anhalten.
 - **Verfolgung**: Polizeiwagen startet 320 m (sichtbare Meter) hinter dem Spieler und fährt 220 km/h; der Abstand
   ändert sich mit (v − 220)/3,6 m/s. Flucht, wenn der zeitgewichtete gleitende Durchschnitt der letzten 12 s

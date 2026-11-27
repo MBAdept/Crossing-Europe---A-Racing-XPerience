@@ -100,7 +100,7 @@ func test_warning_once_with_limit() -> void:
 	assert_eq(warned.size(), 0, "vor der Warnung")
 	assert_true(p.active_radar.is_empty(), "noch kein aktives Radar")
 	p.update(DT, 20.0, 100.0)
-	assert_eq(warned, [120], "Warnung 10 km vorher mit Limit")
+	assert_eq(warned, [120], "Warnung an warn_km (Testplan: 10 km vorher) mit Limit")
 	assert_eq(int(p.active_radar.get("limit", 0)), 120, "aktives Radar")
 	p.update(DT, 21.0, 100.0)
 	p.update(DT, 25.0, 100.0)

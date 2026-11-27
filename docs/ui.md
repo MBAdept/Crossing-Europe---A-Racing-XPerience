@@ -247,7 +247,7 @@ Szenen lassen sich ohne Neubau über `game_config.json` neben der ausführbaren 
   um ~23 % ab, Prüfung v0.5.1); unten links blinkend „Taste drücken“ mit den Symbolen des Eingabegeräts (Gamepad: Ⓐ, Tastatur:
   Enter und Ⓐ) – die Bildmitte unten gehört dem eigenen Auto; am unteren Rand eine dünne Linie, die sich in 30 s
   füllt. Das HUD ist reduziert (`Hud.reduced`): nur Uhr-Panel (Uhrzeit, Wetter, Land, Etappe) und Tacho; keine
-  Zeit/Rekord, kein Fortschrittsbalken, kein Tank, keine Schilder- und Polizei-Panels, keine Nachrichten, kein
+  Zeit/Rekord, keine Zielentfernung, kein Tank, keine Schilder- und Polizei-Panels, keine Nachrichten, kein
   Countdown und kein Zielbanner. Seitenverhältnis wie im Rennen (`keep`).
 - **Ende**: Jede Taste, Gamepad-Taste, ein deutlicher Stick-/Triggerausschlag (≥ 0,5), ein Mausklick oder Fingertipp
   beendet die Demo **sofort** (Schnitt auf Schwarz, der Titel blendet ein). Das Ereignis wird in `_input` verbraucht,
@@ -390,7 +390,14 @@ Abschleppen, Nachrichten) erscheinen nur zeitweise. Ergänzungen zum Vertrag:
   Aufrufe innerhalb von 45 ms werden ohnehin verworfen).
 - Nachrichten, die mit „ZIEL!“ beginnen, werden durch das Ziel-Banner (`finished`) ersetzt.
 - Tempo-Delta: aktuelle Zeit minus Rekordzeit × zurückgelegter Anteil (`UiFormat.pace_delta`), ab km 0,5.
-- Marker im Fortschrittsbalken kommen aus dem `StagePlan` (Tankstellen, Radar, Tunnel, Grenzen, City Limits).
+- *(seit v0.8.0, Spielerwunsch)* Oben gibt es **keine Streckenübersicht** mehr (bis v0.7.0: Fortschrittsbalken mit
+  Markern für Tankstellen, Radar, Tunnel, Grenzen und City Limits). Unter dem Zeit-Panel steht nur die **Entfernung
+  zum Ziel** als kleine Lasche mit Zielflagge: „noch 104 km“, auf den letzten 10 km mit einer Nachkommastelle
+  („noch 3,6 km“; `remaining_km` des Zustands, Mono 21 px auf dem HUD-Panel). Gilt in beiden Grafikmodi; die
+  Arcade-Referenzbilder entstehen dafür aus v0.7.0 mit `tests/golden/arcade_ref.patch` (Vertrag A-32).
+- Radarwarnung oben rechts („RADAR in 7,0 km · Limit 120“): ab `warn_km` des Radars – seit v0.8.0 je Radar zufällig
+  5–10 ganze km vor dem Feld (`StagePlan.radar_warn_distance`, docs/gameplay.md); dieselbe Entfernung nennen das
+  Schild am Straßenrand und die Meldung „Radarkontrolle in 7 km – Limit 120 km/h“.
 - Länderfarben/-namen aus `GameData.countries`.
 - Jedes Frame ruft die HUD `AudioManager.hud_hints(state)` auf (siehe Audio).
 - „Nächste Tankstelle“: `next_station_km` 0 (die Rennsitzung schickt 0, solange der Wagen in der Tankspur ist)
@@ -408,10 +415,10 @@ Abschleppen, Nachrichten) erscheinen nur zeitweise. Ergänzungen zum Vertrag:
 - Abschlepp-Overlay beschreibt die Mechanik: Der Wagen bleibt stehen, wo er liegen geblieben ist, der
   Abschleppdienst bringt Sprit (`fuel.tow_refill_fraction`, „für einen halben Tank“), Zeitstrafe
   `fuel.tow_penalty_s` („Weiterfahrt von hier · Zeitstrafe +1:30.00“, `UiFormat.tow_text`).
-- Fortschrittsbalken: Das Panel umfasst auch die km-Angaben darunter (vorher standen sie auf dem Himmel und waren
-  bei Tag kaum lesbar); eine Zeitstrafe erscheint als Plakette mittig in dieser Zeile. Lange Etappennamen und
-  Rekordhalter werden mit „…“ gekürzt (`_fit`).
-- Debug: `--hud-demo=refuel,police,radar,radarzone,tow,countdown,reserve,finish,city,understeer` legt
+- Zielentfernung und Zeitstrafe stehen auf eigenen Panels (bis v0.7.0 standen die km-Angaben des Balkens zuerst auf
+  dem Himmel und waren bei Tag kaum lesbar); eine Zeitstrafe erscheint als Plakette mittig unter der Zielentfernung.
+  Lange Etappennamen und Rekordhalter werden mit „…“ gekürzt (`_fit`).
+- Debug: `--hud-demo=refuel,police,radar,radarzone,tow,countdown,reserve,finish,city,understeer,penalty` legt
   Demo-Werte über den echten Zustand (Screenshots seltener Situationen).
 - `reduced` (Attract-Modus): nur Uhr-Panel und Tacho – keine Nachrichten, Banner oder übrigen Panels.
 

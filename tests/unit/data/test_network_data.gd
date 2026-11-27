@@ -330,6 +330,65 @@ func test_directional_radars() -> void:
 	assert_near(float(r.radars[0]["km"]), 25.0, 0.01, "rev-Radar gespiegelt (200 - 170 - 5)")
 
 
+## v0.8.0 (user request): the radar warning – road sign, message, HUD panel – comes 5–10 whole km before the zone,
+## drawn per radar from the stage seed (StagePlan.radar_warn_distance), not always 10 km. Same plan, same distances;
+## a warning that would lie before the start stands at km 0 and names the real distance.
+func test_radar_warning_5_to_10_km_before_each_radar() -> void:
+	var n := net()
+	var seen := {}
+	var count := 0
+	for id in n.stage_order:
+		var s: Dictionary = n.stages[id]
+		if bool(s.get("dev", false)):
+			continue
+		for from_id in [str(s["from"]), str(s["to"])]:
+			var p := n.get_stage_plan(id, from_id)
+			var again := n.get_stage_plan(id, from_id)
+			for i in p.radars.size():
+				var r: Dictionary = p.radars[i]
+				var d := float(r["km"]) - float(r["warn_km"])
+				var tag := "%s ab %s, Radar bei km %.1f" % [id, from_id, float(r["km"])]
+				assert_near(float(again.radars[i]["warn_km"]), float(r["warn_km"]), 0.0001, tag + ": gleicher Plan, gleiche Warnung")
+				if float(r["warn_km"]) > 0.0001:
+					assert_between(d, 5.0 - 0.0001, 10.0 + 0.0001, tag + ": Warnung 5–10 km vorher (%.2f)" % d)
+					assert_near(d, roundf(d), 0.0001, tag + ": ganze Kilometer (das Schild nennt sie)")
+					seen[int(roundf(d))] = int(seen.get(int(roundf(d)), 0)) + 1
+					count += 1
+				else:
+					assert_true(d <= 10.0 + 0.0001, tag + ": Warnung am Start, höchstens 10 km vorher")
+	assert_true(count >= 40, "genug Radare im Netz geprüft: %d" % count)
+	assert_true(seen.size() >= 5, "die Abstände streuen über 5–10 km: %s" % str(seen))
+	for k: int in seen:
+		assert_true(int(seen[k]) * 2 < count, "kein Abstand bei der Hälfte aller Radare: %s" % str(seen))
+
+
+func test_radar_warning_distance_stays_when_another_radar_is_skipped() -> void:
+	var cities := {"a": {"name": "A", "country": "DE"}, "b": {"name": "B", "country": "DE"}}
+	var countries := {"DE": {"limits": {"autobahn": null, "city": 50}}}
+	var radars := [{"km": 20, "limit": 120}, {"km": 60, "limit": 120}, {"km": 100, "limit": 120}]
+	var stage := {"id": "d", "from": "a", "to": "b", "length_km": 200, "seed": 77,
+		"sections": [{"length_km": 200, "road": "autobahn", "country": "DE", "speed_limit": 120}],
+		"fuel_stations_km": [70, 130], "radars": radars}
+	var all := StagePlan.build(stage, "a", cities, countries, cfg())
+	assert_eq(all.radars.size(), 3, "drei Radare")
+	var skipped := stage.duplicate(true)
+	(skipped["radars"][1] as Dictionary)["dir"] = "rev"
+	var two := StagePlan.build(skipped, "a", cities, countries, cfg())
+	assert_eq(two.radars.size(), 2, "das mittlere gilt nur rückwärts")
+	assert_near(float(two.radars[1]["warn_km"]), float(all.radars[2]["warn_km"]), 0.0001, "das letzte Radar behält seinen Warnabstand")
+	# a single number is a fixed distance (the rule up to v0.7.0)
+	var fixed := cfg().duplicate(true)
+	fixed["radar"]["warning_km"] = 10.0
+	var old := StagePlan.build(stage, "a", cities, countries, fixed)
+	for r in old.radars:
+		assert_near(float(r["km"]) - float(r["warn_km"]), 10.0, 0.0001, "feste Zahl: immer 10 km")
+	var rng := RandomNumberGenerator.new()
+	for i in 200:
+		rng.seed = i
+		var d := StagePlan.radar_warn_distance(cfg(), rng)
+		assert_true(d >= 5.0 and d <= 10.0 and d == roundf(d), "Ziehung %d: %.2f" % [i, d])
+
+
 func test_cities_inside_map_and_projection_consistent() -> void:
 	var n := net()
 	var size := n.map_size()

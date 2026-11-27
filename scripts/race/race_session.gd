@@ -765,7 +765,8 @@ func _connect_signals() -> void:
 		_reserve_warned = false
 		hud.show_message(tr("Zeitstrafe Abschleppdienst: +%s") % Units.format_race_time(p), "warn", 4.0))
 	police.radar_warning.connect(func(r: Dictionary) -> void:
-		hud.show_message(tr("Radarkontrolle in %d km – Limit %d km/h") % [int(round(float(ConfigLoader.lookup(cfg, "radar.warning_km", 10.0)))), int(r["limit"])], "warn", 4.0)
+		# the distance of this radar's warning (5–10 km, StagePlan.radar_warn_distance), as on the road sign
+		hud.show_message(tr("Radarkontrolle in %d km – Limit %d km/h") % [maxi(1, roundi(float(r["km"]) - pos_km)), int(r["limit"])], "warn", 4.0)
 		_tutorial("radar", {"limit": float(r.get("limit", 120))}))
 	police.radar_zone.connect(func(r: Dictionary, entered: bool) -> void:
 		if entered:

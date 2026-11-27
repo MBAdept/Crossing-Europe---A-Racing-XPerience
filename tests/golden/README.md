@@ -1,6 +1,7 @@
 # Referenzbilder („Goldens“)
 
-Seit v0.8.0 hat das Spiel zwei Grafikmodi. **„Arcade“ muss bildgleich mit v0.7.0 bleiben** – das prüft
+Seit v0.8.0 hat das Spiel zwei Grafikmodi. **„Arcade“ muss bildgleich mit v0.7.0 bleiben** (bis auf die
+Spielerwünsche in `arcade_ref.patch`) – das prüft
 `tools/golden.sh check` mit zwei Listen (ARCHITECTURE.md §15.6, Bauplan docs/dev/v080_contract.md Regel 2, §4.9.3 und
 A-6). Für **„Modern“** gibt es Änderungsmelder: Sie zeigen jede Änderung des Bildes an, sind aber kein Identitätstor
 (Vertrag D38). Bedienung und Belege: [docs/qa-v080.md](../../docs/qa-v080.md).
@@ -8,11 +9,12 @@ A-6). Für **„Modern“** gibt es Änderungsmelder: Sie zeigen jede Änderung 
 | Datei | Inhalt |
 |---|---|
 | `arcade_frames.txt` | die 13 Läufe der Rennszene, aus denen die 20 Bilder entstehen: 7 Attract-Szenen (je 4 s und 12 s) und 6 Rennbilder mit vollem HUD an Referenzpositionen. Eine Zeile = Kennung, Aufnahmezeiten, Argumente der Rennszene. |
-| `arcade_v070.md5` | MD5-Summen der 20 PNG-Dateien, gerendert mit dem Git-Tag `v0.7.0` (`tools/golden.sh make`) |
+| `arcade_v070.md5` | MD5-Summen der 20 PNG-Dateien, gerendert mit dem Git-Tag `v0.7.0` + `arcade_ref.patch` (`tools/golden.sh make`) |
+| `arcade_ref.patch` | Spielerwünsche in Dateien, die beide Modi teilen, als Patch auf `v0.7.0` (Vertrag A-32: HUD oben ohne Streckenübersicht, nur die Zielentfernung; Radarwarnung zufällig 5–10 km vorher). `make` wendet ihn vor dem Rendern an; sonst nichts – der eingefrorene Arcade-Renderer wird weiter gegen `v0.7.0` selbst geprüft. |
 | `arcade_ui_frames.txt` | zweite Liste (A-6, seit QA1): 11 Menüs mit Beispieldaten, das Ladebild, ein Etappenstart über GameFlow, das Pausemenü über einer fahrenden Etappe und drei Bilder im Steam-Deck-Fenster 1280×800 – 17 Bilder. Eine Zeile = Kennung, Fenster, Aufnahmezeit, Ziel (`main`, `race`, `pause`, `loading`), Argumente, Maske. |
 | `arcade_ui_v070.md5` | MD5 der RGB-Pixel dieser 17 Bilder nach der Maske, gerendert mit `v0.7.0` |
 | `ui_shots.gd` | Bildhelfer für Pausemenü und Ladebild; läuft unverändert im Baum von `v0.7.0` (`make` kopiert ihn dorthin) |
-| `arcade_v070.env` | womit die Arcade-Listen entstanden: Tag und Commit, Godot-Version, OpenGL-Treiber |
+| `arcade_v070.env` | womit die Arcade-Listen entstanden: Tag und Commit, MD5 des Referenz-Patches (`patch=`; `check` bricht ab, wenn er nicht mehr passt), Godot-Version, OpenGL-Treiber |
 | `modern_frames.txt` | Änderungsmelder für Modern: 6 Bilder des Schnitts Kiel – Hamburg (Start mit Countdown, Tankstelle, freie Autobahn, Köhlbrandbrücke, Ziel, Nacht) in festen Voreinstellungen |
 | `modern_slice.md5`, `modern_slice.env` | ihre MD5-Summen, erzeugt aus der Arbeitskopie (`tools/golden.sh modern-make`), und womit |
 
@@ -20,7 +22,7 @@ A-6). Für **„Modern“** gibt es Änderungsmelder: Sie zeigen jede Änderung 
 tools/golden.sh check            # beide Arcade-Listen: „GOLDEN arcade: 20 von 20 identisch“, „GOLDEN arcade-ui: 17 von 17 identisch“
 tools/golden.sh check race_      # nur die Läufe, deren Kennung „race_“ enthält
 KEEP=/tmp/bilder tools/golden.sh check   # Bilder und Protokolle behalten
-tools/golden.sh make [race|ui]   # Arcade-Listen neu aus dem Tag v0.7.0 erzeugen (beide: rund 15 Minuten)
+tools/golden.sh make [race|ui]   # Arcade-Listen neu aus dem Tag v0.7.0 + arcade_ref.patch erzeugen (beide: rund 15 Minuten)
 tools/golden.sh modern-check     # Modern gegen modern_slice.md5 + OpenGL ES gegen OpenGL („GOLDEN modern-gles“)
 tools/golden.sh modern-make      # modern_slice.md5 neu aus der Arbeitskopie (gewollte Änderung von Modern)
 tools/golden.sh list             # alle Läufe der drei Listen

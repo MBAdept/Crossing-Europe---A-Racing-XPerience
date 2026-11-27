@@ -5,7 +5,8 @@ extends RefCounted
 ## Rules, decisions and tuning numbers: docs/gameplay.md.
 ##
 ## Rules (design document "Radar, Polizei und City Limits"):
-##  * warning radar.warning_km before a radar zone, showing the limit (signal radar_warning, once)
+##  * warning at the radar's warn_km (5–10 km before its zone, drawn per radar by StagePlan from radar.warning_km),
+##    showing the limit (signal radar_warning, once)
 ##  * zone radar.zone_length_km long; triggers when speed >= limit * (1 + tolerance) anywhere inside
 ##    (120 -> from 138 km/h); each radar triggers at most once, never during a chase or a stop
 ##  * triggered -> flash + police chase. The police car starts police.start_gap_m behind and drives

@@ -1,0 +1,216 @@
+Referenz-Patch der Arcade-Bildgleichheit (tools/golden.sh make, docs/dev/v080_contract.md A-32)
+
+„Arcade“ zeichnet die Bilder von v0.7.0 – bis auf die Änderungen, die der Spieler ausdrücklich für das ganze Spiel
+gewünscht hat. Sie stehen hier als Patch auf den Tag v0.7.0; `tools/golden.sh make` exportiert den Tag, wendet diesen
+Patch an und rendert erst dann die Referenzbilder. Alles andere (vor allem der eingefrorene Arcade-Renderer) wird
+weiter gegen v0.7.0 selbst geprüft. Nur Dateien, die beide Modi teilen, und nur Nutzerwünsche gehören hierher.
+
+1. HUD oben ohne Streckenübersicht, nur noch die Distanz zum Ziel; Radarwarnung zufällig 5–10 km vor dem
+   Radarfeld (Nutzerwunsch v0.8.0): scripts/ui/hud.gd, scripts/data/stage_plan.gd, config/game_config.json
+   (radar.warning_km), scripts/race/race_session.gd (Meldung nennt den Abstand dieses Radars)
+
+Ändert sich ein Nutzerwunsch, wird der Patch neu erzeugt (Dateien von v0.7.0 + dieselbe Änderung, diff -u) und
+danach `tools/golden.sh make` ausgeführt; die neue Hash-Liste gehört in denselben Commit.
+
+--- a/config/game_config.json
++++ b/config/game_config.json
+@@ -221,8 +221,8 @@
+ 	},
+ 
+ 	"radar": {
+-		"_doc": "Warnung warning_km vorher mit Tempolimit; Auslösefeld zone_length_km lang; Toleranz 15 %: löst ab limit * (1 + tolerance) aus (120 -> 138). In den letzten no_radar_before_city_km vor den City Limits gibt es kein Radar.",
+-		"warning_km": 10.0,
++		"_doc": "Warnung mit Tempolimit (Schild, Meldung, HUD) warning_km vor dem Feld: je Radar eine ganze Zahl Kilometer aus [min, max], gezogen aus dem Etappen-Seed (StagePlan.radar_warn_distance; seit v0.8.0 auf Nutzerwunsch 5–10 statt immer 10); Auslösefeld zone_length_km lang; Toleranz 15 %: löst ab limit * (1 + tolerance) aus (120 -> 138). In den letzten no_radar_before_city_km vor den City Limits gibt es kein Radar.",
++		"warning_km": [5, 10],
+ 		"zone_length_km": 5.0,
+ 		"tolerance": 0.15,
+ 		"no_radar_before_city_km": 30.0,
+--- a/scripts/data/stage_plan.gd
++++ b/scripts/data/stage_plan.gd
+@@ -37,7 +37,8 @@
+ var fuel_stations_km: Array[float] = []
+ ## Fuel lanes: {station_km, start_km, end_km}. The lane is the last 1–2 km before the station (right side).
+ var fuel_lanes: Array[Dictionary] = []
+-## Radar zones: {km (zone start), end_km, limit (km/h), warn_km (where the 10-km warning appears)}
++## Radar zones: {km (zone start), end_km, limit (km/h), warn_km (where the warning appears: a whole number of km,
++## radar.warning_km = [5, 10], drawn per radar from the seed – radar_warn_distance())}
+ var radars: Array[Dictionary] = []
+ ## Tunnels: {start_km, end_km, name}
+ var tunnels: Array[Dictionary] = []
+@@ -217,11 +218,15 @@
+ 
+ static func _build_radars(p: StagePlan, stage: Dictionary, cfg: Dictionary, countries: Dictionary) -> void:
+ 	var zone := float(ConfigLoader.lookup(cfg, "radar.zone_length_km", 5.0))
+-	var warn := float(ConfigLoader.lookup(cfg, "radar.warning_km", 10.0))
+ 	var gap := float(ConfigLoader.lookup(cfg, "radar.no_radar_before_city_km", 30.0))
+ 	var default_limit := int(ConfigLoader.lookup(cfg, "radar.default_limit_kmh", 120))
+ 	var max_end := p.city_limits_km - gap
++	# one draw per radar entry of the data, before any is skipped: a radar keeps its distance when another one
++	# changes (and the reversed stage has a seed of its own)
++	var rng := RandomNumberGenerator.new()
++	rng.seed = p.seed + 202
+ 	for r: Dictionary in stage.get("radars", []):
++		var warn := radar_warn_distance(cfg, rng)
+ 		var dir := str(r.get("dir", "both"))
+ 		if (dir == "fwd" and p.reversed) or (dir == "rev" and not p.reversed):
+ 			continue
+@@ -245,6 +250,18 @@
+ 	p.radars.sort_custom(func(x, y): return float(x["km"]) < float(y["km"]))
+ 
+ 
++## How far before its zone a radar is announced (road sign, message, HUD panel): a whole number of km drawn from
++## radar.warning_km = [min, max] (since v0.8.0 [5, 10], user request: not always the same distance; the road sign
++## names whole km). A single number is a fixed distance (the rule up to v0.7.0: 10).
++static func radar_warn_distance(cfg: Dictionary, rng: RandomNumberGenerator) -> float:
++	var v: Variant = ConfigLoader.lookup(cfg, "radar.warning_km", [5.0, 10.0])
++	if v is Array and (v as Array).size() >= 2:
++		var lo := ceili(float(v[0]))
++		var hi := maxi(lo, floori(float(v[1])))
++		return float(rng.randi_range(lo, hi))
++	return float(v)
++
++
+ static func _build_tunnels(p: StagePlan, stage: Dictionary) -> void:
+ 	for t: Dictionary in stage.get("tunnels", []):
+ 		var km := float(t.get("km", 0.0))
+--- a/scripts/race/race_session.gd
++++ b/scripts/race/race_session.gd
+@@ -455,7 +455,8 @@
+ 		_reserve_warned = false
+ 		hud.show_message(tr("Zeitstrafe Abschleppdienst: +%s") % Units.format_race_time(p), "warn", 4.0))
+ 	police.radar_warning.connect(func(r: Dictionary) -> void:
+-		hud.show_message(tr("Radarkontrolle in %d km – Limit %d km/h") % [int(round(float(ConfigLoader.lookup(cfg, "radar.warning_km", 10.0)))), int(r["limit"])], "warn", 4.0)
++		# the distance of this radar's warning (5–10 km, StagePlan.radar_warn_distance), as on the road sign
++		hud.show_message(tr("Radarkontrolle in %d km – Limit %d km/h") % [maxi(1, roundi(float(r["km"]) - pos_km)), int(r["limit"])], "warn", 4.0)
+ 		_tutorial("radar", {"limit": float(r.get("limit", 120))}))
+ 	police.radar_zone.connect(func(r: Dictionary, entered: bool) -> void:
+ 		if entered:
+--- a/scripts/ui/hud.gd
++++ b/scripts/ui/hud.gd
+@@ -6,22 +6,22 @@
+ ##
+ ## Layout (keeps the road centre free):
+ ##   top-left    clock + day/night icon, weather, country (flag colours), stage name
+-##   top-centre  stage time, record + pace delta, penalties; below: progress bar with markers
+-##               (fuel stations, radars, tunnels, borders, City Limits, finish)
++##   top-centre  stage time, record + pace delta; below: distance to the finish ("noch 104 km"), penalties
++##               (the progress bar with markers of v0.7.0 is gone since v0.8.0 – user request: only the distance)
+ ##   top-right   speed-limit sign ("frei" = end-of-restrictions sign), radar warning, City Limits
+ ##               town sign, police chase panel (blinking, escape meter)
+ ##   bottom-left fuel gauge (litres, reserve warning), range at current speed, next station
+ ##   bottom-right analog speedometer (arc, vmax mark, limit mark) + digital km/h
+ ##   centre      message queue, countdown 3-2-1-LOS!, refuel / tow overlays, finish banner
+ ##   full screen radar flash, collision flash
+-## Debug: CLI --hud-demo=refuel,police,radar,radarzone,tow,countdown,reserve,finish,city,night overlays
++## Debug: CLI --hud-demo=refuel,police,radar,radarzone,tow,countdown,reserve,finish,city,understeer,penalty overlays
+ ## demo values onto the live state (screenshots of rare situations).
+ 
+ const SPEEDO_A0 := 135.0
+ const SPEEDO_A1 := 405.0
+ const GO_TIME := 1.1
+ const COUNTDOWN_Y := 292.0     ## centre of the countdown digit (start lights 92 px below)
+-const PROGRESS_Y := 112.0     ## centre line of the progress bar (its panel also holds the km figures)
++const GOAL_Y := 102.0         ## top of the distance-to-finish tab below the time panel (the penalty badge below it)
+ const DEMO := {
+ 	"refuel": {"refuel": {"active": true, "progress01": 0.46, "liters": 23.4, "time_left_s": 6.3}, "speed_kmh": 0.0, "fuel_l": 31.0, "next_station_km": 0.0},
+ 	"police": {"police_state": "chase", "police_gap_m": 140.0, "escape01": 0.62, "speed_kmh": 226.0},
+@@ -33,6 +33,7 @@
+ 	"finish": {"finished": true},
+ 	"city": {"city_limits": true, "speed_limit": 50},
+ 	"understeer": {"understeer": 0.8},
++	"penalty": {"penalty_s": 90.0},
+ }
+ 
+ var state: Dictionary = {}
+@@ -80,7 +81,7 @@
+ 	if CliArgs.has("hud-demo"):
+ 		for key in CliArgs.get_string("hud-demo", "").split(",", false):
+ 			_demo.merge(DEMO.get(key, {}), true)
+-		show_message(tr("Radarkontrolle in 10 km – Limit 120 km/h"), "warn", 30.0)  # demo only
++		show_message(tr("Radarkontrolle in 7 km – Limit 120 km/h"), "warn", 30.0)  # demo only
+ 		show_message(tr("Tankstelle in 15 km"), "info", 30.0)
+ 
+ 
+@@ -238,7 +239,7 @@
+ 		_draw_speedo(w, h)
+ 		return
+ 	_draw_time_panel(w)
+-	_draw_progress(w)
++	_draw_goal_distance(w)
+ 	_draw_penalty(w)
+ 	var right_y := _draw_limit_and_radar(w)
+ 	right_y = _draw_city_sign(w, right_y)
+@@ -312,59 +313,31 @@
+ 		_text(Vector2(r.position.x, y2), tr("Noch kein Rekord – setz die Bestzeit!"), _f_body, 19, UiTheme.TEXT_DIM, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+ 
+ 
+-## Time penalty badge in the middle of the progress panel's label row (between the km figures).
++## Time penalty badge centred below the distance tab.
+ func _draw_penalty(w: float) -> void:
+ 	var pen := _f("penalty_s")
+ 	if pen <= 0.0:
+ 		return
+ 	var txt := tr("+%s STRAFE") % UiFormat.time(pen)
+ 	var tw := _text_w(txt, _f_bold, 18) + 20.0
+-	var pr := Rect2(w * 0.5 - tw * 0.5, PROGRESS_Y + 13.0, tw, 24)
++	var pr := Rect2(w * 0.5 - tw * 0.5, GOAL_Y + 40.0, tw, 24)
+ 	UiIcons.panel(self, pr, Color(0.35, 0.18, 0.0, 0.9), UiTheme.WARN, 6.0)
+ 	_text(Vector2(pr.position.x, pr.position.y + 18), txt, _f_bold, 18, UiTheme.WARN, HORIZONTAL_ALIGNMENT_CENTER, pr.size.x)
+ 
+ 
+-# --- progress bar ----------------------------------------------------------------------------
++# --- distance to the finish ------------------------------------------------------------------
+ 
+-func _draw_progress(w: float) -> void:
+-	var length := maxf(_f("stage_length_km", plan.length_km if plan != null else 1.0), 0.001)
+-	var km := clampf(_f("stage_km"), 0.0, length)
+-	var x0 := w * 0.5 - 286.0
+-	var bw := 572.0
+-	var y := PROGRESS_Y
+-	UiIcons.panel(self, Rect2(x0 - 14, y - 15, bw + 28, 55), UiTheme.PANEL_HUD, Color(0, 0, 0, 0), 8.0)
+-	var kx := func(k: float) -> float: return x0 + bw * clampf(k / length, 0.0, 1.0)
+-	draw_rect(Rect2(x0, y - 2, bw, 4), Color(1, 1, 1, 0.16))
+-	if plan != null:
+-		var clx: float = kx.call(plan.city_limits_km)
+-		draw_rect(Rect2(clx, y - 2, x0 + bw - clx, 4), Color(UiTheme.ORANGE, 0.75))
+-		for tun in plan.tunnels:
+-			var a: float = kx.call(float(tun["start_km"]))
+-			var b: float = kx.call(float(tun["end_km"]))
+-			draw_rect(Rect2(a, y - 5, maxf(b - a, 3.0), 10), Color(0.62, 0.64, 0.7, 0.85))
+-	var px: float = kx.call(km)
+-	draw_line(Vector2(x0, y), Vector2(px, y), UiTheme.ACCENT_2, 4.0)
+-	if plan != null:
+-		for b in plan.borders:
+-			var bx: float = kx.call(float(b["km"]))
+-			UiIcons.flag(self, Rect2(bx - 3, y - 12, 6, 24), _country_colors.get(str(b["to"]), []), true)
+-		for st: float in plan.fuel_stations_km:
+-			var sx: float = kx.call(st)
+-			var col := UiTheme.GOOD if st >= km else Color(UiTheme.GOOD, 0.35)
+-			draw_line(Vector2(sx, y - 9), Vector2(sx, y + 3), col, 2.0)
+-			draw_circle(Vector2(sx, y - 9), 3.5, col)
+-		for rd in plan.radars:
+-			var rx: float = kx.call(float(rd["km"]))
+-			var col2 := UiTheme.BAD if float(rd["end_km"]) >= km else Color(UiTheme.BAD, 0.35)
+-			draw_colored_polygon(PackedVector2Array([Vector2(rx - 5, y + 10), Vector2(rx + 5, y + 10), Vector2(rx, y + 2)]), col2)
+-	UiIcons.checkered(self, Rect2(x0 + bw - 2, y - 7, 10, 14), 2, 3)
+-	# player marker
+-	draw_colored_polygon(PackedVector2Array([Vector2(px - 7, y - 13), Vector2(px + 7, y - 13), Vector2(px, y - 3)]), Color.WHITE)
+-	draw_circle(Vector2(px, y), 4.5, UiTheme.ACCENT_2)
+-	var left := tr("km %s / %s") % [UiFormat.decimal(km, 1), UiFormat.decimal(length, 0)]
+-	var right := tr("noch %s") % UiFormat.km(maxf(0.0, length - km), 0)
+-	_text(Vector2(x0, y + 31), left, _f_mono, 19, UiTheme.TEXT)
+-	_text(Vector2(x0, y + 31), right, _f_mono, 19, UiTheme.TEXT_DIM, HORIZONTAL_ALIGNMENT_RIGHT, bw)
++## Only the distance to the finish (user request v0.8.0: no route overview at the top): a tab below the time panel
++## with the finish flag – whole km, the last 10 km with one decimal.
++func _draw_goal_distance(w: float) -> void:
++	var length := _f("stage_length_km", plan.length_km if plan != null else 0.0)
++	var left := _f("remaining_km", maxf(0.0, length - _f("stage_km")))
++	var txt := tr("noch %s") % UiFormat.km(maxf(0.0, left), 1 if left < 10.0 else 0)
++	var tw := _text_w(txt, _f_mono, 21)
++	var r := Rect2(w * 0.5 - (tw + 66.0) * 0.5, GOAL_Y, tw + 66.0, 34)
++	UiIcons.panel(self, r, UiTheme.PANEL_HUD, Color(0, 0, 0, 0), 8.0)
++	UiIcons.checkered(self, Rect2(r.position.x + 16, r.position.y + 10, 18, 14), 4, 3)
++	_text(Vector2(r.position.x + 44, r.position.y + 25), txt, _f_mono, 21, UiTheme.TEXT)
+ 
+ 
+ # --- top-right: limit sign + radar warning ---------------------------------------------------

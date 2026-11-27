@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Picture gates of v0.8.0 (docs/dev/v080_contract.md Rule 2, §4.9.3, A-6; docs/qa-v080.md).
 # Arcade identity: the mode "Arcade" must draw exactly the pictures of v0.7.0 – two hash lists, both generated from
-# the git tag v0.7.0 on this machine:
+# the git tag v0.7.0 on this machine, with tests/golden/arcade_ref.patch applied: the changes the player asked for in
+# files both modes share (A-32: HUD without the route overview, radar warning 5–10 km before) – nothing else:
 #   tests/golden/arcade_frames.txt → arcade_v070.md5      14 attract frames + 6 race frames with the full HUD (race
 #                                                         scene, --shot-fast); MD5 of the PNG files
 #   tests/golden/arcade_ui_frames.txt → arcade_ui_v070.md5  menus, a start through GameFlow, the pause menu, the
@@ -9,9 +10,9 @@
 #                                                         mask of the line (wall-clock arrows, version number)
 # Modern change detectors: tests/golden/modern_frames.txt → modern_slice.md5, generated from THIS working copy.
 #
-#   tools/golden.sh make [race|ui]   exports git tag v0.7.0 into a temp folder, renders the frames with THAT game and
-#                                    writes the Arcade hash list(s) (+ arcade_v070.env: Godot and OpenGL driver);
-#                                    default both lists
+#   tools/golden.sh make [race|ui]   exports git tag v0.7.0 into a temp folder, applies arcade_ref.patch, renders the
+#                                    frames with THAT game and writes the Arcade hash list(s) (+ arcade_v070.env: Godot,
+#                                    OpenGL driver, MD5 of the patch); default both lists
 #   tools/golden.sh check [filter]   renders both Arcade lists with this working copy (--graphics=arcade) and compares;
 #                                    prints "GOLDEN arcade: N von M identisch" (race frames) and "GOLDEN arcade-ui: …";
 #                                    exit code 1 unless all frames are identical. With a filter only the runs whose id
@@ -45,6 +46,7 @@ UI_FRAMES="$ROOT/tests/golden/arcade_ui_frames.txt"
 UI_LIST="$ROOT/tests/golden/arcade_ui_v070.md5"
 UI_SHOTS="tests/golden/ui_shots.gd"
 ENVFILE="$ROOT/tests/golden/arcade_v070.env"
+REF_PATCH="$ROOT/tests/golden/arcade_ref.patch"
 M_FRAMES="$ROOT/tests/golden/modern_frames.txt"
 M_LIST="$ROOT/tests/golden/modern_slice.md5"
 M_ENV="$ROOT/tests/golden/modern_slice.env"
@@ -55,7 +57,7 @@ MODE=${1:-}
 FILTER=${2:-}
 
 usage() {
-	sed -n '2,38p' "$0" | sed 's/^# \{0,1\}//'
+	sed -n '2,37p' "$0" | sed 's/^# \{0,1\}//'
 	exit 2
 }
 
@@ -217,6 +219,11 @@ environment_of() {
 	echo "opengl=$(cat "$out"/*.log 2>/dev/null | grep -m1 '^OpenGL API' | sed 's/[[:space:]]*$//')"
 }
 
+# MD5 of the reference patch ("none" without one): arcade_v070.env records it, check refuses a list made with another
+patch_md5() {
+	if [ -s "$REF_PATCH" ]; then md5sum < "$REF_PATCH" | cut -c1-32; else echo none; fi
+}
+
 # env_note <env file> <out dir>: hint when Godot or the driver differ from the ones of a hash list
 env_note() {
 	local envfile=$1 out=$2 how=$3
@@ -276,6 +283,13 @@ make)
 	mkdir -p "$TMP/ref" "$XDG_DATA_HOME" "$MESA_SHADER_CACHE_DIR"
 	echo "==> $TAG nach $TMP/ref exportieren"
 	git archive "$TAG" | tar -x -C "$TMP/ref"
+	if [ -s "$REF_PATCH" ]; then
+		echo "==> Referenz-Patch anwenden (${REF_PATCH#"$ROOT"/}: Nutzerwünsche in geteilten Dateien, A-32)"
+		(cd "$TMP/ref" && git apply --whitespace=nowarn "$REF_PATCH") || {
+			echo "==> Der Referenz-Patch passt nicht auf $TAG – keine Hash-Liste geschrieben" >&2
+			exit 1
+		}
+	fi
 	# the imported textures of this working copy are valid for the tag as well (sprites are frozen): saves the
 	# long BPTC import; everything else of .godot is rebuilt by --import
 	if [ -d .godot/imported ]; then
@@ -314,6 +328,7 @@ make)
 	{
 		echo "tag=$TAG"
 		echo "commit=$(git rev-parse "$TAG^{commit}")"
+		echo "patch=$(patch_md5)"
 		environment_of "$OUT"
 	} > "$ENVFILE"
 	echo "==> fertig ($((SECONDS - T0)) s)"
@@ -322,6 +337,11 @@ make)
 check)
 	if [ ! -s "$LIST" ] || [ ! -s "$UI_LIST" ]; then
 		echo "==> Hash-Liste fehlt (${LIST#"$ROOT"/}, ${UI_LIST#"$ROOT"/}) – erst tools/golden.sh make" >&2
+		exit 1
+	fi
+	WANT_PATCH=$(sed -n 's/^patch=//p' "$ENVFILE" 2>/dev/null)
+	if [ "${WANT_PATCH:-none}" != "$(patch_md5)" ]; then
+		echo "==> Die Hash-Listen entstanden mit einem anderen Referenz-Patch (${REF_PATCH#"$ROOT"/}) – erst tools/golden.sh make" >&2
 		exit 1
 	fi
 	TMP=$(mktemp -d "${TMPDIR:-/tmp}/ce_golden_check.XXXXXX")

@@ -162,7 +162,8 @@ eigenes Sprite entstehen muss.
 und `wall` und `cross` (`false`: Laterne ohne Kreuz – Rathaus, Denkmal). Siehe §8.
 
 **Platzierung der Wahrzeichen** (Regel aus der Sichtprüfung): Ein Wahrzeichen der Höhe h ist unterhalb der
-HUD-Tafeln (Uhr oben links, Zeit und Fortschritt in der Mitte bis y ≈ 150 px) erst aus etwa 4 · h sichtbaren Metern
+HUD-Tafeln (Uhr oben links, Zeit und Fortschritt in der Mitte bis y ≈ 150 px; seit v0.8.0 nur noch Zeit und
+Zielentfernung bis y ≈ 136 px) erst aus etwa 4 · h sichtbaren Metern
 ganz zu sehen; in der Straßenschlucht des Zentrums zeigt es sich nur über seinem freien Platz. Deshalb `clear_m[0]`
 ≈ 2,5–3 · h (250–320 m für 90–130 m hohe Bauten) und `x_m` so, dass es dort 10–25° neben der Fahrtrichtung steht
 (nicht 40–60°: dann ist es beim Herankommen schon aus dem Bild). Gute Plätze liegen 0,4–1,0 km hinter einem

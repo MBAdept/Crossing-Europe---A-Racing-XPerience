@@ -6,22 +6,22 @@ extends Control
 ##
 ## Layout (keeps the road centre free):
 ##   top-left    clock + day/night icon, weather, country (flag colours), stage name
-##   top-centre  stage time, record + pace delta, penalties; below: progress bar with markers
-##               (fuel stations, radars, tunnels, borders, City Limits, finish)
+##   top-centre  stage time, record + pace delta; below: distance to the finish ("noch 104 km"), penalties
+##               (the progress bar with markers of v0.7.0 is gone since v0.8.0 – user request: only the distance)
 ##   top-right   speed-limit sign ("frei" = end-of-restrictions sign), radar warning, City Limits
 ##               town sign, police chase panel (blinking, escape meter)
 ##   bottom-left fuel gauge (litres, reserve warning), range at current speed, next station
 ##   bottom-right analog speedometer (arc, vmax mark, limit mark) + digital km/h
 ##   centre      message queue, countdown 3-2-1-LOS!, refuel / tow overlays, finish banner
 ##   full screen radar flash, collision flash
-## Debug: CLI --hud-demo=refuel,police,radar,radarzone,tow,countdown,reserve,finish,city,night overlays
+## Debug: CLI --hud-demo=refuel,police,radar,radarzone,tow,countdown,reserve,finish,city,understeer,penalty overlays
 ## demo values onto the live state (screenshots of rare situations).
 
 const SPEEDO_A0 := 135.0
 const SPEEDO_A1 := 405.0
 const GO_TIME := 1.1
 const COUNTDOWN_Y := 292.0     ## centre of the countdown digit (start lights 92 px below)
-const PROGRESS_Y := 112.0     ## centre line of the progress bar (its panel also holds the km figures)
+const GOAL_Y := 102.0         ## top of the distance-to-finish tab below the time panel (the penalty badge below it)
 const DEMO := {
 	"refuel": {"refuel": {"active": true, "progress01": 0.46, "liters": 23.4, "time_left_s": 6.3}, "speed_kmh": 0.0, "fuel_l": 31.0, "next_station_km": 0.0},
 	"police": {"police_state": "chase", "police_gap_m": 140.0, "escape01": 0.62, "speed_kmh": 226.0},
@@ -33,6 +33,7 @@ const DEMO := {
 	"finish": {"finished": true},
 	"city": {"city_limits": true, "speed_limit": 50},
 	"understeer": {"understeer": 0.8},
+	"penalty": {"penalty_s": 90.0},
 }
 
 var state: Dictionary = {}
@@ -80,7 +81,7 @@ func _ready() -> void:
 	if CliArgs.has("hud-demo"):
 		for key in CliArgs.get_string("hud-demo", "").split(",", false):
 			_demo.merge(DEMO.get(key, {}), true)
-		show_message(tr("Radarkontrolle in 10 km – Limit 120 km/h"), "warn", 30.0)  # demo only
+		show_message(tr("Radarkontrolle in 7 km – Limit 120 km/h"), "warn", 30.0)  # demo only
 		show_message(tr("Tankstelle in 15 km"), "info", 30.0)
 
 
@@ -238,7 +239,7 @@ func _draw() -> void:
 		_draw_speedo(w, h)
 		return
 	_draw_time_panel(w)
-	_draw_progress(w)
+	_draw_goal_distance(w)
 	_draw_penalty(w)
 	var right_y := _draw_limit_and_radar(w)
 	right_y = _draw_city_sign(w, right_y)
@@ -312,59 +313,31 @@ func _draw_time_panel(w: float) -> void:
 		_text(Vector2(r.position.x, y2), tr("Noch kein Rekord – setz die Bestzeit!"), _f_body, 19, UiTheme.TEXT_DIM, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
 
 
-## Time penalty badge in the middle of the progress panel's label row (between the km figures).
+## Time penalty badge centred below the distance tab.
 func _draw_penalty(w: float) -> void:
 	var pen := _f("penalty_s")
 	if pen <= 0.0:
 		return
 	var txt := tr("+%s STRAFE") % UiFormat.time(pen)
 	var tw := _text_w(txt, _f_bold, 18) + 20.0
-	var pr := Rect2(w * 0.5 - tw * 0.5, PROGRESS_Y + 13.0, tw, 24)
+	var pr := Rect2(w * 0.5 - tw * 0.5, GOAL_Y + 40.0, tw, 24)
 	UiIcons.panel(self, pr, Color(0.35, 0.18, 0.0, 0.9), UiTheme.WARN, 6.0)
 	_text(Vector2(pr.position.x, pr.position.y + 18), txt, _f_bold, 18, UiTheme.WARN, HORIZONTAL_ALIGNMENT_CENTER, pr.size.x)
 
 
-# --- progress bar ----------------------------------------------------------------------------
+# --- distance to the finish ------------------------------------------------------------------
 
-func _draw_progress(w: float) -> void:
-	var length := maxf(_f("stage_length_km", plan.length_km if plan != null else 1.0), 0.001)
-	var km := clampf(_f("stage_km"), 0.0, length)
-	var x0 := w * 0.5 - 286.0
-	var bw := 572.0
-	var y := PROGRESS_Y
-	UiIcons.panel(self, Rect2(x0 - 14, y - 15, bw + 28, 55), UiTheme.PANEL_HUD, Color(0, 0, 0, 0), 8.0)
-	var kx := func(k: float) -> float: return x0 + bw * clampf(k / length, 0.0, 1.0)
-	draw_rect(Rect2(x0, y - 2, bw, 4), Color(1, 1, 1, 0.16))
-	if plan != null:
-		var clx: float = kx.call(plan.city_limits_km)
-		draw_rect(Rect2(clx, y - 2, x0 + bw - clx, 4), Color(UiTheme.ORANGE, 0.75))
-		for tun in plan.tunnels:
-			var a: float = kx.call(float(tun["start_km"]))
-			var b: float = kx.call(float(tun["end_km"]))
-			draw_rect(Rect2(a, y - 5, maxf(b - a, 3.0), 10), Color(0.62, 0.64, 0.7, 0.85))
-	var px: float = kx.call(km)
-	draw_line(Vector2(x0, y), Vector2(px, y), UiTheme.ACCENT_2, 4.0)
-	if plan != null:
-		for b in plan.borders:
-			var bx: float = kx.call(float(b["km"]))
-			UiIcons.flag(self, Rect2(bx - 3, y - 12, 6, 24), _country_colors.get(str(b["to"]), []), true)
-		for st: float in plan.fuel_stations_km:
-			var sx: float = kx.call(st)
-			var col := UiTheme.GOOD if st >= km else Color(UiTheme.GOOD, 0.35)
-			draw_line(Vector2(sx, y - 9), Vector2(sx, y + 3), col, 2.0)
-			draw_circle(Vector2(sx, y - 9), 3.5, col)
-		for rd in plan.radars:
-			var rx: float = kx.call(float(rd["km"]))
-			var col2 := UiTheme.BAD if float(rd["end_km"]) >= km else Color(UiTheme.BAD, 0.35)
-			draw_colored_polygon(PackedVector2Array([Vector2(rx - 5, y + 10), Vector2(rx + 5, y + 10), Vector2(rx, y + 2)]), col2)
-	UiIcons.checkered(self, Rect2(x0 + bw - 2, y - 7, 10, 14), 2, 3)
-	# player marker
-	draw_colored_polygon(PackedVector2Array([Vector2(px - 7, y - 13), Vector2(px + 7, y - 13), Vector2(px, y - 3)]), Color.WHITE)
-	draw_circle(Vector2(px, y), 4.5, UiTheme.ACCENT_2)
-	var left := tr("km %s / %s") % [UiFormat.decimal(km, 1), UiFormat.decimal(length, 0)]
-	var right := tr("noch %s") % UiFormat.km(maxf(0.0, length - km), 0)
-	_text(Vector2(x0, y + 31), left, _f_mono, 19, UiTheme.TEXT)
-	_text(Vector2(x0, y + 31), right, _f_mono, 19, UiTheme.TEXT_DIM, HORIZONTAL_ALIGNMENT_RIGHT, bw)
+## Only the distance to the finish (user request v0.8.0: no route overview at the top): a tab below the time panel
+## with the finish flag – whole km, the last 10 km with one decimal.
+func _draw_goal_distance(w: float) -> void:
+	var length := _f("stage_length_km", plan.length_km if plan != null else 0.0)
+	var left := _f("remaining_km", maxf(0.0, length - _f("stage_km")))
+	var txt := tr("noch %s") % UiFormat.km(maxf(0.0, left), 1 if left < 10.0 else 0)
+	var tw := _text_w(txt, _f_mono, 21)
+	var r := Rect2(w * 0.5 - (tw + 66.0) * 0.5, GOAL_Y, tw + 66.0, 34)
+	UiIcons.panel(self, r, UiTheme.PANEL_HUD, Color(0, 0, 0, 0), 8.0)
+	UiIcons.checkered(self, Rect2(r.position.x + 16, r.position.y + 10, 18, 14), 4, 3)
+	_text(Vector2(r.position.x + 44, r.position.y + 25), txt, _f_mono, 21, UiTheme.TEXT)
 
 
 # --- top-right: limit sign + radar warning ---------------------------------------------------

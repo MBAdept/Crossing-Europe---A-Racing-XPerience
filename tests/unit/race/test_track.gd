@@ -158,7 +158,7 @@ func test_events() -> void:
 		for k: float in [30.0, 15.0, 5.0]:
 			if st - k > 0.0:
 				assert_true(_has_near(signs.get("fuel", []), st - k), "Tankstellenschild %d km vor km %.0f" % [int(k), st])
-	assert_true(_has_near(signs.get("radar", []), float(p.radars[0]["warn_km"])), "Radarwarnung 10 km vorher")
+	assert_true(_has_near(signs.get("radar", []), float(p.radars[0]["warn_km"])), "Radarwarnung an warn_km (5–10 km vorher)")
 	assert_true(_has_near(signs.get("limit", []), float(p.radars[0]["km"])), "Tempolimit am Radar")
 	assert_true(_has_near(signs.get("town", []), p.city_limits_km), "Ortsschild an den City Limits")
 	var ann := float(ConfigLoader.lookup(cfg(), "city_limits.announce_km", 4.0))

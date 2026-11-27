@@ -126,7 +126,8 @@ Radarfallen lösen eine Polizeiverfolgung aus; wer erwischt wird, verliert effek
 
 ### Radar
 
-- Warnung 10 km vorher, mit Anzeige des geltenden Tempolimits.
+- Warnung 10 km vorher, mit Anzeige des geltenden Tempolimits. *(Seit v0.8.0 auf Spielerwunsch: je Radar zufällig
+  5–10 km vorher – docs/gameplay.md.)*
 - Auslösefeld etwa 5 km lang.
 - Toleranz 15 %: Bei 120 km/h löst das Radar erst ab 138 km/h aus.
 - Tempolimits je Land und Streckenabschnitt. Deutsche Autobahnabschnitte können ohne Limit sein.

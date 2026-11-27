@@ -53,7 +53,9 @@ helpers, subclass in a new file) – that is wanted (e.g. `RaceBackdrop`, `SignP
 A bug found in a frozen file is reported to the lead, not fixed on the side.
 
 **Rule 2 – Arcade identity is a hard gate.** `tools/golden.sh check` (hash list generated from tag v0.7.0, §4.9.3) must
-report every frame identical after every package. A package that changes one Arcade pixel is not done.
+report every frame identical after every package. A package that changes one Arcade pixel is not done. The only
+exception are changes the player asked for in files both modes share: they go into `tests/golden/arcade_ref.patch`,
+which `make` applies to the tag before it renders (A-32) – the frozen Arcade renderer is still held to v0.7.0 itself.
 
 **Rule 3 – One simulation.** Nothing in `scripts/race3d/`, `scripts/audio/modern/` or the UI may feed back into the
 simulation. `RoadProjection.visible_fraction` (one-third rule) stays the projection of the simulation in both modes.
@@ -329,7 +331,8 @@ A-6); Modern adds headless checks because
 the simulation suites are renderer-independent (proved by a mode-independence scenario). Everything that needs
 OpenGL goes into `tools/run_render_checks.sh` (Xvfb, fast-forward screenshots: 4× faster, same hashes [P]).
 
-D38 **Goldens**: Arcade = exact MD5 list generated from tag v0.7.0 on the test machine (hard gate, Rule 2). Modern =
+D38 **Goldens**: Arcade = exact MD5 list generated from tag v0.7.0 (+ `arcade_ref.patch`, A-32) on the test machine
+(hard gate, Rule 2). Modern =
 change detectors with tolerance tiers (same driver: exact; other driver/GLES: max channel difference ≤ 2 and
 PSNR ≥ 60 dB; else contact sheet for a human) [P]. Modern correctness is asserted by render checks (positions,
 occlusion, luminance, fog law), not by goldens.
@@ -999,7 +1002,8 @@ Reference positions (used by checks, A/B sheets and the terrain gate):
 
 #### 4.9.3 Goldens
 
-`tools/golden.sh make` builds a worktree of tag v0.7.0 and writes `tests/golden/arcade_v070.md5`: 14 attract frames
+`tools/golden.sh make` builds a worktree of tag v0.7.0, applies `tests/golden/arcade_ref.patch` (A-32) and writes
+`tests/golden/arcade_v070.md5`: 14 attract frames
 (seven scenes at 4 s and 12 s) + 6 race frames with the full HUD (S1, T1, N1, N2, C1, U1) at `--fixed-fps 60`, fixed
 seed, `--shot-fast`. `tools/golden.sh check` renders the same frames with the current tree and `--graphics=arcade`
 and compares the hashes (regenerate from the tag after a Mesa or Godot change). `tests/golden/modern_*.md5` are change
@@ -2064,3 +2068,22 @@ KRITIK-R / AU-R2)**
 - Surface class `thin` (landmarks only): square beams the shader widens to at least 1.5 pixels of the 3D picture and
   draws with their coverage (`landmark.gdshader` CE_THIN, `tools/blender/ce3d/thin.py`); never decimated, casts no
   shadow. Render check `check_thin_render`.
+
+**A-32 Player requests in shared files: HUD without the route overview, radar warning 5–10 km before (after ZS2)**
+- The player asked (in German): "oben im rennen die Streckenübersicht entfernen und nur die Distanz zum Ziel anzeigen.
+  Radar-Warnungen bitte erst 'zufällig' 5-10 Kilometer vor Auslöser einblenden." Both are game rules and HUD, not
+  renderer looks, so they apply in **both** modes.
+- HUD (`scripts/ui/hud.gd`): the progress bar with its markers (fuel stations, radars, tunnels, borders, City Limits)
+  is gone; a tab below the time panel shows only the distance to the finish ("noch 104 km", one decimal in the last
+  10 km); the penalty badge sits below it. `--hud-demo=penalty` shows the badge.
+- Radar warning: `radar.warning_km` is a range `[5, 10]`; `StagePlan.radar_warn_distance` draws a whole number of km
+  per radar entry from the stage seed (`seed + 202`, one draw per data entry before any is skipped), so a stage
+  always warns at the same places and the road sign ("7 km"), the message ("Radarkontrolle in 7 km") and the HUD
+  panel agree. A single number in the config is a fixed distance (v0.7.0: 10). Network: 281 radars, 41–53 per
+  distance 5…10 km.
+- Frozen files touched for it (Rule 1 exception by player request): `scripts/data/stage_plan.gd` (the draw),
+  comments in `scripts/race/track.gd` and `scripts/gameplay/police_system.gd`.
+- Arcade reference: `tests/golden/arcade_ref.patch` holds exactly these changes against v0.7.0 (hud.gd,
+  stage_plan.gd, game_config.json, the message line of race_session.gd); `tools/golden.sh make` applies it,
+  `arcade_v070.env` records its MD5 (`patch=`), and `check` refuses hash lists made with another patch. Only player
+  requests in shared files may ever go into this patch.

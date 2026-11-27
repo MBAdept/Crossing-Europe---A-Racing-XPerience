@@ -37,7 +37,8 @@ var sections: Array[Dictionary] = []
 var fuel_stations_km: Array[float] = []
 ## Fuel lanes: {station_km, start_km, end_km}. The lane is the last 1–2 km before the station (right side).
 var fuel_lanes: Array[Dictionary] = []
-## Radar zones: {km (zone start), end_km, limit (km/h), warn_km (where the 10-km warning appears)}
+## Radar zones: {km (zone start), end_km, limit (km/h), warn_km (where the warning appears: a whole number of km,
+## radar.warning_km = [5, 10], drawn per radar from the seed – radar_warn_distance())}
 var radars: Array[Dictionary] = []
 ## Tunnels: {start_km, end_km, name}
 var tunnels: Array[Dictionary] = []
@@ -217,11 +218,15 @@ static func _build_stations(p: StagePlan, stage: Dictionary, cfg: Dictionary) ->
 
 static func _build_radars(p: StagePlan, stage: Dictionary, cfg: Dictionary, countries: Dictionary) -> void:
 	var zone := float(ConfigLoader.lookup(cfg, "radar.zone_length_km", 5.0))
-	var warn := float(ConfigLoader.lookup(cfg, "radar.warning_km", 10.0))
 	var gap := float(ConfigLoader.lookup(cfg, "radar.no_radar_before_city_km", 30.0))
 	var default_limit := int(ConfigLoader.lookup(cfg, "radar.default_limit_kmh", 120))
 	var max_end := p.city_limits_km - gap
+	# one draw per radar entry of the data, before any is skipped: a radar keeps its distance when another one
+	# changes (and the reversed stage has a seed of its own)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = p.seed + 202
 	for r: Dictionary in stage.get("radars", []):
+		var warn := radar_warn_distance(cfg, rng)
 		var dir := str(r.get("dir", "both"))
 		if (dir == "fwd" and p.reversed) or (dir == "rev" and not p.reversed):
 			continue
@@ -243,6 +248,18 @@ static func _build_radars(p: StagePlan, stage: Dictionary, cfg: Dictionary, coun
 			p.warnings.append("Radar bei km %.1f ohne Tempolimit – nutze %d" % [start, limit])
 		p.radars.append({"km": start, "end_km": start + zone, "limit": limit, "warn_km": maxf(0.0, start - warn)})
 	p.radars.sort_custom(func(x, y): return float(x["km"]) < float(y["km"]))
+
+
+## How far before its zone a radar is announced (road sign, message, HUD panel): a whole number of km drawn from
+## radar.warning_km = [min, max] (since v0.8.0 [5, 10], user request: not always the same distance; the road sign
+## names whole km). A single number is a fixed distance (the rule up to v0.7.0: 10).
+static func radar_warn_distance(cfg: Dictionary, rng: RandomNumberGenerator) -> float:
+	var v: Variant = ConfigLoader.lookup(cfg, "radar.warning_km", [5.0, 10.0])
+	if v is Array and (v as Array).size() >= 2:
+		var lo := ceili(float(v[0]))
+		var hi := maxi(lo, floori(float(v[1])))
+		return float(rng.randi_range(lo, hi))
+	return float(v)
 
 
 static func _build_tunnels(p: StagePlan, stage: Dictionary) -> void:

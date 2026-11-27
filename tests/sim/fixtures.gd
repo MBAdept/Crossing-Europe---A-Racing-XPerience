@@ -30,7 +30,8 @@ static func vehicle(cfg: Dictionary, id: String) -> VehicleModel:
 
 ## A StagePlan built directly from its documented fields (no network data needed).
 ## stations: [km, ...] – each gets a fuel lane of lane_len_km before it;
-## radars: [{km, limit}, ...] – zone radar.zone_length_km long, warning radar.warning_km before.
+## radars: [{km, limit, warn}, ...] – zone radar.zone_length_km long, warning `warn` km before (default: the upper
+## end of radar.warning_km, 10 – the game draws 5–10 per radar from the seed, StagePlan.radar_warn_distance).
 static func make_plan(cfg: Dictionary, length_km: float = 200.0, stations: Array = [], radars: Array = [], lane_len_km: float = 1.5) -> StagePlan:
 	var p := StagePlan.new()
 	p.stage_id = "test"
@@ -44,9 +45,11 @@ static func make_plan(cfg: Dictionary, length_km: float = 200.0, stations: Array
 		p.fuel_stations_km.append(km)
 		p.fuel_lanes.append({"station_km": km, "start_km": km - lane_len_km, "end_km": km})
 	var zone := float(ConfigLoader.lookup(cfg, "radar.zone_length_km", 5.0))
-	var warn := float(ConfigLoader.lookup(cfg, "radar.warning_km", 10.0))
+	var wv: Variant = ConfigLoader.lookup(cfg, "radar.warning_km", [5.0, 10.0])
+	var warn_max := float((wv as Array).back()) if wv is Array else float(wv)
 	for r: Dictionary in radars:
 		var km := float(r.get("km", 30.0))
+		var warn := float(r.get("warn", warn_max))
 		p.radars.append({"km": km, "end_km": km + zone, "limit": int(r.get("limit", 120)), "warn_km": maxf(0.0, km - warn)})
 	p.climate = "north"
 	p.seed = 4711

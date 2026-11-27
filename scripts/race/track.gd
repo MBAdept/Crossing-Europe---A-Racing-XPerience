@@ -657,7 +657,8 @@ func _build_events() -> void:
 			zc += 22.0
 		_add_event_z(z1 - 8.0, {"kind": "prop", "set": "props/fuel_station", "proc": "station", "side": 1, "at": "edge", "offset": 19.0})
 		_mark_clear(z0 - 40.0, z1 + _taper + 30.0, 1)
-	# Radar: warning 10 km before (with limit), limit signs at the zone, cameras, end of the limit.
+	# Radar: warning at warn_km (5–10 whole km before, the sign names the distance; with limit), limit signs at the
+	# zone, cameras, end of the limit.
 	for r in plan.radars:
 		var rk := float(r["km"])
 		var lim := int(r["limit"])

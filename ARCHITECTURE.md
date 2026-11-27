@@ -32,6 +32,8 @@ track_segment,session_rules,autopilot,tutorial_coach}.gd`, `scripts/gameplay/*`,
 `scripts/audio/{engine_audio,engine_bank,engine_gearbox,room_audio,sfx_synth,traffic_audio}.gd`, `assets/sprites/*`,
 `assets/audio/{engines,traffic,music}/*`, `tools/audio/{engine,traffic,music}_synth.py`, `data/*`. Neuer Code darf
 sie benutzen (instanziieren, statische Helfer aufrufen, in einer neuen Datei ableiten), aber nicht ändern.
+Einzige Ausnahme: ausdrückliche Spielerwünsche für beide Modi (Vertrag A-32, z. B. die Radarwarnung 5–10 km vorher in
+`stage_plan.gd`); sie stehen zusätzlich in `tests/golden/arcade_ref.patch`, aus dem die Arcade-Referenz entsteht.
 
 Abschnitte der zentralen Konfiguration `config/game_config.json`:
 `time, daytime, vehicles, driving, collision, traffic, fuel, radar, police, city_limits, weather` → Gameplay ·
@@ -675,11 +677,13 @@ mit der gewählten Qualität.
 ### 15.6 Prüfungen der Grafikmodi
 
 - **Bildgleichheit von Arcade** (harte Grenze nach jedem Arbeitspaket): `tools/golden.sh make` exportiert den
-  Git-Tag `v0.7.0` in einen temporären Ordner, rendert mit *diesem* Stand die 20 Bilder aus
+  Git-Tag `v0.7.0` in einen temporären Ordner, wendet `tests/golden/arcade_ref.patch` an (nur Spielerwünsche in
+  geteilten Dateien, Vertrag A-32: HUD ohne Streckenübersicht, Radarwarnung 5–10 km vorher), rendert mit *diesem*
+  Stand die 20 Bilder aus
   `tests/golden/arcade_frames.txt` – 14 Bilder der sieben Attract-Szenen (bei 4 s und 12 s) und 6 Rennbilder mit
   vollem HUD an Referenzpositionen (Countdown, „LOS!“ mit Wetterhinweis, Fahrt bei Tag, Regen, Dämmerung und im
   Tunnel) – unter Xvfb mit Software-OpenGL bei festen 60 Bildern/s und schreibt ihre MD5-Summen nach
-  `tests/golden/arcade_v070.md5` (dazu `arcade_v070.env`: Godot-Version und OpenGL-Treiber). `tools/golden.sh check`
+  `tests/golden/arcade_v070.md5` (dazu `arcade_v070.env`: Godot-Version, OpenGL-Treiber, MD5 des Patches). `tools/golden.sh check`
   rendert dieselben Bilder mit der Arbeitskopie (`--graphics=arcade --shot-fast`) und vergleicht:
   „GOLDEN arcade: 20 von 20 identisch“, sonst Exit-Code 1. Gemessen auf der Test-VM: `make` 725 s (jedes Bild wird
   berechnet), `check` 153 s. Nach einem Wechsel von Godot oder Mesa die Liste mit `make` neu aus dem Tag erzeugen

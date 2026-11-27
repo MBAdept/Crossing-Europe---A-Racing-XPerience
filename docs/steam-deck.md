@@ -113,7 +113,9 @@ Nicht bewertet: Schilder in der Spielwelt (perspektivisch klein in der Ferne) un
    „km/h“ 17 → 18 px, Polizei-Abstand 16 → 18 px (der Fluchtbalken macht Platz), „CITY LIMITS“ 13 → 15 px, Zeitstrafe
    18 px. Die km-Angaben stehen jetzt mit auf dem Panel des Fortschrittsbalkens, die Zeitstrafe als Plakette mittig in
    dieser Zeile. HUD-Panels etwas dunkler (Deckkraft 0,62 → 0,72), ebenso die Tachoscheibe (0,70 → 0,78). Zu lange
-   Etappennamen/Rekordhalter werden mit „…“ gekürzt statt über den Panelrand zu laufen.
+   Etappennamen/Rekordhalter werden mit „…“ gekürzt statt über den Panelrand zu laufen. *(Seit v0.8.0 gibt es den
+   Fortschrittsbalken auf Spielerwunsch nicht mehr: die Entfernung zum Ziel steht allein auf einer eigenen Lasche unter
+   der Zeit, Mono 21 px auf dem HUD-Panel, die Zeitstrafe als Plakette darunter – docs/ui.md, HUD.)*
 5. **Menüs**: Kachel-Unterzeilen des Etappenbildschirms 16 → 18 px und unter dem Symbol beginnend (kein Überstand mehr),
    „Nächste Etappe …“ in der Routenkarte 16 → 17 px, Versionsnummer 16 → 18 px, Beschriftung der Pill-Tasten (LT/RT …)
    14 → 15 px; gedämpfte Textfarbe `TEXT_MUTED` heller (#626c9c → #7882b2).
