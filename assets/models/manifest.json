@@ -392,6 +392,32 @@
    "bytes": 276098,
    "hash": "711c87a664f3571953b16619fe57c43c392ddad5"
   },
+  "landmarks/freiheitsdenkmal_riga": {
+   "kind": "landmark",
+   "object": {"width_m": 18, "height_m": 42, "length_m": 18},
+   "extent_m": {"left": 14.61, "right": 8.46},
+   "aabb": [-9, 0, -18, 9, 42.35, 0],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 422,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/freiheitsdenkmal_riga/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/freiheitsdenkmal_riga/albedo.png", "emit": "landmarks/freiheitsdenkmal_riga/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 210260,
+   "hash": "896389e43ed2de024137a18213e3162514a3f799"
+  },
   "landmarks/kaiserburg_nuernberg": {
    "kind": "landmark",
    "object": {"width_m": 158, "height_m": 66, "length_m": 46},
@@ -10418,10 +10444,7 @@
   "landmarks/frankfurt_skyline": {"model": "landmarks/frankfurt_skyline"},
   "landmarks/frauenkirche_dresden": {"model": "landmarks/frauenkirche_dresden"},
   "landmarks/frauenkirche_muenchen": {"model": "landmarks/frauenkirche_muenchen"},
-  "landmarks/freiheitsdenkmal_riga": {
-   "fallback": "sprite",
-   "object": {"width_m": 18.0, "height_m": 42.0, "length_m": 18.0}
-  },
+  "landmarks/freiheitsdenkmal_riga": {"model": "landmarks/freiheitsdenkmal_riga"},
   "landmarks/kaiserburg_nuernberg": {"model": "landmarks/kaiserburg_nuernberg"},
   "landmarks/kathedrale_burgos": {"model": "landmarks/kathedrale_burgos"},
   "landmarks/koelner_dom": {"model": "landmarks/koelner_dom"},

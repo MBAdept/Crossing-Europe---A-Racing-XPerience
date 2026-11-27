@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "landmarks/freiheitsdenkmal_riga",
+ "model": {
+  "kind": "landmark",
+  "object": {"width_m": 18, "height_m": 42, "length_m": 18},
+  "extent_m": {"left": 14.61, "right": 8.46},
+  "aabb": [-9, 0, -18, 9, 42.35, 0],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 422,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "landmarks/freiheitsdenkmal_riga/lod0_body.res",
+      "classes": ["baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "landmarks/freiheitsdenkmal_riga/albedo.png", "emit": "landmarks/freiheitsdenkmal_riga/emit.png"},
+  "roughness": 0.85,
+  "auto_lod": true,
+  "tags": ["prop", "landmark"],
+  "bytes": 210260,
+  "hash": "896389e43ed2de024137a18213e3162514a3f799"
+ },
+ "sets": {
+  "landmarks/freiheitsdenkmal_riga": {"model": "landmarks/freiheitsdenkmal_riga"}
+ }
+}
