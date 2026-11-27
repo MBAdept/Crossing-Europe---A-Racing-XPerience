@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "landmarks/parlament_budapest",
+ "model": {
+  "kind": "landmark",
+  "object": {"width_m": 268, "height_m": 96, "length_m": 123},
+  "extent_m": {"left": 137.28, "right": 133.27},
+  "aabb": [-136.587, 0, -64.956, 136.587, 96, 4.587],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 3804,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "landmarks/parlament_budapest/lod0_body.res",
+      "classes": ["baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "landmarks/parlament_budapest/albedo.webp", "emit": "landmarks/parlament_budapest/emit.png"},
+  "roughness": 0.85,
+  "auto_lod": true,
+  "tags": ["prop", "landmark"],
+  "bytes": 473616,
+  "hash": "0dbee767c9d10af5f18c551fd9b62f5e7c4169c4"
+ },
+ "sets": {
+  "landmarks/parlament_budapest": {"model": "landmarks/parlament_budapest"}
+ }
+}
