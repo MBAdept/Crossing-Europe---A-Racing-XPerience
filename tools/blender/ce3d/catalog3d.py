@@ -1053,11 +1053,13 @@ MODELS.update({
 # The Eiffel tower's lattice of box beams: their end faces (hidden in the chords) are a third of its triangles and put
 # lod0 over the landmark budget (25,152 > 25,000) - build_baked drops them (props3d._drop_beam_caps).
 MODELS["landmarks/eiffel_tower"]["drop_caps"] = ("eif_lattice",)
-# The Atomium's polished steel spheres and tubes as vertex PBR (metallic 1, roughness 0.22 / 0.3 of the generator):
-# baked into the atlas they were matt grey, the sprite shows chrome with the sky and the ground in it.
+# The Atomium's polished steel spheres and tubes as vertex PBR: baked into the atlas they were matt grey, the sprite
+# shows chrome with the sky and the ground in it. With the generator's metallic 1 / roughness 0.22 they mirrored only
+# the race sky and turned blue (finding A2); metallic 0.8 / 0.75, a darker neutral steel and roughness 0.18 / 0.3 keep
+# the sun's highlight and the horizon band of the sprite with a little sky.
 MODELS["landmarks/atomium"].update(vpbr=("at_steel", "at_tube"), overrides={
-    "at_steel": dict(role="flat", color="#c8ccd1", rough=0.22, metal=1.0),
-    "at_tube": dict(role="flat", color="#b9bdc2", rough=0.3, metal=1.0)})
+    "at_steel": dict(role="flat", color="#a3a8ae", rough=0.18, metal=0.8),
+    "at_tube": dict(role="flat", color="#979ca2", rough=0.3, metal=0.75)})
 # The gilded domes of the Alexander Nevsky cathedral the same way (gold(): metallic 1, roughness 0.28; flood-lit at
 # night as lamp channel 14 with the generator's flood share 0.75): baked they were a matt mustard yellow. A lamp
 # channel on a vpbr surface means no automatic levels (contract A-4, as prop_vpbr): the decimated far levels kept only

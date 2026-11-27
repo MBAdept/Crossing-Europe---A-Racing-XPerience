@@ -2130,7 +2130,9 @@ Am Generator nichts (`check_sprite_geometry` hat nichts zu prüfen – die Sprit
   bleiben Vertex-PBR (Klasse `vpbr`, `landmark.gdshader` CE_VCOL) mit Farbe, Rauheit und Metall aus `overrides`.
   Gebacken verliert Metall seinen Glanz: Die Stahlkugeln des Atomiums waren matt grau, die Goldkuppeln der
   Newski-Kathedrale und der Kathedrale der Erlösung matt senfgelb – die Sprites zeigen Chrom und Gold mit
-  Glanzlicht. Jetzt Stahl mit Metall 1 und Rauheit 0,22 / 0,3, Gold mit Rauheit 0,28 / 0,3. Die Goldkuppeln sind
+  Glanzlicht. Jetzt Gold mit Metall 1 und Rauheit 0,28 / 0,3; der Stahl des Atomiums mit Metall 1 spiegelte im
+  Renn-Licht nur den Himmel und wurde blau (Befund A2) – jetzt Metall 0,8 / 0,75, dunkleres neutrales Grau, Rauheit
+  0,18 / 0,3: Glanzlicht und Horizontband wie im Sprite, nur noch leicht bläulich. Die Goldkuppeln sind
   nachts angestrahlt wie im Generator (Lampenkanal 14, `lamp="flood:0.75"` bzw. `0.7`). Der Bauer bricht ab, wenn
   kein flaches Material passt.
 - **Keine automatischen Stufen bei Lampenkanälen auf `vpbr`** (Vertrag A-4, wie beim Bauer `prop_vpbr`): Bei Newski
