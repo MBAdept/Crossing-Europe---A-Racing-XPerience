@@ -118,6 +118,7 @@ ein Material:
 | `glass` | Verglasung bei `lod0`/`show` | keine | `glass.gdshader` |
 | `baked` / `baked_cutout` | Gebäude, Wahrzeichen | Atlas (BC1 / BC3), Nachtlicht-Atlas halber Größe | `baked.gdshader` |
 | `leaves` | Laubkarten | Blattatlas mit Alpha (BC3) | `leaves.gdshader` |
+| `thin` | dünne Stäbe eines Wahrzeichens (N2, Abschnitt 25): Speichen, Kränze, Gitter | keine | `landmark.gdshader` (CE_VCOL + CE_THIN) |
 
 ### Vertexformat `vpbr` („VPBR-L“)
 
@@ -2190,6 +2191,82 @@ Noch nicht gut:
   Modell den Winkel (`view_yaw_deg`, vom Exporter) und der Renderer dreht es darum (renderer-modern.md 19.1) – gekürzt,
   wo eine lange Kirche sonst hinter ihrem Platz in die Häuserzeile schwenken würde (Fulda 12° statt 22°). Im Rennen
   danach: Dresden, Koekelberg, Atomium und Mailand wie Arcade, Fulda näher daran.
-- **Speichen des Riesenrads (N2)** flimmern ab etwa 250 m (Messung oben): 0,14 m sind dort schmaler als ein Pixel.
+- **Speichen des Riesenrads (N2, nach der Welle behoben).** Sie flimmerten ab etwa 250 m (Messung oben): 0,14 m sind
+  dort schmaler als ein Pixel. Jetzt sind alle Stäbe des Rads die Klasse `thin` (Abschnitt 25).
 - **Burgos (N3)** ist schon im Generator schlicht (Rosette eine flache Scheibe) – Modell wie Sprite.
 - Die zehn Einträge ohne Generator bleiben prozedurale Formen (oben).
+
+## 25. Dünne Stäbe als Klasse `thin` (N2, nach Welle 6)
+
+**Warum.** Die 968 Stäbe des Riesenrads – 120 Speichen à 0,14 m, die zwei Kränze aus Ringen (0,45 m) mit
+Zickzack-Streben (0,22 m), die Querstreben (0,25 m) und die Gitterpylone (0,22–0,55 m) – sind ab etwa 250 m schmaler
+als ein Pixel (0,14 m × 711 px / 600 m = 0,17 px). Als gewöhnliche Geometrie trifft ein Pixelmittelpunkt einen Stab in
+einem Bild und im nächsten nicht; das Rad flimmerte in Bewegung, aus der Ferne wurde die Speichenscheibe ein
+gepunktetes Muster. Godots automatische Stufen behielten die Stäbe (flach schattierte Kästen: jede Kante ist Rand).
+
+**Was die Klasse ist** (`tools/blender/ce3d/thin.py`, reines numpy mit Selbsttest `python3 tools/blender/ce3d/thin.py`):
+quadratische Kastenträger (`meshutil.bm_beam` ohne `h`) bis `THIN_MAX_M` = 0,6 m, nur ihre vier Seitenflächen (die
+Stirnflächen stecken in Kranz, Nabe oder Gurt). Je Ecke:
+
+| Attribut | Inhalt |
+|---|---|
+| `NORMAL` | radiale Richtung von der Stabachse zur Ecke (bei einem quadratischen Stab 45° zu seinen beiden Seiten) – der Shader schiebt die Ecke daran entlang; der Stab ist wie ein runder Stab schattiert |
+| `COLOR.rgb` | Farbe als sRGB-Bytes (wie `vpbr`) |
+| `COLOR.a` | Breite des Stabs in Zentimetern (1 … 255 = 0,01 … 2,55 m) – kein Lackcode |
+| `UV`, `UV2` | Rauheit / Metall, Lampenkanal + 0,5 / Gewicht (wie `vpbr`; die Stäbe des Riesenrads sind nachts angestrahlt, Kanal 14) |
+
+**Bauer** `prop_baked`, Katalog-Option **`thin`** (Präfixe von Objektnamen; `thin_max_m` ändert die Grenze): Vor dem
+Bake löst `_split_thin()` jede passende Komponente (8 Ecken, 6 Vierecke, ein Material, quadratisch, mindestens 1,5 ×
+so lang wie breit) aus ihrem Objekt; was keine solche ist, bleibt gebacken (die Nabe). Ein Material, das nur noch auf
+Stäben liegt, kommt nicht in den Atlas. `_thin_surface()` übersetzt die Materialien wie `vpbr` (`roles.Translator`
+mit den `overrides` des Katalogs – ein prozedurales Material braucht einen flachen Ersatz) und schreibt die Breite in
+`COLOR.a`. Der Bauer bricht ab, wenn ein genanntes Objekt keinen Stab liefert, ungleich skaliert ist oder ein Stab
+eine Lampe mit Lichtanker wäre.
+
+**Bake und Prüfer.** `bake_models.gd` gibt einer Fläche `thin` nie automatische Stufen (dezimiert fiele ein Stab zu
+einem flachen Streifen zusammen; die übrigen Flächen des Netzes behalten sie). `validate_models.py`: `thin` nur bei
+Wahrzeichen (nur `builders/landmarks.gd` zeichnet sie mit dem Wahrzeichen-Gesetz), Breite 0,01 … 0,6 m, keine
+automatische Stufe, Wicklung wie die übrigen Klassen.
+
+**Im Renderer** (renderer-modern.md 19.1 „Dünne Stäbe“): `landmark.gdshader` mit CE_VCOL + CE_THIN verbreitert jeden
+Stab um seine Achse auf mindestens `thin_px` = 1,5 Pixel und zeichnet ihn mit Alpha = echte / gezeichnete Breite;
+`ModernMaterials` zeichnet die Klasse für alle anderen (Prüfszene, Render-Prüfungen) mit demselben Shader.
+
+**Riesenrad** (Katalog: `thin=("rr_wheel", "rr_spokes")`, flacher Stahl `#5d3a2e`, Rauheit 0,6, Metall 0,35,
+angestrahlt 0,75 / 0,35 wie im Generator): neu exportiert lod0 17 816 → **13 944 Dreiecke** (`baked` 6 200,
+`thin` 7 744 = 968 Stäbe × 8), Dateien 637 → 307 kB (der Atlas trägt die Stäbe nicht mehr). Alle Modelle: Netze 25,61
+von 40 MB, Texturquellen 58,54 von 60 MB.
+
+### Messungen (llvmpipe, gemessen)
+
+Bildwechsel: Anteil der Kachelpixel, die sich von Bild zu Bild (0,56 m – ein Bild bei 120 km/h) um mehr als 24/255
+ändern; `prop_scene --look=race`, 12 Uhr, wie in Abschnitt 24.
+
+| Abstand | vorher (Modell) | nachher (Modell) | Sprite |
+|---|---|---|---|
+| 250 m, „Hoch“ | 6,5 % | **2,0 %** | 2,1 % |
+| 600 m, „Hoch“ | 8,8 % | **0,2 %** | 0,6 % |
+| 1 000 m, „Hoch“ | 4,5 % | **0,1 %** | 0,1 % |
+| 600 m, 22 Uhr, „Hoch“ | 1,4 % | **0,9 %** | 0,0 % |
+| 250 / 600 m, „Niedrig“ (ohne MSAA, 75 %) | – | **1,5 / 0,6 %** | 2,1 / 0,9 % |
+
+Nachts bleiben die Kanten der hell erleuchteten Gondelfenster und die Glühlampen am Kranz (0,64 m), die sich mit der
+Fahrt bewegen – das Sprite zeigt aus 600 m nachts nichts davon. Render-Prüfung `check_thin_render` (ohne MSAA, 8 Bilder je Abstand):
+Abdunklung je 8×8-Block von Bild zu Bild mit Verbreiterung **3,9 / 1,7 / 1,1 %**, ohne 8,1 / 5,9 / 4,9 %; die
+Deckung (Abdunklung über alle Bilder) **0,99 / 0,99 / 0,97 ×** die der unverbreiterten Stäbe – die Verbreiterung
+nimmt dem Himmel genauso viel Licht wie die echten Stäbe.
+
+### Ehrliche Einordnung
+
+Gut: Die Speichenscheibe ist aus der Ferne ein ruhiger, feiner Schleier statt eines gepunkteten Musters, in Bewegung
+so ruhig wie das Sprite. Aus 80 m sind die Stäbe unverändert echte Kästen (dort breiter als 1,5 Pixel, keine
+Verbreiterung).
+
+Anders als vorher und als das Sprite: Die Speichen sind aus 250 m heller (ein Stab von 0,4 px deckt 40 % eines
+Pixels – das Sprite zeigt sie als kräftige dunkle Striche, sein eigener Verkleinerungsfilter). Die Kränze aus 1 000 m
+sind ein lichtes Band, im Sprite dunkel und breiter. Ohne Schatten (ein durchscheinendes Material wirft keinen); aus
+dem Rennen ist der Schatten eines 0,14-m-Stabs ohnehin kaum ein Pixel.
+
+Für später: Andere Modelle mit Stäben unter einem Pixel (Eiffelturm: als Gitter im Atlas `baked_cutout`, gemessen ohne
+Flimmern über dem Sprite) brauchen die Klasse nicht; neue Wahrzeichen oder Brücken mit Seilen könnten sie nutzen –
+dafür müsste `builders/props.gd` sie mit dem Gesetz der Requisiten zeichnen (heute nur Wahrzeichen).

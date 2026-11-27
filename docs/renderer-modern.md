@@ -2745,6 +2745,19 @@ Zielstadt wie Arcade. Vorlage ist in beiden Fällen Arcades eingefrorener Code (
   15 davon gekürzt (Fulda 12° statt 22°, Stephansdom 11° statt 22°, Timișoara frontal); der Knoten bleibt höchstens
   12 m von Arcades Anker (`test_landmarks` „sprite_view_keeps_out_of_the_town_houses“, Netztest). Eine gewöhnliche
   Requisite als Wahrzeichen (`props/church`) hat keinen Winkel und steht wie bisher.
+- **Dünne Stäbe** (N2, nach Welle 6): Die Speichen (0,14 m), Kränze, Streben und Gitterpylone des Riesenrads sind ab
+  etwa 250 m schmaler als ein Pixel; als gewöhnliche Geometrie trifft ein Pixelmittelpunkt einen Stab in einem Bild
+  und im nächsten nicht – das Rad flimmerte in Bewegung (prop_scene: 6,5 / 8,8 / 4,5 % der Kachelpixel wechseln bei
+  250 / 600 / 1 000 m von Bild zu Bild, das Sprite 2,1 / 0,6 / 0,1 %). Solche Stäbe sind im Modell die Klasse `thin`
+  (modelle.md Abschnitt 25: quadratische Kastenträger, radiale Normale je Ecke, Breite in `COLOR.a`). `landmark.gdshader`
+  mit CE_THIN verbreitert jeden um seine eigene Achse auf mindestens `thin_px` = 1,5 Pixel des 3D-Bildes und zeichnet
+  ihn mit dem Anteil, den er wirklich deckt (Alpha = echte / gezeichnete Breite) – den Mittelwert, den der Mip-Filter
+  des Sprites zeigt. Die Fläche ist immer durchscheinend (`blend_mix`, ohne Tiefe: sich kreuzende Speichen addieren
+  sich) und wirft keinen Schatten (ein durchscheinendes Material wirft in Godot keinen; ab etwa 100 m ist der Schatten
+  eines Stabs kaum ein Pixel). Die Bildhöhe in Pixeln braucht der Vertex-Schritt als Uniform (`VIEWPORT_SIZE` liest
+  dort 0): `_pixel_h()` = Höhe des Fensters × `scaling_3d_scale`, jedes Bild gesetzt (der Wächter darf den 3D-Maßstab
+  während einer Etappe senken). Gemessen (prop_scene, „Hoch“): 2,0 / 0,2 / 0,1 % – wie das Sprite; „Niedrig“ (ohne
+  MSAA, 75 %): 1,5 % bei 250 m, 0,6 % bei 600 m (Sprite 2,1 / 0,9 %). Render-Prüfung `check_thin_render` (19.6).
 - `builders/props.gd` lässt alle Wahrzeichen-Einträge diesem Builder, sobald es ihn gibt (seine Ente-Typ-Weiche
   `_skip_landmarks = renderer.builder("landmarks") != null`, Zeilen 88, 122, 329, 539, 741 – sie stand schon im Code;
   R7b hat `props.gd` nicht geändert).
@@ -2758,8 +2771,8 @@ Zielstadt wie Arcade. Vorlage ist in beiden Fällen Arcades eingefrorener Code (
 
 Reihenfolge (Entscheidung der Leitung, Punkt 3):
 1. **Modell** – das Set hat im Manifest ein Modell (`ModelDB`, `PropLibrary` Art MODEL): das Modell. Seine Flächen
-   der Klassen `baked` / `baked_cutout` zeichnet `landmark.gdshader` (CE_ATLAS, mit CE_CUTOUT), `vpbr` CE_VCOL;
-   `glass` und `leaves` behalten ihr Klassenmaterial (ohne Wahrzeichen-Gesetz – AS6 sollte sie bei Wahrzeichen
+   der Klassen `baked` / `baked_cutout` zeichnet `landmark.gdshader` (CE_ATLAS, mit CE_CUTOUT), `vpbr` CE_VCOL,
+   `thin` CE_VCOL + CE_THIN (N2, unten 19.1 „Dünne Stäbe“); `glass` und `leaves` behalten ihr Klassenmaterial (ohne Wahrzeichen-Gesetz – AS6 sollte sie bei Wahrzeichen
    meiden). Heute zeichnen 46 der 143 Wahrzeichen des Netzes als Modell: `props/church` 38-mal (ein Dom als
    gewöhnliche Requisite), `props/building_tall` 5-mal, `landmarks/michel` 3-mal (Datenscan QA-R7b).
 2. **Arcades Bild** – sonst die Zelle „c“ des Sprite-Blatts, wie Arcade sie zeichnet (CE_PICTURE): dieselbe Rechnung
@@ -2860,11 +2873,12 @@ erst, wenn die Etappe vorbereitet ist (vorher steht die Kamera noch nicht im Sta
 | Datei | Was |
 |---|---|
 | `scripts/race3d/builders/landmarks.gd` | der Builder (Plan je Wahrzeichen, Gesetz, Materialien, Formen, Aufwärmen auf den echten Netzen) |
-| `assets/shaders/modern/landmark.gdshader` | CE_PICTURE, CE_ATLAS (+ CE_CUTOUT), CE_VCOL, CE_GLOW, je mit CE_BLEND |
+| `assets/shaders/modern/landmark.gdshader` | CE_PICTURE, CE_ATLAS (+ CE_CUTOUT), CE_VCOL (+ CE_THIN), CE_GLOW, je mit CE_BLEND |
 | `scripts/race3d/layers/backdrop.gd` | Skyline (§19.5) |
 | `tests/unit/race3d/test_landmarks.gd` | Gesetz = `RoadRenderer.landmark_fade` an 20 Abständen und drei Sichtweiten, Reichweite, jedes Wahrzeichen der 55 Städte hat eine Darstellung (die sechs prozeduralen als 3D-Form), Anker wie Arcade, Anker und Spiegelung aller 143 Wahrzeichen des Netzes gegen Arcades `_prep_prop` / `prop_flipped` (FIX-R7b), Ausrichtung zur Anfahrt ohne Ecke näher an der Straße (FIX-R7b), Formen (Höhe, Hauptachse am Anker, schlank, Flächen nach außen gewunden, Leuchtpunkte), keine Instanz-Uniform, Varianten, Tönung ferner und naher Wahrzeichen (offener Punkt N1) |
 | `tests/race3d/check_landmarks.gd` | „reichweite“, „nacht“, „position“, „prozedural“, „weich“, „skyline“ in der echten Rennszene (headless) |
 | `tests/race3d/render/check_landmarks_render.gd` | „wahrzeichen_stelle“ (Pixel des Wahrzeichens in Arcades Bild desselben Zustands gesucht: Versatz ≤ 5 % der Bildbreite), „wahrzeichen_weich“, „wahrzeichen_nacht“, „nacht_hell“ (FIX-R7b: Fassade der Elbphilharmonie 22 Uhr 0,8–1,1 × Arcade), „flugfeuer“ (Dortmund 22 Uhr: rote Flugwarnlichter sichtbar, höchstens 3 × Arcades rote Pixel desselben Zustands und höchstens 3 % des Bildes – die Leuchtpunkte rechnen ihre Größe mit der Bildhöhe aus einer Uniform, `VIEWPORT_SIZE` liest im Vertex-Schritt 0), „anstrahlung“ (FIX-R7b: Bremer Dom als Modell und Fourvière in Lyon als Bild, 22 Uhr – sichtbar angestrahlt, 0,8–1,25 × Arcade). Arcades Wahrzeichen-Pixel: dasselbe angehaltene Bild noch einmal mit leer vorbereiteten Wahrzeichen (`_c`, der Zwischenspeicher von `_prep_prop`) – an Arcade wird nichts geändert |
+| `tests/race3d/render/check_thin_render.gd` | N2: „duenn_250m / 600m / 1000m“ – das Riesenrad mit den Materialien des Builders, die Kamera nähert sich in Schritten eines Bildes bei 120 km/h; je Abstand einmal wie im Spiel und einmal ohne Verbreiterung (`thin_px` 0). Flimmern: Abdunklung des Himmels je 8×8-Block von Bild zu Bild, höchstens 5 % und höchstens 0,6 × der unverbreiterten Stäbe; Deckung: Abdunklung über alle Bilder ±10 % der unverbreiterten (Punktabtastung ist im Mittel erwartungstreu) |
 | `tests/race3d/check_minimal_structures.gd` | „wahrzeichen“ verweist auf die Prüfungen oben, sobald es den Builder gibt |
 
 Offen: Modelle der Wahrzeichen (AS6); Wahrzeichen-Modelle mit Glas- oder Laubflächen blenden diese Flächen nicht
