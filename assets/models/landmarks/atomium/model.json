@@ -16,7 +16,7 @@
      {
       "node": "body",
       "mesh": "landmarks/atomium/lod0_body.res",
-      "classes": ["baked"]
+      "classes": ["vpbr", "baked"]
      }
     ]
    }
@@ -25,8 +25,8 @@
   "roughness": 0.85,
   "auto_lod": true,
   "tags": ["prop", "landmark"],
-  "bytes": 453173,
-  "hash": "8dc74761f956a7d18083ea0b2f39e0f9347f4576"
+  "bytes": 189527,
+  "hash": "19e7bbae89d0d64c2d14351c54362913f5e5fa5d"
  },
  "sets": {
   "landmarks/atomium": {"model": "landmarks/atomium"}
