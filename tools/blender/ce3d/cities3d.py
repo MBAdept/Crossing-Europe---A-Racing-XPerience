@@ -82,11 +82,12 @@ SHOP_EM = (0.3, 0.75)     # AS5aR2: lit display = a + b x sqrt(interior colour) 
 SHOP_CEIL = (0.26, 0.35)  # AS5aR2: ceiling light - the top share of the display rises to + this brightness
 INNER_K = 0.75            # AS5aR2: the far level's inner frame ring this share of the way to the glass (wallmat)
 BARS_K = 0.35             # AS5aR2: its painted glazing bars this share of the way to the glass
+LIT_MAX = 0.85            # F-04: spec3d lit_k raises a facade's share of lit windows to at most this (some stay dark)
 
 
 # --- the wall log ------------------------------------------------------------------------------------------------
 
-def _log_walls(log, inner_frame=0.0, inner_k=0.0, bars_k=0.0):
+def _log_walls(log, inner_frame=0.0, inner_k=0.0, bars_k=0.0, lit_k=1.0):
     """props_cities.wallmat writes no window log, and the file is not ours to change for that: while a model builds
     the function is wrapped. Its grids go to the log as explicit rectangles (the cutter's format, as AS4's
     _log_city_walls), with the surface spec (timber framing), the zones, the seed and per-grid shutters.
@@ -97,16 +98,27 @@ def _log_walls(log, inner_frame=0.0, inner_k=0.0, bars_k=0.0):
     from the frame colour to the glass (wallmat). lod0 never shows them (its geometric frame and bars lie 1.5 cm in
     front of them); the flat lod1 seen from 60 m on gets windows as dark as the sprite's instead of a second white
     frame inside each one (KRITIK-5a2 K2: far facades 5 - 10 % paler, windows pale lilac).
+    lit_k (F-04, after the player kept the "lively" night look of the new houses): the share of lit windows of every
+    window grid x lit_k, at most LIT_MAX - in the facade texture and in the log the cut panes read, so both agree.
+    wallmat lights a window when its random number r1 < lit, so a higher share keeps every window the sprite lights
+    and lights some more; shop displays (their own share) stay as they are.
     Returns the function that restores the original."""
     import inspect
     from cesprites import props_cities as C
     orig = C.wallmat
     sig = inspect.signature(orig)
 
+    def raise_lit(v):
+        return min(LIT_MAX, max(float(v), float(v) * float(lit_k)))
+
     def logged(*args, **kw):
         ba = sig.bind(*args, **kw)
         ba.apply_defaults()
         a = ba.arguments
+        if lit_k != 1.0:
+            a["lit"] = raise_lit(a["lit"])
+            a["grids"] = [dict(g, lit=raise_lit(g["lit"])) if g.get("kind", "win") == "win" and "lit" in g else g
+                          for g in a["grids"]]
         grids = []
         shutters = None
         for g in a["grids"]:
@@ -126,12 +138,12 @@ def _log_walls(log, inner_frame=0.0, inner_k=0.0, bars_k=0.0):
                         shutters=shutters, surface=a["color"], zones=[dict(z) for z in (a["zones"] or ())],
                         seed=float(a["seed"])))
         if inner_frame > 0.0 and "inner_frame" not in kw:
-            kw = dict(kw, inner_frame=float(inner_frame))
+            a["inner_frame"] = float(inner_frame)
             if inner_k > 0.0:
-                kw["inner_k"] = float(inner_k)
+                a["inner_k"] = float(inner_k)
             if bars_k > 0.0:
-                kw["bars_k"] = float(bars_k)
-        return orig(*args, **kw)
+                a["bars_k"] = float(bars_k)
+        return orig(*ba.args, **ba.kwargs)
     C.wallmat = logged
 
     def restore():
@@ -2153,7 +2165,8 @@ def build_city(model_id, spec3d):
     PB.WINDOW_LOG = []
     log = []
     restore = _log_walls(log, float(spec3d.get("inner_frame", H.FRAME_W)) if spec3d.get("lod1") else 0.0,
-                         float(spec3d.get("inner_k", INNER_K)), float(spec3d.get("bars_k", BARS_K)))
+                         float(spec3d.get("inner_k", INNER_K)), float(spec3d.get("bars_k", BARS_K)),
+                         float(spec3d.get("lit_k", 1.0)))
     leaf_spec = dict(spec3d.get("leaf_cards") or {})
     crowns, restore_c = _crown_logger() if leaf_spec else ({}, None)
     try:

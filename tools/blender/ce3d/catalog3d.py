@@ -754,6 +754,19 @@ MODELS.update({
                       cover_skip=("phc_rail",), chamfer=True),
         gutters=False),
 })
+# F-04 (after ZS2 - the player keeps the "lively" night look of the AS5b houses): at night the AS5a houses showed
+# about 0.72 x the warm window light of Arcade on the race positions (median of six cities, AS5b 0.95 x, the Hanse
+# gable house 0.46 x). Their window grids light lit_k x as many windows (cities3d._log_walls, at most LIT_MAX): every
+# window the sprite lights stays lit, a third more join them.
+AS5A_LIT_K = 1.35
+for _id in ("props/city_german_house", "props/city_german_mietshaus", "props/city_german_gruenderzeit",
+            "props/city_german_office", "props/city_german_old_fachwerk", "props/city_german_old_fachwerk_b",
+            "props/city_german_old_barock", "props/city_hanse_gabled", "props/city_hanse_kontor",
+            "props/city_hanse_speicher", "props/city_hanse_crane", "props/city_french_sud", "props/city_belgian_terrace",
+            "props/city_french_maison", "props/city_french_immeuble", "props/city_dutch_terrace",
+            "props/city_belgian_stone", "props/city_paris_haussmann", "props/city_swiss_chalet",
+            "props/city_dutch_canal", "props/city_swiss_laube", "props/city_dutch_canal_b", "props/city_paris_corner"):
+    MODELS[_id]["lit_k"] = AS5A_LIT_K
 # --- end AS5a ------------------------------------------------------------------------------------------------------
 
 # --- AS5b --- (wave 6): city buildings, part 2 - the styles eastern, vienna, spanish, italian, central, balkan and baltic
