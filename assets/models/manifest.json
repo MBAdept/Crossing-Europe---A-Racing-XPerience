@@ -496,6 +496,32 @@
    "bytes": 637394,
    "hash": "fb46601648b431ea5057bf8405a602b7ae7de7a9"
   },
+  "landmarks/sagrada_familia": {
+   "kind": "landmark",
+   "object": {"width_m": 93, "height_m": 172.5, "length_m": 62},
+   "extent_m": {"left": 62.21, "right": 35.31},
+   "aabb": [-48, 0, -61.028, 47.62, 172.5, 1.028],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 17100,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/sagrada_familia/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/sagrada_familia/albedo.webp", "emit": "landmarks/sagrada_familia/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 1088636,
+   "hash": "308b51bdbecf0968e3e72e28ada1e596f548592d"
+  },
   "landmarks/st_petri_riga": {
    "kind": "landmark",
    "object": {"width_m": 75, "height_m": 123.25, "length_m": 30},
@@ -10320,10 +10346,7 @@
    "object": {"width_m": 268.0, "height_m": 96.0, "length_m": 123.0}
   },
   "landmarks/riesenrad": {"model": "landmarks/riesenrad"},
-  "landmarks/sagrada_familia": {
-   "fallback": "sprite",
-   "object": {"width_m": 93.0, "height_m": 172.5, "length_m": 62.0}
-  },
+  "landmarks/sagrada_familia": {"model": "landmarks/sagrada_familia"},
   "landmarks/st_petri_riga": {"model": "landmarks/st_petri_riga"},
   "landmarks/stadtpfarrkirche_sibiu": {
    "fallback": "sprite",
