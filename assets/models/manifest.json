@@ -28,6 +28,32 @@
    "bytes": 453173,
    "hash": "8dc74761f956a7d18083ea0b2f39e0f9347f4576"
   },
+  "landmarks/basilica_pilar": {
+   "kind": "landmark",
+   "object": {"width_m": 141, "height_m": 92, "length_m": 78},
+   "extent_m": {"left": 84.03, "right": 70.1},
+   "aabb": [-70.5, 0, -72.5, 70.5, 92, 5.5],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 12580,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/basilica_pilar/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/basilica_pilar/albedo.webp", "emit": "landmarks/basilica_pilar/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 575507,
+   "hash": "e2035de78236d1bccaebabe010f9c7610e66d1c9"
+  },
   "landmarks/basilika_koekelberg": {
    "kind": "landmark",
    "object": {"width_m": 120, "height_m": 89, "length_m": 167},
@@ -10292,10 +10318,7 @@
  },
  "sets": {
   "landmarks/atomium": {"model": "landmarks/atomium"},
-  "landmarks/basilica_pilar": {
-   "fallback": "sprite",
-   "object": {"width_m": 141.0, "height_m": 92.0, "length_m": 78.0}
-  },
+  "landmarks/basilica_pilar": {"model": "landmarks/basilica_pilar"},
   "landmarks/basilika_koekelberg": {"model": "landmarks/basilika_koekelberg"},
   "landmarks/beffroi_calais": {"model": "landmarks/beffroi_calais"},
   "landmarks/campanile_venezia": {"model": "landmarks/campanile_venezia"},

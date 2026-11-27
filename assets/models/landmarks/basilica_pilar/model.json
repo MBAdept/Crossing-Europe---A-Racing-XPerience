@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "landmarks/basilica_pilar",
+ "model": {
+  "kind": "landmark",
+  "object": {"width_m": 141, "height_m": 92, "length_m": 78},
+  "extent_m": {"left": 84.03, "right": 70.1},
+  "aabb": [-70.5, 0, -72.5, 70.5, 92, 5.5],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 12580,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "landmarks/basilica_pilar/lod0_body.res",
+      "classes": ["baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "landmarks/basilica_pilar/albedo.webp", "emit": "landmarks/basilica_pilar/emit.png"},
+  "roughness": 0.85,
+  "auto_lod": true,
+  "tags": ["prop", "landmark"],
+  "bytes": 575507,
+  "hash": "e2035de78236d1bccaebabe010f9c7610e66d1c9"
+ },
+ "sets": {
+  "landmarks/basilica_pilar": {"model": "landmarks/basilica_pilar"}
+ }
+}
