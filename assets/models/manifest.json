@@ -574,6 +574,32 @@
    "bytes": 440949,
    "hash": "17f842e877e00dc397b43e5ead7623d6ea4f2c46"
   },
+  "landmarks/nevsky_kathedrale": {
+   "kind": "landmark",
+   "object": {"width_m": 55, "height_m": 53, "length_m": 72},
+   "extent_m": {"left": 44.22, "right": 14.42},
+   "aabb": [-27.5, 0, -74, 27.5, 53, 2.897],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 4590,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/nevsky_kathedrale/lod0_body.res",
+       "classes": ["baked"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/nevsky_kathedrale/albedo.webp", "emit": "landmarks/nevsky_kathedrale/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 260670,
+   "hash": "13e0804cda3cfde3c60322c012d61e5cb620e21c"
+  },
   "landmarks/parlament_budapest": {
    "kind": "landmark",
    "object": {"width_m": 268, "height_m": 96, "length_m": 123},
@@ -10451,10 +10477,7 @@
   "landmarks/kulturpalast_warschau": {"model": "landmarks/kulturpalast_warschau"},
   "landmarks/mariendom_linz": {"model": "landmarks/mariendom_linz"},
   "landmarks/michel": {"model": "landmarks/michel"},
-  "landmarks/nevsky_kathedrale": {
-   "fallback": "sprite",
-   "object": {"width_m": 55.0, "height_m": 53.0, "length_m": 72.0}
-  },
+  "landmarks/nevsky_kathedrale": {"model": "landmarks/nevsky_kathedrale"},
   "landmarks/palatul_parlamentului": {
    "fallback": "sprite",
    "object": {"width_m": 270.0, "height_m": 86.0, "length_m": 240.0}

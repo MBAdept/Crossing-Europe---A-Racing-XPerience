@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "landmarks/nevsky_kathedrale",
+ "model": {
+  "kind": "landmark",
+  "object": {"width_m": 55, "height_m": 53, "length_m": 72},
+  "extent_m": {"left": 44.22, "right": 14.42},
+  "aabb": [-27.5, 0, -74, 27.5, 53, 2.897],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 100000,
+    "tris": 4590,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "landmarks/nevsky_kathedrale/lod0_body.res",
+      "classes": ["baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "landmarks/nevsky_kathedrale/albedo.webp", "emit": "landmarks/nevsky_kathedrale/emit.png"},
+  "roughness": 0.85,
+  "auto_lod": true,
+  "tags": ["prop", "landmark"],
+  "bytes": 260670,
+  "hash": "13e0804cda3cfde3c60322c012d61e5cb620e21c"
+ },
+ "sets": {
+  "landmarks/nevsky_kathedrale": {"model": "landmarks/nevsky_kathedrale"}
+ }
+}
