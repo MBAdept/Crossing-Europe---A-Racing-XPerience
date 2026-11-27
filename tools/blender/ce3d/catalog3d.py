@@ -1059,10 +1059,12 @@ MODELS["landmarks/atomium"].update(vpbr=("at_steel", "at_tube"), overrides={
     "at_steel": dict(role="flat", color="#c8ccd1", rough=0.22, metal=1.0),
     "at_tube": dict(role="flat", color="#b9bdc2", rough=0.3, metal=1.0)})
 # The gilded domes of the Alexander Nevsky cathedral the same way (gold(): metallic 1, roughness 0.28; flood-lit at
-# night as lamp channel 14 with the generator's flood share 0.75): baked they were a matt mustard yellow.
-MODELS["landmarks/nevsky_kathedrale"].update(vpbr=("an_gold",), overrides={
+# night as lamp channel 14 with the generator's flood share 0.75): baked they were a matt mustard yellow. A lamp
+# channel on a vpbr surface means no automatic levels (contract A-4, as prop_vpbr): the decimated far levels kept only
+# 46-69 % of the flood-lit dome area (validate_models LAMP_KEEP 0.8). Both have about 5 000 triangles in lod0.
+MODELS["landmarks/nevsky_kathedrale"].update(auto_lod=False, vpbr=("an_gold",), overrides={
     "an_gold": dict(role="flat", color="#d4a838", rough=0.28, metal=1.0, lamp="flood:0.75")})
-MODELS["landmarks/catedrala_mantuirii"].update(vpbr=("cm_gilded",), overrides={
+MODELS["landmarks/catedrala_mantuirii"].update(auto_lod=False, vpbr=("cm_gilded",), overrides={
     "cm_gilded": dict(role="flat", color="#d8ad45", rough=0.3, metal=1.0, lamp="flood:0.7")})
 # --- end AS6 ------------------------------------------------------------------------------------------------------
 

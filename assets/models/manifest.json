@@ -647,10 +647,10 @@
    ],
    "textures": {"albedo": "landmarks/nevsky_kathedrale/albedo.webp", "emit": "landmarks/nevsky_kathedrale/emit.png"},
    "roughness": 0.85,
-   "auto_lod": true,
+   "auto_lod": false,
    "tags": ["prop", "landmark"],
-   "bytes": 245180,
-   "hash": "2e1452040cfea7dfd64c24fb108f3684a31dd570"
+   "bytes": 227184,
+   "hash": "40b45aa03b3138e64de6540bee3b4288e04c514d"
   },
   "landmarks/palatul_parlamentului": {
    "kind": "landmark",
