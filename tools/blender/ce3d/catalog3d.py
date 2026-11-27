@@ -1053,6 +1053,11 @@ MODELS.update({
 # The Eiffel tower's lattice of box beams: their end faces (hidden in the chords) are a third of its triangles and put
 # lod0 over the landmark budget (25,152 > 25,000) - build_baked drops them (props3d._drop_beam_caps).
 MODELS["landmarks/eiffel_tower"]["drop_caps"] = ("eif_lattice",)
+# The Atomium's polished steel spheres and tubes as vertex PBR (metallic 1, roughness 0.22 / 0.3 of the generator):
+# baked into the atlas they were matt grey, the sprite shows chrome with the sky and the ground in it.
+MODELS["landmarks/atomium"].update(vpbr=("at_steel", "at_tube"), overrides={
+    "at_steel": dict(role="flat", color="#c8ccd1", rough=0.22, metal=1.0),
+    "at_tube": dict(role="flat", color="#b9bdc2", rough=0.3, metal=1.0)})
 # --- end AS6 ------------------------------------------------------------------------------------------------------
 
 

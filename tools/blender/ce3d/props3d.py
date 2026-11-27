@@ -249,20 +249,41 @@ def build_baked(model_id, spec3d):
             if s.material is not None:
                 roles.tag(s.material)                 # every material must be tagged
                 mats[s.material.name] = s.material
-    mat_list = [mats[k] for k in sorted(mats)]
+    # Wave 6 (AS6): "vpbr" (material name prefixes) - flat materials drawn as vertex PBR instead of baked: a polished
+    # metal (the Atomium's steel) keeps its roughness and metallic value and reflects the sky in the renderer; baked,
+    # it became a matt grey atlas colour. Their objects stay out of the bake when they carry nothing else.
+    # A procedural material of the generator (role "proc") needs a flat override (spec3d "overrides": colour,
+    # roughness, metallic) to be drawn this way.
+    force = tuple(spec3d.get("vpbr", ()))
+    tr = roles.Translator(overrides=spec3d.get("overrides"), glass_class=False)
+    vpbr_names = {n for n, m in mats.items() if force and any(n.startswith(k) for k in force)
+                  and tr.describe(m)[0] == "flat"}
+    if force and not vpbr_names:
+        raise ValueError("vpbr %s: no flat material matched (overrides?)" % (list(force),))
+    mat_list = [mats[k] for k in sorted(mats) if k not in vpbr_names]
+    bake_objs = [o for o in objs if any(s.material is not None and s.material.name not in vpbr_names
+                                        for s in o.material_slots)]
     cut_names = {m.name for m in mat_list if BK.has_cutout(m)}
     size = tuple(spec3d.get("atlas", (1024, 1024)))
     wf = weight_allround if spec3d.get("view") == "allround" else weight_roadside
-    baked = BK.bake_atlas(rig, objs, mat_list, size, weight_fn=wf, ppm_max=spec3d.get("ppm_max", 128.0),
+    baked = BK.bake_atlas(rig, bake_objs, mat_list, size, weight_fn=wf, ppm_max=spec3d.get("ppm_max", 128.0),
                           cutout=bool(cut_names))
-    tr = roles.Translator()
+    if not vpbr_names:
+        tr = roles.Translator()
     mb = core.MeshBuilder()
     for soup in core.soups_of(objs, uv_layer=BK.UV_NAME):
-        uv = soup.uv.copy()
-        uv[:, :, 1] = 1.0 - uv[:, :, 1]             # glTF / Godot: v down
+        uv = None
+        if soup.uv is not None:
+            uv = soup.uv.copy()
+            uv[:, :, 1] = 1.0 - uv[:, :, 1]         # glTF / Godot: v down
         for mi in np.unique(soup.mi):
             mat = soup.material(int(mi))
             sel = soup.mi == mi
+            if mat.name in vpbr_names:
+                tr.add_object(mb, _SubSoup(soup, sel))
+                continue
+            if uv is None:
+                raise RuntimeError("%s: %s has no atlas coordinates" % (model_id, soup.name))
             mb.add("baked_cutout" if mat.name in cut_names else "baked", soup.pos[sel], soup.nor[sel], uv=uv[sel])
             # lamps of flat materials (yard lamps ...) become anchors; their glow is in the emission atlas
             role, d = roles.tag(mat)
