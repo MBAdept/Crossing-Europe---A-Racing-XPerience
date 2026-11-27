@@ -418,6 +418,32 @@
    "bytes": 310207,
    "hash": "e603dd7ca51dc8ca8998a6fdee98e85d43af242b"
   },
+  "landmarks/kathedrale_burgos": {
+   "kind": "landmark",
+   "object": {"width_m": 59, "height_m": 88, "length_m": 106},
+   "extent_m": {"left": 53.06, "right": 14.5},
+   "aabb": [-29.9, 0, -107.9, 29.9, 88, 0.1],
+   "lods": [
+    {
+     "name": "lod0",
+     "max_dist_m": 100000,
+     "tris": 1266,
+     "parts": [
+      {
+       "node": "body",
+       "mesh": "landmarks/kathedrale_burgos/lod0_body.res",
+       "classes": ["baked", "baked_cutout"]
+      }
+     ]
+    }
+   ],
+   "textures": {"albedo": "landmarks/kathedrale_burgos/albedo.webp", "emit": "landmarks/kathedrale_burgos/emit.png"},
+   "roughness": 0.85,
+   "auto_lod": true,
+   "tags": ["prop", "landmark"],
+   "bytes": 248288,
+   "hash": "eea468a3df842f4c66def0255490a65565447479"
+  },
   "landmarks/koelner_dom": {
    "kind": "landmark",
    "object": {"width_m": 86.2, "height_m": 157.4, "length_m": 144.6},
@@ -10345,10 +10371,7 @@
    "object": {"width_m": 18.0, "height_m": 42.0, "length_m": 18.0}
   },
   "landmarks/kaiserburg_nuernberg": {"model": "landmarks/kaiserburg_nuernberg"},
-  "landmarks/kathedrale_burgos": {
-   "fallback": "sprite",
-   "object": {"width_m": 59.0, "height_m": 88.0, "length_m": 106.0}
-  },
+  "landmarks/kathedrale_burgos": {"model": "landmarks/kathedrale_burgos"},
   "landmarks/koelner_dom": {"model": "landmarks/koelner_dom"},
   "landmarks/kulturpalast_warschau": {
    "fallback": "sprite",
