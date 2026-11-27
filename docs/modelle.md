@@ -2043,3 +2043,150 @@ Kirche verdeckt aus Straßenhöhe der Giebel. Das Hauszeichen des Barockhauses i
 sichtbar). Die Nachtfassaden sind im Rennen heller als in Arcade (Wien 1,7 ×, Warschau 1,5 × im Median der Fassade):
 das Lichtgesetz des Renderers (docs/renderer-modern.md 9.6) hebt helle Albedos nachts an, die Sprites haben ihre
 Schatten eingebacken – keine Modellfrage.
+
+## 24. Wahrzeichen als Modelle (Welle 6, AS6)
+
+Die 32 Wahrzeichen mit einem Generator in `props_landmarks.py` haben Echtzeit-Modelle aus dem Bauer `prop_baked`
+(Referenz `landmarks/michel`, Abschnitt 11): die Geometrie des Generators in echter Größe – Türme, Helme, Fialen,
+Kuppeln, Gitter – mit ihren Materialien in einen Atlas gebacken (`baked` bzw. `baked_cutout`), die Lichtebene des
+Generators (Anstrahlung, erleuchtete Fenster) in den Emissionsatlas, flache Lampenmaterialien (Flugwarnlichter) als
+Lichtanker. Der Renderer zeichnet ein Wahrzeichen aus seinem Modell, sobald das Manifest eines führt
+(docs/renderer-modern.md 19.2); am Renderer hat sich nur die Drehung langer Grundrisse geändert (unten). Mit dem
+Michel haben damit 33 Sets ein Modell.
+In drei Chargen exportiert und angesehen: L1 die neun Wahrzeichen von Kiel–Hamburg bis Riga, L2 Wien bis Mailand,
+L3 Venedig bis Bukarest. Reihenfolge der Tabelle wie die Chargen.
+
+Ohne Modell bleiben die zehn Einträge ohne Generator und ohne Sprite (`proc` in `data/cities.json`): Neues Rathaus
+Hannover, Florianturm, Völkerschlachtdenkmal, Cuatro Torres, Kirche des Heiligen Sava, Leuchtturm Calais, Herkules
+Kassel, Sacré-Cœur, Colonius und der Fernsehturm Riga. Modern zeichnet sie weiter als prozedurale 3D-Form
+(renderer-modern.md 19.4), genau wie Arcade sie prozedural zeichnet. Ein Modell setzt einen neuen Generator voraus;
+das wäre eigene Arbeit und ist nicht Teil dieser Welle.
+
+| Wahrzeichen | Städte | Höhe | Dreiecke | Atlas | Packdichte | vpbr | Archiv Netz / Texturen | Export |
+|---|---|---|---|---|---|---|---|---|
+| `elbphilharmonie` | Hamburg | 110 m | 908 | 2048×2048 | 10,67 px/m | – | 16 / 619 kB | 121 s |
+| `kaiserburg_nuernberg` | Ljubljana, Nürnberg, Pau, Würzburg | 50 m | 1 016 | 2048×2048 | 12,93 px/m | – | 18 / 934 kB | 146 s |
+| `dom_fulda` | Fulda | 65 m | 4 560 | 2048×2048 | 15,0 px/m | – | 88 / 575 kB | 493 s |
+| `frankfurt_skyline` | Frankfurt | 259 m | 1 915 | 2048×2048 | 6,02 px/m | – | 44 / 1 111 kB | 325 s |
+| `koelner_dom` | Köln | 157 m | 11 900 | 2048×2048 | 6,36 px/m | – | 258 / 1 272 kB | 579 s |
+| `fernsehturm_berlin` | Berlin | 368 m | 4 548 | 2048×2048 | 8,16 px/m | – | 82 / 269 kB | 142 s |
+| `frauenkirche_dresden` | Dresden | 91 m | 4 124 | 2048×2048 | 16,39 px/m | – | 91 / 533 kB | 294 s |
+| `frauenkirche_muenchen` | München, Posen | 99 m | 1 782 | 2048×2048 | 14,99 px/m | – | 34 / 721 kB | 233 s |
+| `st_petri_riga` | Rostock | 123 m | 1 308 | 2048×2048 | 19,71 px/m | – | 26 / 799 kB | 201 s |
+| `stephansdom` | Wien | 136 m | 3 410 | 2048×2048 | 11,64 px/m | – | 63 / 1 073 kB | 193 s |
+| `riesenrad` | Wien | 65 m | 17 816 | 2048×1024 | 5,26 px/m | – | 357 / 256 kB | 93 s |
+| `mariendom_linz` | Linz | 135 m | 5 888 | 2048×2048 | 9,67 px/m | – | 122 / 1 327 kB | 587 s |
+| `dom_passau` | Passau | 68 m | 4 316 | 2048×1024 | 10,43 px/m | – | 86 / 347 kB | 243 s |
+| `dom_regensburg` | Regensburg | 105 m | 6 806 | 2048×1024 | 7,33 px/m | – | 142 / 866 kB | 195 s |
+| `veitsdom_prag` | Prag | 97 m | 1 718 | 2048×1024 | 7,31 px/m | – | 37 / 654 kB | 107 s |
+| `eiffel_tower` | Paris | 330 m | 17 072 | 2048×2048 | 3,62 px/m | – | 435 / 616 kB | 306 s |
+| `atomium` | Brüssel | 102 m | 12 674 | 2048×1024 | 24,0 px/m | ja | 166 / 11 kB | 14 s |
+| `basilika_koekelberg` | Brüssel | 89 m | 3 354 | 2048×2048 | 9,12 px/m | – | 76 / 927 kB | 252 s |
+| `beffroi_calais` | Calais | 75 m | 2 878 | 1024×1024 | 9,35 px/m | – | 55 / 268 kB | 73 s |
+| `duomo_milano` | Mailand | 108 m | 5 062 | 2048×2048 | 7,27 px/m | – | 88 / 834 kB | 182 s |
+| `campanile_venezia` | Venedig | 99 m | 3 728 | 1024×1024 | 8,95 px/m | – | 65 / 287 kB | 53 s |
+| `sagrada_familia` | Barcelona | 172 m | 17 100 | 2048×2048 | 9,08 px/m | – | 370 / 1 190 kB | 220 s |
+| `basilica_pilar` | Saragossa | 80 m | 12 580 | 2048×1024 | 8,0 px/m | – | 202 / 718 kB | 111 s |
+| `kathedrale_burgos` | Burgos | 88 m | 1 266 | 2048×1024 | 11,15 px/m | – | 26 / 611 kB | 131 s |
+| `parlament_budapest` | Budapest | 96 m | 3 804 | 2048×2048 | 7,35 px/m | – | 85 / 801 kB | 157 s |
+| `kulturpalast_warschau` | Warschau | 237 m | 5 788 | 2048×2048 | 7,88 px/m | – | 118 / 799 kB | 158 s |
+| `freiheitsdenkmal_riga` | Riga | 42 m | 422 | 1024×1024 | 25,76 px/m | – | 10 / 89 kB | 30 s |
+| `nevsky_kathedrale` | Sofia | 53 m | 4 590 | 2048×1024 | 11,62 px/m | ja | 51 / 431 kB | 116 s |
+| `stadtpfarrkirche_sibiu` | Sibiu | 73 m | 1 012 | 2048×1024 | 13,51 px/m | – | 21 / 557 kB | 141 s |
+| `catedrala_timisoara` | Timișoara | 90,5 m | 8 228 | 2048×1024 | 12,38 px/m | – | 159 / 772 kB | 125 s |
+| `catedrala_mantuirii` | Bukarest | 127 m | 5 176 | 2048×2048 | 12,03 px/m | ja | 48 / 750 kB | 196 s |
+| `palatul_parlamentului` | Bukarest | 86 m | 2 380 | 2048×2048 | 4,16 px/m | – | 44 / 637 kB | 184 s |
+
+Summe der 32 Modelle im Archiv (deflate -9 je Datei, wie `tools/pck_report.py`; Texturen = die importierte
+VRAM-Textur `.ctex`): 3,48 MB Netze und 21,66 MB Texturen. Alle Modelle zusammen (Prüfer, nach AS6): Netze 25,76 von
+40 MB, Texturen 219,5 von 240 MB im Grafikspeicher, Texturquellen 58,71 von 60 MB. „Dreiecke“ ist lod0 (Grenze für
+Wahrzeichen 25 000), „Packdichte“ die mittlere Dichte des Atlas, „Höhe“ die echte Höhe des Katalogs, „Export“ die
+Zeit des letzten Exports mit Bake (`nice -n 10`, ein Arbeiter, geteilte Maschine; beim Atomium wird nur noch der
+Pavillon gebacken). Ein Zeichenaufruf je Klasse: 25 Modelle nur `baked`, fünf dazu `baked_cutout` (die
+durchbrochenen Helme in Köln, Regensburg, Linz und Burgos, das Gitter des Eiffelturms), drei dazu `vpbr` (Atomium,
+Newski, Erlösung). Michel (Abschnitt 11) ist nicht mitgezählt.
+
+### Was neu ist
+
+Am Generator nichts (`check_sprite_geometry` hat nichts zu prüfen – die Sprites sind dieselben). Der Bauer
+`prop_baked` hat drei neue Katalog-Optionen, dazu zwei Regeln für alle Wahrzeichen:
+
+- **Atlas nach Größe.** Nach L1 lagen die Texturquellen bei 50,4 von 60 MB; 23 weitere Atlanten mit 2048² hätten
+  die Grenze um etwa 10 MB überschritten. Darum je Wahrzeichen: groß und reich verziert 2048×2048 (Dome, Türme,
+  Paläste), mittel 2048×1024, schlanke Türme und das Denkmal 1024×1024 (Campanile, Belfried, Freiheitsdenkmal).
+  Die höchste Packdichte (`ppm_max`) folgt der Größe des Bauwerks: 32 px/m für die kleineren (Kaiserburg, Fulda,
+  beide Frauenkirchen, St. Petri, Riesenrad, Passau, Belfried, Campanile, Freiheitsdenkmal, Newski, Sibiu,
+  Timișoara), 24 für die meisten Dome, 20 für Fernsehturm und Sagrada Família, 16 für die Riesen (Frankfurt,
+  Eiffelturm, Parlament Budapest, Kulturpalast, Parlamentspalast). Wie dicht der Atlas tatsächlich belegt ist, steht
+  in der Tabelle.
+- **Wahrzeichen-Atlas immer als WebP.** Bisher wurde ein Atlas bis 1024 px als PNG geschrieben – bei Wahrzeichen
+  waren das 590–610 kB je Atlas, mehr als ein 2048×1024-WebP. Mit WebP für alle (`kind="landmark"`) liegen die
+  Texturquellen wieder unter 60 MB.
+- **`drop_caps`** (Liste von Objektnamen): Bei jedem Kastenträger aus 8 Ecken und 6 Vierecken fallen die zwei
+  Stirnflächen an den Enden weg, die immer in Gurt, Knoten oder Plattform stecken. Beim Eiffelturm
+  (`eif_lattice`) war das ein Drittel der Gitter-Dreiecke: 25 152 → 17 072, unter der Grenze von 25 000; aus
+  80–1 200 m ist kein Loch zu sehen. Der Bauer bricht ab, wenn die Option nichts entfernt.
+- **`vpbr` + `overrides`** (Präfixe von Materialnamen): Diese Materialien werden nicht in den Atlas gebacken, sondern
+  bleiben Vertex-PBR (Klasse `vpbr`, `landmark.gdshader` CE_VCOL) mit Farbe, Rauheit und Metall aus `overrides`.
+  Gebacken verliert Metall seinen Glanz: Die Stahlkugeln des Atomiums waren matt grau, die Goldkuppeln der
+  Newski-Kathedrale und der Kathedrale der Erlösung matt senfgelb – die Sprites zeigen Chrom und Gold mit
+  Glanzlicht. Jetzt Stahl mit Metall 1 und Rauheit 0,22 / 0,3, Gold mit Rauheit 0,28 / 0,3. Die Goldkuppeln sind
+  nachts angestrahlt wie im Generator (Lampenkanal 14, `lamp="flood:0.75"` bzw. `0.7`). Der Bauer bricht ab, wenn
+  kein flaches Material passt.
+- **Keine automatischen Stufen bei Lampenkanälen auf `vpbr`** (Vertrag A-4, wie beim Bauer `prop_vpbr`): Bei Newski
+  und Erlösung behielten die dezimierten Stufen nur 25–69 % der angestrahlten Goldfläche (Grenze 80 %,
+  `validate_models` LAMP_KEEP). Beide haben `auto_lod=False` und tragen etwa 5 000 Dreiecke.
+
+- **Splitter unter 0,1 mm fallen weg** (`finish(min_height=1e-4)`, wie bei Stadthäusern und Brücken): n-Eck-Deckel mit
+  Ecken auf einer Geraden (Fuß und Dach eines Frankfurter Turms, Belfried) zerfallen in Dreiecke ohne Höhe; die
+  16-Bit-Positionen eines 300 m hohen Modells (5 mm Raster) drehen einige davon um – `validate_models` zählte beim
+  Frankfurter Ensemble 11 verkehrt gewickelte Dreiecke. Unsichtbar, aber gezählt; die anderen 31 Wahrzeichen hatten
+  keine solchen Splitter.
+
+Alle Wahrzeichen außer Newski und Erlösung haben eine Stufe lod0 und die automatischen Stufen von Godot (`auto_lod`); der Prüfer
+verlangt, dass auch diese Stufen die Lampenflächen behalten.
+
+### Hook im Generator
+
+Keiner.
+
+### Tönung
+
+Die Kaiserburg steht außer in Nürnberg auch in Würzburg (`#efe6d6`) und Pau (`#e6dccb`) als getönte Burg; der
+Renderer legt die Tönung auf die Modell-Instanz (R7). Die anderen 31 Wahrzeichen sind nirgends getönt.
+
+### Aufstellung: lange Grundrisse drehen nur so weit, wie der Knoten rücken darf
+
+Der Renderer dreht ein Wahrzeichen-Modell zur Anfahrt (renderer-modern.md 19.1, FIX-R7b) und rückt es mit
+`near_shift()` von der Straße weg, wenn die Drehung eine Ecke näher an die Straße brächte; der gezeichnete Knoten darf
+dabei höchstens 12 m von Arcades Anker liegen (A-25, `MAX_NODE_SHIFT_M`). Die langen AS6-Modelle hielten das nicht:
+der Mailänder Dom (158 m tief) wurde auf Bern – Mailand um 26,7 m verschoben, das Atomium 15,9 m, die
+Elbphilharmonie auf Hamburg – Bremen 12,5 m. `landmarks.gd` `capped_turn()` kürzt die Drehung (Bisektion auf ihren
+Anteil) gerade so weit, dass die Verschiebung in der Grenze bleibt; kurze Grundrisse behalten die ganze Drehung
+(`test_landmarks` „long_footprint_turns_only_as_far_as_the_node_may_move“, Netztest „drawn_node_stays_near…“).
+
+### Messungen (llvmpipe, Prüfszene im Renn-Look und Rennen, gemessen)
+
+| Messung | Ergebnis |
+|---|---|
+| Ansicht neben dem Sprite, 80 / 250 / 600 / 1 200 m, 12 und 22 Uhr | alle 32: Umriss, Gliederung, Farben wie das Sprite; nachts die Anstrahlung und die Fenster der Lichtebene |
+| Bildwechsel von Bild zu Bild bei 120 km/h (Anteil der Pixel mit > 24/255 Änderung, Modell / Sprite) | Riesenrad 250 m 6,5 / 2,1 %, 600 m 8,8 / 0,6 %, 1 000 m 4,5 / 0,1 %; Eiffelturm 250 m 2,3 / 2,3 %, 600 m 0,3 / 0,4 % |
+| Anker gegen Arcade, ganzes Netz (143 Wahrzeichen) | größter Unterschied 0,34 m (Erlösung: das Sprite misst seine Breite in Pixeln von 0,23 m) |
+| Render-Prüfung `check_landmarks_render` (Kiel – Hamburg, jetzt mit den Modellen) | Stelle km 85,6: Elbphilharmonie im Bild an Arcades Stelle (Versatz 8 / −6 px); weich ausgeblendet (km 76); nachts nur beleuchtet (km 77,4); **Nachtfassade der Elbphilharmonie 1,01 × Arcade** (Luminanz 116,8 gegen 115,9) |
+
+### Ehrliche Einordnung
+
+Gut: Die Wahrzeichen sind aus der Nähe echte Bauwerke – Maßwerkhelme und Fialen in Köln, Regensburg und Linz, das
+Zickzack-Dach des Stephansdoms, die Kastenträger des Eiffelturms, Speichen und Gondeln des Riesenrads, die
+Kugeln des Atomiums in Chrom, die Goldkuppeln von Sofia und Bukarest mit Glanzlicht. Aus der Ferne stimmen Umriss
+und Farben mit den Sprites überein; nachts sind sie angestrahlt wie Arcades Lichtebene.
+
+Noch nicht gut:
+- **Blickwinkel (N6).** Jedes Sprite zeigt sein Wahrzeichen um 10–28° gedreht (`view_yaw` in `props_landmarks.py`);
+  die Modelle stehen frontal zur Anfahrt. Im Rennen wirken lange Bauten dadurch schmaler als in Arcade (Fulda: nur
+  die Doppelturmfassade statt Fassade, Langhaus und Kuppel), die Kuppel von Koekelberg steht hinter der Fassade.
+  Um den Sprite-Winkel gedreht sieht das Modell aus wie das Sprite (`prop_scene --yaw`); die Drehung schwenkt aber
+  das Ende langer Kirchen zur Straße, hinter dem Anker sind nur 40 m frei. Eigener Schritt.
+- **Speichen des Riesenrads (N2)** flimmern ab etwa 250 m (Messung oben): 0,14 m sind dort schmaler als ein Pixel.
+- **Burgos (N3)** ist schon im Generator schlicht (Rosette eine flache Scheibe) – Modell wie Sprite.
+- Die zehn Einträge ohne Generator bleiben prozedurale Formen (oben).
