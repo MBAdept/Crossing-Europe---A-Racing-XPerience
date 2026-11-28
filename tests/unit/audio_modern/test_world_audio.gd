@@ -293,8 +293,10 @@ func test_ambience_night_and_daytime() -> void:
 	var a := m.ambience
 	assert_near(a.night_of(13.0), 0.0, 1.0e-6, "Mittag: Tag")
 	assert_near(a.night_of(2.0), 1.0, 1.0e-6, "2 Uhr: Nacht")
-	assert_true(a.night_of(6.0) > 0.0 and a.night_of(6.0) < 1.0, "Morgendämmerung dazwischen")
+	assert_true(a.night_of(5.8) > 0.0 and a.night_of(5.8) < 1.0, "Morgendämmerung dazwischen")
+	assert_true(a.night_of(6.4) < 0.05, "kurz vor Sonnenaufgang singen die Vögel schon")
 	assert_true(a.dawn_of(6.3) > 0.9, "Morgenchor")
+	assert_true(a.night_of(19.8) > 0.0 and a.night_of(21.5) > 0.99, "Abend: Grillen nach Sonnenuntergang")
 	assert_near(a.dawn_of(13.0), 0.0, 1.0e-6, "kein Morgenchor mittags")
 	_done(m)
 
@@ -377,9 +379,9 @@ func test_traffic_close_pass_whoosh() -> void:
 	assert_true(float(t.last_fx["pan"]) > 0.0, "rechts")
 	var e := m.assets.entry("traffic", "whoosh_truck")
 	var lufs := float((e.meta["lufs_m"] as Array)[int(t.last_fx["variant"])]) + float(t.last_fx["db"]) + _num("traffic.ref_path_db")
-	var want := _num("traffic.whoosh.heavy_lufs") + _num("traffic.whoosh.slope_db") * _log10(65.0 / _num("traffic.whoosh.ref_kmh")) \
+	var want := _num("traffic.whoosh.heavy_lufs") + _num("traffic.whoosh.slope_db") * _log10(85.0 / _num("traffic.whoosh.ref_kmh")) \
 		- 20.0 * _log10(2.5 / _num("traffic.whoosh.ref_m"))
-	assert_near(lufs, want, 0.3, "Pegel nach Tempo und Abstand")
+	assert_near(lufs, want, 0.3, "Pegel nach dem Tempo des Lkw und dem Abstand")
 	# far to the side or slowly: none
 	t.stop_all()
 	z = 30.0
@@ -388,6 +390,14 @@ func test_traffic_close_pass_whoosh() -> void:
 		z -= (150.0 - 85.0) / 3.6 * DT
 		t.update(_tframe([{"id": 4, "set": "traffic/sedan_blue", "z": z, "x": 7.5, "length": 4.7, "speed": 85.0}], 150.0))
 	assert_eq(t.whooshes_played - n0, 0, "7,5 m daneben: kein Luftstoß")
+	# a standing car passed closely: no gust (it pushes no air)
+	t.stop_all()
+	z = 30.0
+	n0 = t.whooshes_played
+	for i in 240:
+		z -= 50.0 / 3.6 * DT
+		t.update(_tframe([{"id": 6, "set": "traffic/sedan_blue", "z": z, "x": 2.5, "length": 4.7, "speed": 0.0}], 50.0))
+	assert_eq(t.whooshes_played - n0, 0, "stehendes Auto: kein Luftstoß")
 	_done(m)
 
 

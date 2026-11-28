@@ -14,7 +14,7 @@ extends ModernAudioModule
 ##
 ## Weights (docs: the table "Ambiente"): the zone and canopy of frame.feed, the camera in a tunnel (frame.tunnel), the
 ## scenery's style, climate and features (AudioFeed, from data/scenery.json), water under the bridge, the hour
-## (frame.state.hour against the daytime of the configuration: night, dawn, day, dusk), rain (frame.rain) and snow
+## (frame.state.hour against the daytime of the configuration: night, the dawn chorus, day, dusk), rain (frame.rain) and snow
 ## (feed.snow): insects and birds fall silent in rain and snow, snow makes everything quieter. Speed: a bed and a call
 ## are slope_db per decade quieter above from_kmh (the car covers them anyway – they must not add mud to the mix);
 ## above calls_max_kmh no call starts. Pause: the beds go on, pause_db quieter (the pause snapshot muffles MAmb);
@@ -150,29 +150,30 @@ func track_changed(_feed: AudioFeed) -> void:
 	_call_last.clear()
 
 
-## 0 day … 1 night from the hour and the daytime of the configuration (the same hours as the picture's palette;
-## night from night_start + 0.5 to dawn_start, day from day_start + 0.75 to dusk_start, smooth ramps between).
+## 0 day … 1 night for the life of the surroundings, from the hour and the daytime of the configuration (the hours
+## of the picture's palette): night until dawn_start, the birds wake between dawn_start and sunrise (the dawn chorus
+## starts before the sun), day until sunset, night again from sunset to night_start + 0.5 – smooth ramps.
 func night_of(hour: float) -> float:
 	var h := fposmod(hour, 24.0)
 	var dawn0 := float(_daytime.get("dawn_start", 5.0))
-	var day0 := float(_daytime.get("day_start", 7.5)) + 0.75
-	var dusk0 := float(_daytime.get("dusk_start", 18.0))
+	var rise := float(_daytime.get("sunrise", 6.5))
+	var sset := float(_daytime.get("sunset", 19.5))
 	var night0 := float(_daytime.get("night_start", 20.5)) + 0.5
 	if h < dawn0 or h >= night0:
 		return 1.0
-	if h < day0:
-		return 1.0 - smoothstep(dawn0, day0, h)
-	if h < dusk0:
+	if h < rise:
+		return 1.0 - smoothstep(dawn0, rise, h)
+	if h < sset:
 		return 0.0
-	return smoothstep(dusk0, night0, h)
+	return smoothstep(sset, night0, h)
 
 
-## The dawn chorus: 1 between dawn_start and day_start + 0.75, else 0 (smooth edges).
+## The dawn chorus: 1 from dawn_start to an hour after sunrise, else 0 (smooth edges).
 func dawn_of(hour: float) -> float:
 	var h := fposmod(hour, 24.0)
 	var dawn0 := float(_daytime.get("dawn_start", 5.0))
-	var day0 := float(_daytime.get("day_start", 7.5)) + 0.75
-	return smoothstep(dawn0 - 0.3, dawn0 + 0.4, h) * (1.0 - smoothstep(day0 - 0.4, day0 + 0.3, h))
+	var rise := float(_daytime.get("sunrise", 6.5))
+	return smoothstep(dawn0 - 0.3, dawn0 + 0.4, h) * (1.0 - smoothstep(rise + 0.7, rise + 1.3, h))
 
 
 ## Speed fade in dB (<= 0) for a slope per decade above from_kmh.

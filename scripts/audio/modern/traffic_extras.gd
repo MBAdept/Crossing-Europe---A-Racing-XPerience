@@ -21,9 +21,11 @@ extends ModernAudioModule
 ##               against the manifest loudness: gain_db = target − lufs − ref_path_db + 3.01 (TrafficAudio pans a mono
 ##               voice with equal power – 3 dB under the same file on both channels, which the manifest measures)
 ##   wet         in rain (feed.wet ≥ wet_from) a new voice takes the wet variant of its tyres (spray); on snow too
-##   whooshes    a vehicle passing the listener closely (lateral ≤ whoosh.max_m, relative speed ≥ whoosh.min_kmh)
-##               throws a gust: a short swish of a car, the pressure wave and buffeting of a truck or bus – at its side,
-##               louder with the relative speed (whoosh.slope_db per decade) and the nearness (1 / lateral distance)
+##   whooshes    a moving vehicle passing the listener closely (lateral ≤ whoosh.max_m, its own speed ≥
+##               whoosh.own_min_kmh, relative speed ≥ whoosh.min_kmh) throws a gust: a short swish of a car, the
+##               pressure wave and buffeting of a truck or bus – at its side, louder with the vehicle's own speed (the
+##               air it pushes: whoosh.slope_db per decade over whoosh.ref_kmh) and the nearness (1 / lateral
+##               distance), quicker (pitch) with the relative speed; a standing car throws nothing
 ##   horns       rare and at random: a vehicle the player hit honks after a reaction time (horns.after_collision),
 ##               one the player squeezed past much faster honks twice (horns.close_pass); a truck its air horn, a
 ##               hatchback its small horn; at the vehicle's place (pan, distance, Doppler, followed while it sounds);
@@ -110,8 +112,10 @@ var _ref_path_db := -1.94
 var _wet_from := 0.3
 var _wh_max_m := 4.5
 var _wh_heavy_max_m := 5.5
-var _wh_min_kmh := 25.0
-var _wh_ref_kmh := 60.0
+var _wh_min_kmh := 15.0
+var _wh_own_min_kmh := 30.0
+var _wh_ref_kmh := 80.0
+var _wh_rel_ref_kmh := 60.0
 var _wh_ref_m := 2.0
 var _wh_slope := 20.0
 var _wh_lufs := {"car": -27.0, "heavy": -22.0}
@@ -163,7 +167,7 @@ func _setup() -> void:
 	model.siren_stream = ctx.stream(FOLDER, "siren", "siren")
 	var se := ctx.assets.entry(FOLDER, "siren") if ctx.assets != null else null
 	if se != null:
-		model.siren_db = ctx.number("traffic.siren_lufs", -19.0) - se.lufs - _ref_path_db
+		model.siren_db = ctx.number("traffic.siren_lufs", -17.0) - se.lufs - _ref_path_db
 	siren_amp = db_to_linear(model.siren_db)
 	_rng.seed = int(ctx.number("traffic.seed", 9203))
 	if ctx.live and ctx.host != null:
@@ -182,6 +186,7 @@ func _read_config() -> void:
 	_wh_max_m = ctx.number("traffic.whoosh.max_m", _wh_max_m)
 	_wh_heavy_max_m = ctx.number("traffic.whoosh.heavy_max_m", _wh_heavy_max_m)
 	_wh_min_kmh = ctx.number("traffic.whoosh.min_kmh", _wh_min_kmh)
+	_wh_own_min_kmh = ctx.number("traffic.whoosh.own_min_kmh", _wh_own_min_kmh)
 	_wh_ref_kmh = ctx.number("traffic.whoosh.ref_kmh", _wh_ref_kmh)
 	_wh_ref_m = ctx.number("traffic.whoosh.ref_m", _wh_ref_m)
 	_wh_slope = ctx.number("traffic.whoosh.slope_db", _wh_slope)
@@ -287,27 +292,28 @@ func _passes(vehicles: Array) -> void:
 			continue
 		var dx := absf(float(e["x"]) - lx)
 		var heavy := bool(e.get("heavy", false))
-		var rel_kmh := absf(float(e["speed"]) - lv)
-		if rel_kmh >= _wh_min_kmh and dx <= (_wh_heavy_max_m if heavy else _wh_max_m):
-			_whoosh(s, vid, heavy, rel_kmh, dx, signf(float(e["x"]) - lx))
+		var own_kmh := maxf(float(e["speed"]), 0.0)
+		var rel_kmh := absf(own_kmh - lv)
+		if rel_kmh >= _wh_min_kmh and own_kmh >= _wh_own_min_kmh and dx <= (_wh_heavy_max_m if heavy else _wh_max_m):
+			_whoosh(s, vid, heavy, own_kmh, rel_kmh, dx, signf(float(e["x"]) - lx))
 		if vid != TrafficAudio.POLICE_ID and dx <= _horn_close_m and lv - float(e["speed"]) >= _horn_close_kmh \
 				and _horn_wait <= 0.0 and _rng.randf() < _horn_close:
 			_queue_horn(s, vid, str(e.get("set", "")), heavy, 1)
 	_prev_rel = seen
 
 
-func _whoosh(slot: int, vid: int, heavy: bool, rel_kmh: float, dx: float, side: float) -> void:
+func _whoosh(slot: int, vid: int, heavy: bool, own_kmh: float, rel_kmh: float, dx: float, side: float) -> void:
 	var id := "whoosh_truck" if heavy else "whoosh_car"
 	var e := ctx.assets.entry(FOLDER, id) if ctx.assets != null else null
 	if e == null:
 		return
-	var target := float(_wh_lufs["heavy" if heavy else "car"]) + _wh_slope * log(rel_kmh / _wh_ref_kmh) / log(10.0) \
+	var target := float(_wh_lufs["heavy" if heavy else "car"]) + _wh_slope * log(own_kmh / _wh_ref_kmh) / log(10.0) \
 		- 20.0 * log(maxf(dx, 1.0) / _wh_ref_m) / log(10.0)
 	if target < _wh_floor:
 		return
 	var variant := RoadAudio.pick_variant(_rng, e.files.size(), int(_fx_last.get(id, -1)))
 	_fx_last[id] = variant
-	var pitch := clampf(sqrt(rel_kmh / _wh_ref_kmh), 0.8, 1.25)
+	var pitch := clampf(sqrt(rel_kmh / _wh_rel_ref_kmh), 0.8, 1.25)
 	var db := target - _lufs_m(e, variant) - _ref_path_db
 	whooshes_played += 1
 	_play_fx("whoosh", id, variant, db, side * 0.6, pitch, [])

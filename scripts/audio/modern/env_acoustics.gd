@@ -27,9 +27,12 @@ extends ModernAudioModule
 ## Godot's law (left · (1 − p), right · (1 + p)): the level is compensated by 1 + p² so a wider pan keeps its energy.
 ## The predelay of the reverb is one value for all zones (audio.modern.env.predelay_ms) and never changes.
 ##
-## Width of the car (docs/motorsound.md 6.9: the engine v3 is dry; Kompakt, Kombi and Limousine sit in the centre):
-## the reflections reach the two ears at different times (tap times differ per side), which decorrelates the car
-## a little in every zone; nothing is added on the car's own bus.
+## Width of the car (docs/motorsound.md 6.9: the engine v3 is dry; Kompakt, Kombi and Limousine sit in the centre, their
+## channels 0.97–1.00 correlated in the game, the Arcade engine with its short room 0.80–0.99): a short, diffuse room
+## on MCar (audio.modern.env.car_width: AudioEffectReverb, small room, high damping, wet), its input high-passed
+## (hipass 0.1 ≈ 600 Hz) – the strong low harmonics stay in the centre and cannot pull the image to one side, the
+## many partials above are decorrelated. The same idea as Arcade's engine bus (RoomAudio, "engine_width"), here for
+## the whole car (engine, layers, tyres, wind). Fixed: it does not change with the zone.
 
 const PRESET_KEYS: Array[String] = ["tap_db", "tap_pan", "echo_db", "room", "damp", "wet", "hipass", "pre_fb"]
 const SILENT_DB := -70.0
@@ -63,6 +66,7 @@ var predelay_ms := 18.0
 var snow_tap_db := -4.0
 var snow_wet_k := 0.6
 var snow_damp_add := 0.2
+var car_width: AudioEffectReverb = null   ## the short room of the car on MCar (null: switched off or not live)
 
 var zone := "open"                 ## the preset in use
 var target: Dictionary = {}        ## the preset values the parameters move to (snow applied)
@@ -108,7 +112,25 @@ func _setup() -> void:
 	var refl: AudioEffectDelay = ctx.buses.reflections() if ctx.buses != null else null
 	if refl != null:
 		refl.feedback_lowpass = echo_lp_hz
+	_setup_car_width()
 	_apply(true)
+
+
+func _setup_car_width() -> void:
+	if ctx.buses == null or not bool(ctx.value("env.car_width.enabled", true)):
+		return
+	var fx: AudioEffect = ctx.buses.effect("MCar", "AudioEffectReverb")
+	car_width = fx as AudioEffectReverb if fx is AudioEffectReverb else null
+	if car_width == null:
+		return
+	car_width.dry = 1.0
+	car_width.wet = clampf(ctx.number("env.car_width.wet", 0.5), 0.0, 1.0)
+	car_width.room_size = clampf(ctx.number("env.car_width.room", 0.1), 0.0, 1.0)
+	car_width.damping = clampf(ctx.number("env.car_width.damp", 0.7), 0.0, 1.0)
+	car_width.hipass = clampf(ctx.number("env.car_width.hipass", 0.1), 0.0, 1.0)
+	car_width.predelay_msec = clampf(ctx.number("env.car_width.predelay_ms", 3.0), 0.0, 100.0)
+	car_width.predelay_feedback = 0.0
+	car_width.spread = 1.0
 
 
 ## Preset name for this frame: the camera in a tunnel wins; a canopy over the car; else the feed's zone (a tunnel the
@@ -280,4 +302,5 @@ func blend() -> float:
 func debug_state() -> Dictionary:
 	return {"zone": zone, "blend": blend(), "reflections_db": tap_level_db(), "wet": float(current.get("wet", 0.0)),
 		"room": float(current.get("room", 0.0)), "taps_ms": [taps_ms.x, taps_ms.y], "echo_ms": echo_ms,
-		"echo_db": echo_level_db(), "tap_switches": tap_switches, "snow": snow}
+		"echo_db": echo_level_db(), "tap_switches": tap_switches, "snow": snow,
+		"car_width": car_width.wet if car_width != null else 0.0}
