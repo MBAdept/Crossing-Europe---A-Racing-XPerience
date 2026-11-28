@@ -1,0 +1,12 @@
+pa22_00.png                        arcade  11036  modern  12016  ratio 1.09
+pa22_01.png                        arcade  33090  modern  15505  ratio 0.47
+am22_00.png                        arcade   5819  modern   9480  ratio 1.63
+am22_01.png                        arcade  10450  modern   8871  ratio 0.85
+br22_00.png                        arcade   4864  modern   6271  ratio 1.29
+br22_01.png                        arcade  11471  modern   8564  ratio 0.75
+ly22_00.png                        arcade  20733  modern  11691  ratio 0.56
+ly22_01.png                        arcade  20396  modern  15346  ratio 0.75
+be22_00.png                        arcade  24140  modern  16668  ratio 0.69
+be22_01.png                        arcade  22725  modern  16597  ratio 0.73
+khh22_00.png                       arcade   1763  modern   1455  ratio 0.83
+khh22_01.png                       arcade   3272  modern   4308  ratio 1.32

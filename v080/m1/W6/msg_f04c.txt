@@ -1,0 +1,11 @@
+F-04: Doku (modelle.md Abschnitt 26) und Vertrag A-33 – Nachtfenster der AS5a-Stadthäuser
+
+Bilder angesehen und nachgemessen (sechs Stadtstellen, 22 Uhr, je zwei Bilder;
+warmes Fensterlicht Modern / Arcade): Median 0,75 -> 0,80 (strenge Schwelle),
+0,79 -> 0,90 (weite Schwelle); AS5b 0,96 / 0,87. Hamburg 0,73/0,90 -> 0,92/0,94
+(Hansehaus 0,47 -> 1,41), Amsterdam, Brüssel und Bern höher, Paris und Lyon
+gleich (dort zeigen die Bilder vor allem andere Bauten). lit_k 1,35 bleibt.
+Hinweise in Abschnitt 20/21, dass seit F-04 einige Fenster mehr leuchten.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

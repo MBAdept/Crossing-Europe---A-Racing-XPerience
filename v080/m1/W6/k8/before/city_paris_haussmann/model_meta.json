@@ -1,0 +1,51 @@
+{
+ "version": 1,
+ "exporter": "ce3d 1",
+ "id": "props/city_paris_haussmann",
+ "key": "ddf051ca3a882d24cc44",
+ "model": {
+  "kind": "building",
+  "object": {"width_m": 23.7, "height_m": 26.27, "length_m": 15.0},
+  "extent_m": {"left": 16.48, "right": 11.32},
+  "aabb": [-12.15, 0.0, -15.62, 11.82, 26.59, 2.55],
+  "lods": [
+   {
+    "name": "lod0",
+    "max_dist_m": 60.0,
+    "tris": 6518,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_paris_haussmann/lod0_body.res",
+      "classes": ["vpbr", "baked_cutout"]
+     }
+    ]
+   },
+   {
+    "name": "lod1",
+    "max_dist_m": 100000,
+    "tris": 3714,
+    "parts": [
+     {
+      "node": "body",
+      "mesh": "props/city_paris_haussmann/lod1_body.res",
+      "classes": ["vpbr", "baked"]
+     }
+    ]
+   }
+  ],
+  "textures": {"albedo": "props/city_paris_haussmann/albedo.webp", "emit": "props/city_paris_haussmann/emit.png"},
+  "roughness": 0.86,
+  "auto_lod": false,
+  "tags": ["prop", "building", "city", "mirror_left", "paris", "center"]
+ },
+ "sets": {
+  "props/city_paris_haussmann": {"model": "props/city_paris_haussmann"}
+ },
+ "meshes": {
+  "lod0_body": {"tris": 6518, "auto_lod": false, "verts": 10904},
+  "lod1_body": {"tris": 3714, "auto_lod": false, "verts": 6572}
+ },
+ "textures": ["albedo.webp", "emit.png"],
+ "glb_bytes": 720144
+}

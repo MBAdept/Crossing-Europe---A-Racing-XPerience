@@ -1,0 +1,16 @@
+K8 (1/2, WIP): Exporter – Rückwände des Haussmann-Eckhauses lesen die Gegenwand, verschoben
+
+KRITIK-5a2 K8: Rück- und rechte Wand des Eckhauses waren blanker Putz, weil die
+abgeschrägte Ecke Front und linke Wand um 4,2 m kürzer macht als die Wände
+gegenüber – der Bauer fand keine passende Gegenwand (far_kept 4).
+- cities3d._far_split(shift): schneidet eine Fernwand dort, wo die Gegenwand
+  endet; das Stück dahinter liest die Gegenwand um du verschoben – die kleinste
+  Verschiebung, deren beide Kanten auf jedem Geschoss durch glatte Wand laufen
+  (kein Fenster, kein Laden an der Naht oder an der Hausecke).
+- far_uvs: Verschiebung je Fläche (Standard 0).
+- catalog3d: far_shift=True nur für city_paris_corner; alle anderen Modelle
+  ohne Schalter unverändert (Neutralitätsprüfung folgt mit dem Export).
+Export, Ansicht und Prüfungen folgen in Teil 2.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

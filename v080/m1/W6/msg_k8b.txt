@@ -1,0 +1,16 @@
+K8 (2/2): Haussmann-Eckhaus mit Fassade an Rück- und rechter Wand; Doku Abschnitt 27, Vertrag A-34
+
+- city_paris_corner neu exportiert und gebacken: 8 Fernflächen zugeordnet
+  (vorher 0), 2 Schnitte; lod0 5687 / lod1 3430 Dreiecke (+12), Atlas gleich.
+  Rückwand fünf Achsen und fünf Bogenläden, rechte Wand vier und vier – ohne
+  angeschnittene Fenster; nachts mit erleuchteten Fenstern und Auslagen.
+  Angesehen in Blender (vier Seiten, vorher/nachher) und in prop_scene
+  (yaw 0/90/180/270, 12 und 22 Uhr, 20/45/100 m).
+- Gegenprobe: city_paris_haussmann ohne far_shift neu exportiert –
+  byte-gleich bis auf den Cache-Schlüssel.
+- Manifest und validate_models OK. Die Tore (Arcade, Modern, Suite, alle
+  Render-Prüfungen) laufen auf diesem Stand.
+- modelle.md: neuer Abschnitt 27; Abschnitt 26 Zeilen umbrochen.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

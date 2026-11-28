@@ -1,0 +1,12 @@
+F-04 (2/2, WIP): AS5a-Stadthäuser mit lit_k 1,35 neu exportiert und gebacken
+
+Sicherungsstand vor dem Ansehen; Nachtbilder und Messung folgen.
+- 23 Modelle neu exportiert: Dreiecke je Stufe wie im Manifest, nur die
+  Nachtlicht-Atlanten ändern sich (21 von 23).
+- Unverändert: city_german_office (Glasfassade mit eigenem Lichtmaterial,
+  nicht über wallmat) und city_french_sud (10 Fenster, keine Zufallszahl im
+  neuen Bereich 0,45–0,61).
+- Bake, Import, Manifest (165 Modelle, 183 Sets) und validate_models OK.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01PFUioZ3CbJFXvrcqAMyLYq

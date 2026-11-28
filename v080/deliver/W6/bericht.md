@@ -33,6 +33,12 @@ seinem Sprite angesehen (80–1 200 m) und, wo es geht, im Rennen gegen Arcade v
 - **Rennanzeige und Radarwarnung nach deinem Wunsch** (§10): Oben gibt es keine Streckenübersicht mehr, nur noch
   „noch 104 km“ bis zum Ziel. Die Radarwarnung kommt je Radar 5–10 km vor dem Feld statt immer 10 km. Beides gilt in
   beiden Grafikmodi.
+- **Mehr Licht in den Fenstern der älteren Stadthäuser** (§11, Folge deiner Antwort „lebendig“): In den 23 Häusern
+  von Hamburg bis Bern leuchten nachts mehr Fenster als im Arcade-Bild (alle des Arcade-Bilds und einige dazu). Am
+  deutlichsten in Hamburg (Hansehaus: vorher halb so viel Fensterlicht wie Arcade, jetzt 1,4-mal so viel), Amsterdam
+  und Brüssel.
+- **Rückseite des Pariser Eckhauses** (§12, kleiner Punkt aus der Kunstkritik): statt blanker Putzwände jetzt Fenster
+  und Läden wie an der Front.
 
 ## 2. Frage an dich: Nachtfassaden heller als in Arcade (B-N1)
 
@@ -46,7 +52,7 @@ Die Nachtfassade der Elbphilharmonie misst 1,01 × Arcade, der Bremer Dom 0,97 �
 Fenster stechen mehr heraus)? Beides geht; ich würde es lassen, bis du das Spiel nachts selbst gesehen hast.
 
 **Entschieden (27.11.):** lebendig lassen. Die Nachtfassaden bleiben so; Häuser, deren Fenster nachts schwächer
-leuchten als Arcade (F-04: Hansehaus 0,46 ×), werden auf dieses Niveau angehoben (§9).
+leuchten als Arcade (F-04: Hansehaus 0,46 ×), werden auf dieses Niveau angehoben (§9, umgesetzt in §11).
 
 ## 3. AS5b – Stadthäuser Teil 2
 
@@ -185,8 +191,8 @@ Deine vier Leistungstests (Deck OLED, 1280×800; Testbuild 1 und 2, je „Steam 
 | Fenster der Tankstelle, des Bauernhofs, des Zollhäuschens (A-16) | angesehen: tags dunkle Scheiben, nachts warm erleuchtet – gut, kein Umbau nötig |
 | Flimmern Kontor (lod1), Grachtenhaus, Chalet (lod0) | nachgemessen (Bildwechsel bei 120 km/h, Modell / Sprite): Kontor 100 m 7,5 / 4,9 %, 150 m 1,2 / 0,4 %; Grachtenhaus 40 m 19,5 / 17,3 %; Chalet 40 m 5,2 / 4,1 % – 1,1–1,5 × das Sprite (das Kontor bei 150 m 3 × auf niedrigem Niveau: helle Fensterrahmen auf dunklem Backstein). Kein Eingriff |
 | Gartenbaum (K3), Wandleuchten (K9), Fernblässe Maashaus | schon in AS5aR2 / FIX-R7c behandelt |
-| Rückseite Eckhaus (K8) | offen, klein (8 Aufstellungen, nur in Kurven sichtbar) |
-| Nachtfenster der Stadthäuser (Hansehaus 0,46 × Arcade) | offen – gehört zu deiner Frage B-N1 (Nachtfassaden der neuen Häuser 1,5–1,7 × Arcade): beides zusammen abgleichen, sobald du entschieden hast |
+| Rückseite Eckhaus (K8) | **erledigt** (§12): Rück- und rechte Wand zeigen jetzt die Fassade statt blankem Putz |
+| Nachtfenster der Stadthäuser (Hansehaus 0,46 × Arcade) | **erledigt** nach deiner Antwort „lebendig“ (§11): mehr erleuchtete Fenster in den 23 älteren Stadthäusern, Hansehaus jetzt 1,41 × |
 
 ## 10. Rennanzeige ohne Streckenübersicht, Radarwarnung 5–10 km vorher (dein Wunsch)
 
@@ -229,3 +235,79 @@ Prüfungen (Stand 2977f70 + 8f6c0d1 + 8e9a3ea):
 | Modern nach der Neuaufnahme (`modern-check`, zur Bestätigung) | 6 von 6 identisch |
 | Ganze Suite (`tools/run_tests.sh`) | 860 Tests, 0 fehlgeschlagen, alle CHECKS OK |
 | Alle Render-Prüfungen (`tools/run_render_checks.sh all`) | 33 von 33 Prüfdateien in Ordnung |
+
+## 11. Mehr erleuchtete Nachtfenster in den älteren Stadthäusern (F-04, nach deiner Antwort „lebendig“)
+
+**Was war:** Die 23 Stadthäuser der ersten Charge (deutsche Häuser, Altstadt, Hanse, Niederlande, Belgien,
+Frankreich, Paris, Schweiz) hatten nachts weniger warmes Fensterlicht als Arcade – im Median 0,75 ×, das Hansehaus in
+Hamburg nur 0,47 ×. Die neueren Häuser aus Welle 6 liegen bei 0,96 ×.
+
+**Was ich geändert habe:** Jedes Haus übernimmt aus seinem Arcade-Bild, welche Fenster nachts leuchten. Jetzt leuchten
+zusätzlich etwa ein Drittel mehr Fenster (Anteil × 1,35, höchstens 85 %, einige bleiben immer dunkel). Jedes Fenster,
+das in Arcade leuchtet, leuchtet weiter. Läden, Türen und die Form der Häuser sind unverändert. Zwei Häuser ändern
+sich nicht: das Bürohochhaus (Glasfassade mit eigenem Licht) und das südfranzösische Haus (zehn Fenster, keines
+wechselt).
+
+**Ergebnis** (warmes Fensterlicht Modern / Arcade, 22 Uhr, je zwei Bilder):
+
+| Stadt | vorher | nachher |
+|---|---|---|
+| Hamburg (km 88,2) | 0,73 / 0,90 | **0,92 / 0,94** (Hansehaus rechts 0,47 → 1,41) |
+| Amsterdam | 1,23 / 0,82 | **1,63 / 0,85** |
+| Brüssel | 1,06 / 0,68 | **1,29 / 0,75** |
+| Bern | 0,65 / 0,70 | **0,69 / 0,73** |
+| Paris | 1,11 / 0,46 | 1,09 / 0,47 |
+| Lyon | 0,57 / 0,77 | 0,56 / 0,75 |
+| **Median** | **0,75** | **0,80** (mit einer weiteren Schwelle, die die etwas dunkleren Modern-Fenster mitzählt: 0,79 → 0,90; Welle 6: 0,87) |
+
+In Paris und Lyon bleibt die Lücke, aber nicht wegen der Fenster: In Paris steht in Arcade ein einzelnes, sehr nahes
+Haus mit riesigen Schaufenstern im Bild, in Lyon sind es vor allem ein allgemeiner Wohnblock und ein Laden (nicht diese
+Häuser). Erleuchtete Fenster sind in Modern allgemein 5–10 % dunkler als in Arcade – bei den neuen Häusern genauso;
+diese Helligkeit ist seit der Nacharbeit AS4R gegen Arcade abgeglichen und gilt für alle Häuser, darum habe ich sie
+nicht angefasst. Wenn dir Modern nachts insgesamt zu dunkel vorkommt, wäre das der nächste Hebel.
+
+Bilder (Arcade / vorher / nachher übereinander): `scratchpad/v080/m1/W6/f04/cmp_khh00.jpg` (Hamburg),
+`cmp_am00.jpg`, `cmp_br01.jpg`, `cmp_be00.jpg`, `cmp_pa01.jpg`, `cmp_ly00.jpg`, `cmp_ly01.jpg`. Doku:
+`docs/modelle.md` Abschnitt 26, Vertrag A-33.
+
+Prüfungen (Stand 5aa984c Modelle + 9cc4d2c Doku):
+
+| Prüfung | Ergebnis |
+|---|---|
+| Export der 23 Häuser | ohne Fehler; Dreiecke je Stufe genau wie vorher (nur die Nachtlicht-Texturen ändern sich, bei 21 von 23) |
+| Gegenprobe ohne Änderung | ein anderes Stadthaus neu exportiert: byte-gleich bis auf den Cache-Schlüssel |
+| Backen, Manifest, Modellprüfer | in Ordnung (165 Modelle, 183 Sets) |
+| Arcade (`golden.sh check`) | 20 von 20 Rennbildern, 17 von 17 Menübildern identisch (Arcade zeichnet keine Modelle) |
+| Modern (`modern-check`) | 6 von 6 identisch (die Prüfbilder zeigen keine neu erleuchteten Fenster); OpenGL ES 2/255, 73,2 dB |
+| Ganze Suite | 860 Tests, 0 fehlgeschlagen, alle CHECKS OK |
+| Alle Render-Prüfungen | 33 von 33 Prüfdateien in Ordnung (nach einem Neustart des Containers einmal ganz wiederholt) |
+
+## 12. Rückseite des Pariser Eckhauses (K8, kleiner offener Punkt aus der Kunstkritik)
+
+**Was war:** Das Haussmann-Eckhaus (Paris, 8 Aufstellungen im Netz) hatte hinten und rechts blanke Putzwände. Modern
+gibt abgewandten Wänden keine eigene Textur, sie zeigen gespiegelt die Wand gegenüber. Wegen der abgeschrägten Ecke
+sind Front und linke Wand aber 4,2 m kürzer als die Wände gegenüber, darum fand der Exporter keine passende Wand.
+
+**Was ich geändert habe:** Eine solche Wand wird jetzt dort geteilt, wo die Gegenwand endet. Das überstehende Stück
+zeigt die Gegenwand um genau so viel verschoben, dass an der Naht und an der Hausecke kein Fenster und kein Laden
+angeschnitten wird. Das gilt nur für dieses Haus; ein anderes Haus mit gespiegelten Wänden habe ich zur Kontrolle neu
+exportiert – byte-gleich.
+
+**Ergebnis:** Rückwand mit fünf Fensterachsen und fünf Bogenläden, rechte Wand mit vier Achsen und vier Läden, bei
+Tag wie die Front, nachts mit erleuchteten Fenstern und Auslagen. +12 Dreiecke je Stufe, gleiche Texturgröße.
+
+Bilder: `scratchpad/v080/m1/W6/k8/view/sheet.jpg` (oben vorher, unten nachher, vier Seiten),
+`k8/shots/corner_100m.jpg` (Rück- und rechte Wand aus 100 m), `k8/shots/corner_sides.jpg` (Tag und Nacht).
+Doku: `docs/modelle.md` Abschnitt 27, Vertrag A-34.
+
+Prüfungen (Stand 3464880):
+
+| Prüfung | Ergebnis |
+|---|---|
+| Export des Eckhauses | ohne Fehler; Rück- und rechte Wand finden jetzt ihre Gegenwand (vorher blank), LOD0 5687 / LOD1 3430 Dreiecke |
+| Gegenprobe ohne Änderung | ein anderes Haus mit gespiegelten Wänden neu exportiert: byte-gleich bis auf den Cache-Schlüssel |
+| Backen, Manifest, Modellprüfer | in Ordnung; Eckhaus 428,7 → 467,7 kB |
+| Arcade (`golden.sh check`) | 20 von 20 Rennbildern, 17 von 17 Menübildern identisch |
+| Modern (`modern-check`) | 6 von 6 identisch (das Eckhaus steht in keinem Prüfbild); OpenGL ES 2/255, 73,2 dB |
+| Ganze Suite | 860 Tests, 0 fehlgeschlagen, alle CHECKS OK |
+| Alle Render-Prüfungen | 33 von 33 Prüfdateien in Ordnung |

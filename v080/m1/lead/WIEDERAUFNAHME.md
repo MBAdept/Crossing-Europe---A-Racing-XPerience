@@ -1,4 +1,4 @@
-# Wiederaufnahme (zuletzt aktualisiert 24.11.2026 ~18:15 UTC)
+# Wiederaufnahme (zuletzt aktualisiert 28.11.2026 ~05:10 UTC)
 
 Haltung des Nutzers: Qualität vor Tempo, keine Prüfungen/Nacharbeit streichen; Lackflackern pausiert (A-21);
 „bitte ohne meine Testergebnisse erst einmal weitermachen“. Nutzer schreibt Deutsch; Tags/Releases macht der Nutzer.
@@ -148,6 +148,26 @@ Haltung des Nutzers: Qualität vor Tempo, keine Prüfungen/Nacharbeit streichen;
    F-04: 23 Exporte rc 0 (Dreiecke wie Manifest, nur Licht), Bake/Import/Manifest/validate OK (23:12). after.sh macht
    A/B nach f04/after/ + warm.txt (Ende "F04 AFTER DONE" in logs/f04.log). Danach ansehen, ggf. lit_k je Stadt, Tore.
    Archiv: archiv.sh + archiv_push.sh (push jetzt aus qamid-fix, --git-dir; alter wf_a71eeb2e-Baum ist weg).
+   23:55 F-04: Modelle 5aa984c (21/23 emit geändert; office/french_sud gleich), Doku+Vertrag A-33 9cc4d2c (gepusht).
+   Messung f04/after/warm_final.txt: Median streng 0,75->0,80, weit 0,79->0,90 (AS5b 0,96/0,87), khh Hansehaus
+   0,47->1,41. lit_k 1,35 bleibt. Vergleichsbilder f04/cmp_*.jpg (khh neu bei km 88,2; S4-Fehlschuss in after/s4).
+   Laufend: gates_f04.sh (check, modern-check KEEP gates_f04/modern_keep, Suite, render all) -> danach Modern-Bilder
+   ansehen, ggf. modern-make; Bericht W6 §11 TORE_F04_PLATZHALTER füllen; Archiv pushen; Task #136 schließen.
+   00:50 F-04 Tore: check 20/20+17/17, modern 6/6 (kein Neuaufnehmen), Suite 860/0; render_all läuft.
+   K8 (Task #138, Eckhaus-Rückseite): Exporter 20c9776 (far_shift nur paris_corner; Haussmann-Block neu exportiert
+   byte-gleich bis auf Schlüssel). Export _cache3d: far_faces 8 / kept 0, cuts 2, lod0 5687 / lod1 3430. Blender-Ansicht
+   k8/view/sheet.jpg + mesh_sheet.jpg gut. k8/after.sh wartet auf "GATES F04 DONE": Bake, Import, Manifest, validate,
+   Ansichten k8/shots (yaw 0/90/180/270, 12/22 h), dann gates_k8 (check, modern KEEP, Suite, render all) -> "K8 GATES DONE"
+   in logs/k8.log. Danach: Ansichten ansehen, Doku modelle.md (Abschnitt 22/K8 + 26?), Bericht W6 §12, Commit Teil 2.
+   03:20 F-04 FERTIG (#136): render all 33/33 (nach Container-Neustart wiederholt); Bericht §11 Tore gefüllt.
+   K8: gebacken + angesehen (k8/shots/corner_100m.jpg, corner_sides.jpg: Rückwand 5 Achsen/5 Läden, rechts 4/4),
+   Commit 3464880 (Assets, modelle.md §27, Vertrag A-34), gepusht. gates_k8: check 20/20+17/17, modern 6/6; Suite und
+   render all laufen (k8/after.sh) -> Bericht §12 TORE_K8_PLATZHALTER füllen, Archiv pushen, Task #138 schließen.
+   28.11. 05:10 K8 FERTIG (#138): Tore auf 3464880 alle grün (check 20/20+17/17, modern 6/6 + GLES 2/255 73,2 dB,
+   Suite 860/0, render all 33/33); Bericht §12 Tore gefüllt. Welle 6 inkl. A-32, F-04, K8 damit abgeschlossen.
+   NÄCHSTES: AU-C2 (Welt, Ambiente, Verkehr, Sirenen) – Vertrag Welle-6-Eintrag, D25–D30, §4.7; audio-modern.md
+   §4.1/§13/§15; Bericht AU-C1. Platzhalter: ambience_audio.gd, traffic_extras.gd, env_acoustics.gd,
+   assets/audio/modern/ambience/platzhalter_bed.ogg. Arbeitsordner m1/AUC2, Bericht deliver/AUC2.
    Nach Neustart: queue_ablmp.sh (A/B, Vorher-Bilder für N6) neu starten (überspringt Fertiges).
    (alt) Nach Neustart: queue_r5.sh, gates2.sh und queue_ablmp.sh neu starten (L2, R4, ab_c1/c2 FERTIG) (setsid nohup bash …); sie überspringen Fertiges.
    Rückstau Modellarbeit (A-29) danach: Sportwagen-Bremsband/Mittelbremslicht, GT-Silber nachts, Limousine Dämmerung,

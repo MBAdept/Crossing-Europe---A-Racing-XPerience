@@ -1,0 +1,13 @@
+Paris (Lüttich–Paris km 387,5)           Bild 00: streng 1.11 -> 1.09   weit 1.47 -> 1.44
+Paris (Lüttich–Paris km 387,5)           Bild 01: streng 0.46 -> 0.47   weit 0.46 -> 0.47
+Amsterdam (Bremen–Amsterdam km 357,3)    Bild 00: streng 1.23 -> 1.63   weit 1.29 -> 1.67
+Amsterdam (Bremen–Amsterdam km 357,3)    Bild 01: streng 0.82 -> 0.85   weit 0.89 -> 0.96
+Brüssel (Köln–Brüssel km 195,5)          Bild 00: streng 1.06 -> 1.29   weit 1.28 -> 1.47
+Brüssel (Köln–Brüssel km 195,5)          Bild 01: streng 0.68 -> 0.75   weit 0.63 -> 0.69
+Lyon (Montpellier–Lyon km 297)           Bild 00: streng 0.57 -> 0.56   weit 0.63 -> 0.62
+Lyon (Montpellier–Lyon km 297)           Bild 01: streng 0.77 -> 0.75   weit 0.91 -> 0.89
+Bern (Lyon–Bern km 302,3)                Bild 00: streng 0.65 -> 0.69   weit 0.65 -> 0.74
+Bern (Lyon–Bern km 302,3)                Bild 01: streng 0.70 -> 0.73   weit 0.64 -> 0.71
+Hamburg (Kiel–Hamburg km 88,2)           Bild 00: streng 0.73 -> 0.92   weit 0.69 -> 0.92
+Hamburg (Kiel–Hamburg km 88,2)           Bild 01: streng 0.90 -> 0.94   weit 1.05 -> 1.23
+Median streng 0.75 -> 0.80, weit 0.79 -> 0.90
