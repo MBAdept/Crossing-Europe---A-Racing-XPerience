@@ -17,8 +17,9 @@ extends ModernAudioModule
 ## (frame.state.hour against the daytime of the configuration: night, the dawn chorus, day, dusk), rain (frame.rain) and snow
 ## (feed.snow): insects and birds fall silent in rain and snow, snow makes everything quieter. Speed: a bed and a call
 ## are slope_db per decade quieter above from_kmh (the car covers them anyway – they must not add mud to the mix);
-## above calls_max_kmh no call starts. Pause: the beds go on, pause_db quieter (the pause snapshot muffles MAmb);
-## no call starts. Without a running stage (frame.alive false, no state) everything fades out.
+## above calls_max_kmh no call starts. Pause: the beds go on with their weights, pause_db quieter (the pause snapshot
+## muffles MAmb); no call starts. Without a running stage (no engine calls, no state) for hold_s outside a pause
+## everything fades out.
 ##
 ## Levels are data (audio.modern.ambience): each bed's loudness at the master at weight 1 and standstill
 ## (beds.<id>.lufs), each category's momentary loudness (calls.<cat>.lufs_m) – measured against the files' manifest
@@ -88,11 +89,15 @@ var _rates_cfg: Dictionary = {}
 var _daytime: Dictionary = {}
 var _vp: SubViewport = null
 var _call_players: Array[AudioStreamPlayer2D] = []
-var _call_next := 0
 var _call_last: Dictionary = {}   ## sound id -> last variant
 var _rng := RandomNumberGenerator.new()
 var _on := false
+var _was_running := false
+var _off_s := 0.0                 ## seconds without a running stage (outside a pause)
+var _hold_s := 0.75
 var _was_tunnel := false
+var _fast_s := 0.0                ## > 0: the quick fade of a tunnel portal is still on
+var _fast_hold_s := 2.0
 
 
 func _setup() -> void:
@@ -126,6 +131,7 @@ func _setup() -> void:
 	var dt: Variant = ConfigLoader.lookup(ctx.cfg, "daytime", {})
 	_daytime = dt if dt is Dictionary else {}
 	_rng.seed = int(ctx.number("ambience.seed", 7301))
+	_hold_s = maxf(ctx.number("ambience.hold_s", _hold_s), 0.0)
 	for id in BEDS:
 		var b := Bed.new()
 		b.id = id
@@ -259,12 +265,26 @@ func _rate(cat: String, default_per_min: float) -> float:
 
 
 func update(frame: ModernAudioFrame) -> void:
-	_on = frame.alive or (frame.paused and frame.has_state)
-	compute(frame)
+	# A running stage: the session drives the car or sends its state. ModernAudio reports neither while the game is
+	# paused (and for a frame after a long hitch, docs "Fallen" 15) – the stage still runs then: the beds go on with the
+	# weights they had (no feed to compute new ones), only hold_s without a stage outside a pause end them.
+	var running := frame.alive or frame.has_state
+	if running:
+		_off_s = 0.0
+		_was_running = true
+	elif not frame.paused:
+		_off_s += frame.dt
+		if _off_s >= _hold_s:
+			_was_running = false
+	_on = running or _was_running
+	if running or not _was_running:
+		compute(frame)
 	var v := maxf(frame.speed, 0.0)
-	var tunnel_change := frame.tunnel != _was_tunnel
+	if frame.tunnel != _was_tunnel:
+		_fast_s = _fast_hold_s          # into or out of a tunnel: the beds follow quickly, not only in this frame
 	_was_tunnel = frame.tunnel
-	var tau := _tunnel_fade_s if (frame.tunnel or tunnel_change) else _fade_s
+	_fast_s = maxf(_fast_s - frame.dt, 0.0)
+	var tau := _tunnel_fade_s if (frame.tunnel or _fast_s > 0.0) else _fade_s
 	var k := 1.0 - exp(-frame.dt / tau)
 	var pause_k := db_to_linear(_pause_db) if frame.paused else 1.0
 	for id: String in beds:
@@ -330,19 +350,37 @@ func _call(cat: String, kmh: float) -> void:
 	var pitch := 1.0 + _rng.randf_range(-_call_pitch, _call_pitch)
 	calls_played += 1
 	last_call = {"id": id, "variant": variant, "category": cat, "db": db, "pan": pan, "pitch": pitch}
-	if _call_players.is_empty():
-		return
-	var pl: AudioStreamPlayer2D = _call_players[_call_next]
-	_call_next = (_call_next + 1) % _call_players.size()
+	var pl := free_voice(_call_players)
 	if pl == null:
 		return
 	pl.stream = ctx.assets.stream(FOLDER, id, variant)
 	pl.pitch_scale = pitch
-	ModernAudioPan.apply(pl, db_to_linear(db), pan)
-	pl.play()
+	if ModernAudioPan.apply(pl, db_to_linear(db), pan):
+		pl.play()
+
+
+## A player for a one-shot: a silent one, else the one with the least left to play (a long bell is not cut by the
+## next sparrow). null without players.
+static func free_voice(players: Array[AudioStreamPlayer2D]) -> AudioStreamPlayer2D:
+	var best: AudioStreamPlayer2D = null
+	var best_left := INF
+	for p in players:
+		if p == null:
+			continue
+		if not p.playing:
+			return p
+		var left := INF
+		if p.stream != null:
+			left = (p.stream.get_length() - p.get_playback_position()) / maxf(p.pitch_scale, 0.01)
+		if left < best_left:
+			best_left = left
+			best = p
+	return best
 
 
 func stop_all() -> void:
+	_was_running = false
+	_off_s = _hold_s
 	for id: String in beds:
 		var b: Bed = beds[id]
 		b.weight = 0.0

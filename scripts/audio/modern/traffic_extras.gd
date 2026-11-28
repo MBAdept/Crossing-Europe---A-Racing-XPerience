@@ -25,11 +25,14 @@ extends ModernAudioModule
 ##               whoosh.own_min_kmh, relative speed ≥ whoosh.min_kmh) throws a gust: a short swish of a car, the
 ##               pressure wave and buffeting of a truck or bus – at its side, louder with the vehicle's own speed (the
 ##               air it pushes: whoosh.slope_db per decade over whoosh.ref_kmh) and the nearness (1 / lateral
-##               distance), quicker (pitch) with the relative speed; a standing car throws nothing
+##               distance, flat inside whoosh.ref_m), quicker (pitch) with the relative speed; a standing car throws
+##               nothing
 ##   horns       rare and at random: a vehicle the player hit honks after a reaction time (horns.after_collision),
 ##               one the player squeezed past much faster honks twice (horns.close_pass); a truck its air horn, a
-##               hatchback its small horn; at the vehicle's place (pan, distance, Doppler, followed while it sounds);
-##               never the police; at most one horn per horns.cooldown_s
+##               hatchback its small horn; at the vehicle's place (pan, distance, Doppler, followed while it sounds),
+##               1 / distance over horns.ref_m but flat inside horns.near_m and never above horns.max_lufs; never the
+##               police (when the police car is the nearest, nobody honks); at most one horn per horns.cooldown_s; a
+##               horn still waiting when the game is paused is dropped
 ##   siren       the Modern siren (traffic/siren) with the distance law of Arcade's TrafficAudio (siren_ref_m,
 ##               siren_rolloff, siren_floor), its level a target at the master (siren_lufs at or inside
 ##               siren_ref_m); the centred fallback (no police car in the list) at the session's level × that
@@ -122,6 +125,8 @@ var _wh_lufs := {"car": -27.0, "heavy": -22.0}
 var _wh_floor := -50.0
 var _horn_lufs := {"car": -24.0, "small": -25.0, "truck": -20.0}
 var _horn_ref_m := 10.0
+var _horn_near_m := 6.0
+var _horn_max_lufs := -15.0
 var _horn_after_collision := 0.8
 var _horn_close := 0.25
 var _horn_close_m := 1.8
@@ -134,7 +139,6 @@ var _pending: Array[Dictionary] = []   ## horns waiting for their reaction time
 var _horn_wait := 0.0
 var _fx: Array[AudioStreamPlayer2D] = []
 var _fx_follow: Array = []          ## per fx player: [slot, vehicle id] it follows (horns), or []
-var _fx_next := 0
 var _fx_last: Dictionary = {}
 var _frame_vehicles: Array = []
 
@@ -156,6 +160,8 @@ func _setup() -> void:
 	_read_config()
 	modern_sounds = _load_modern()
 	if not modern_sounds:
+		# wave 0 as it was: Arcade's level (the Modern override traffic_db belongs to the Modern sounds)
+		model.level_db = float(ConfigLoader.lookup(ctx.cfg, "audio.traffic_db", model.level_db))
 		var src := ctx.arcade_traffic
 		if src != null and src.ok:
 			# the sounds the AudioManager loaded (read only): no second copy in memory
@@ -168,7 +174,7 @@ func _setup() -> void:
 	var se := ctx.assets.entry(FOLDER, "siren") if ctx.assets != null else null
 	if se != null:
 		model.siren_db = ctx.number("traffic.siren_lufs", -17.0) - se.lufs - _ref_path_db
-	siren_amp = db_to_linear(model.siren_db)
+	siren_amp = db_to_linear(model.siren_db) if se != null else 1.0   # without the Modern siren: the session's level
 	_rng.seed = int(ctx.number("traffic.seed", 9203))
 	if ctx.live and ctx.host != null:
 		model.attach(ctx.host, "MWorld")
@@ -195,6 +201,8 @@ func _read_config() -> void:
 	_horn_lufs = {"car": ctx.number("traffic.horns.car_lufs", -24.0), "small": ctx.number("traffic.horns.small_lufs", -25.0),
 		"truck": ctx.number("traffic.horns.truck_lufs", -20.0)}
 	_horn_ref_m = maxf(ctx.number("traffic.horns.ref_m", _horn_ref_m), 1.0)
+	_horn_near_m = maxf(ctx.number("traffic.horns.near_m", _horn_near_m), 1.0)
+	_horn_max_lufs = ctx.number("traffic.horns.max_lufs", _horn_max_lufs)
 	_horn_after_collision = clampf(ctx.number("traffic.horns.after_collision", _horn_after_collision), 0.0, 1.0)
 	_horn_close = clampf(ctx.number("traffic.horns.close_pass", _horn_close), 0.0, 1.0)
 	_horn_close_m = ctx.number("traffic.horns.close_m", _horn_close_m)
@@ -267,6 +275,8 @@ func update(frame: ModernAudioFrame) -> void:
 		_passes(vehicles)
 	else:
 		_prev_rel.clear()
+	if frame.paused:
+		_pending.clear()                # no horn into the pause menu (and none after it out of nowhere)
 	_step_pending(frame.dt)
 	_follow()
 
@@ -308,7 +318,7 @@ func _whoosh(slot: int, vid: int, heavy: bool, own_kmh: float, rel_kmh: float, d
 	if e == null:
 		return
 	var target := float(_wh_lufs["heavy" if heavy else "car"]) + _wh_slope * log(own_kmh / _wh_ref_kmh) / log(10.0) \
-		- 20.0 * log(maxf(dx, 1.0) / _wh_ref_m) / log(10.0)
+		- 20.0 * log(maxf(dx, _wh_ref_m) / _wh_ref_m) / log(10.0)
 	if target < _wh_floor:
 		return
 	var variant := RoadAudio.pick_variant(_rng, e.files.size(), int(_fx_last.get(id, -1)))
@@ -346,7 +356,10 @@ func _step_pending(dt: float) -> void:
 		if e == null:
 			continue
 		var variant := clampi(int(p["variant"]), 0, e.files.size() - 1)
-		var target := float(_horn_lufs.get(kind, -24.0)) - 20.0 * log(maxf(v.distance, 1.0) / _horn_ref_m) / log(10.0)
+		# louder when nearer, but flat inside near_m and never above max_lufs: a horn next to the car would otherwise
+		# reach −6 LUFS momentary and press the limiter down for everything (KRITIK AU-C2, finding 2)
+		var target := minf(float(_horn_lufs.get(kind, -24.0)) - 20.0 * log(maxf(v.distance, _horn_near_m) / _horn_ref_m) / log(10.0),
+			_horn_max_lufs)
 		var db := target - _lufs_m(e, variant) - _ref_path_db
 		horns_played += 1
 		_play_fx("horn", id, variant, db, v.pan, clampf(v.doppler, 0.5, 2.0), [s, v.vehicle])
@@ -355,19 +368,15 @@ func _step_pending(dt: float) -> void:
 
 func _play_fx(kind: String, id: String, variant: int, db: float, pan: float, pitch: float, follow: Array) -> void:
 	last_fx = {"kind": kind, "id": id, "variant": variant, "db": db, "pan": pan, "pitch": pitch}
-	if _fx.is_empty():
-		return
-	var i := _fx_next
-	_fx_next = (_fx_next + 1) % _fx.size()
-	var pl := _fx[i]
-	_fx_follow[i] = follow
+	var pl := AmbienceAudio.free_voice(_fx)
 	if pl == null:
 		return
+	_fx_follow[_fx.find(pl)] = follow
 	pl.stream = ctx.assets.stream(FOLDER, id, variant)
 	pl.pitch_scale = pitch
 	pl.set_meta("gain", db_to_linear(db))
-	ModernAudioPan.apply(pl, db_to_linear(db), pan)
-	pl.play()
+	if ModernAudioPan.apply(pl, db_to_linear(db), pan):
+		pl.play()
 
 
 ## Horns follow their vehicle's side while they sound.
@@ -385,17 +394,20 @@ func _follow() -> void:
 func event(event_name: String, args: Dictionary) -> void:
 	if event_name != "collision" or _horn_wait > 0.0 or _rng.randf() >= _horn_after_collision:
 		return
-	# the vehicle the player hit: the nearest voice within 15 m (the session does not name it)
+	# the vehicle the player hit: the nearest voice within 15 m (the session does not name it); the police never honks
+	# – when it is the nearest, nobody does (not an uninvolved car further away)
 	var best := -1
 	var best_d := 15.0
 	for s in model.voices.size():
 		var v := model.voices[s]
-		if v.vehicle == TrafficAudio.NONE or v.vehicle == TrafficAudio.POLICE_ID or v.releasing:
+		if v.vehicle == TrafficAudio.NONE or v.releasing:
 			continue
 		if v.distance < best_d:
 			best_d = v.distance
 			best = s
-	if best < 0:
+	if model.siren.vehicle == TrafficAudio.POLICE_ID and model.siren.distance < best_d:
+		return
+	if best < 0 or model.voices[best].vehicle == TrafficAudio.POLICE_ID:
 		return
 	var idx := model.slot_index(best)
 	var set_id := ""

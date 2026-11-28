@@ -1,5 +1,6 @@
 extends TestCase
-## AU-C2: the slots "env" (EnvAcoustics), "ambience" (AmbienceAudio) and "traffic" (TrafficExtras) without players –
+## AU-C2: the slots "env" (EnvAcoustics), "ambience" (AmbienceAudio) and "traffic" (TrafficExtras) without players
+## (the pause also through ModernAudio.step(), as the game makes it) –
 ## zone presets on MEnv (tap times changed only while the taps are silent, the valley echo, the tunnel, snow), the
 ## weights of the ambience beds and the rates of the calls (zone, scenery, hour, weather, canopy, tunnel), their levels
 ## against the manifest loudness and the speed fade, the calls' randomness; the Modern traffic sounds and classes, the
@@ -134,6 +135,33 @@ func test_env_valley_echo_and_tunnel() -> void:
 	_done(m)
 
 
+func test_env_holds_its_zone_in_the_pause_and_a_hitch() -> void:
+	var m := _modern()
+	var env := m.env
+	var city := _frame(50.0, {"zone": "city"})
+	for i in 240:
+		env.update(city)
+	var switches := env.tap_switches
+	var invalid := _frame(50.0, {"zone": "city"})
+	invalid.feed.valid = false
+	invalid.paused = true
+	for i in 600:
+		env.update(invalid)
+	assert_eq(env.zone, "city", "Pause: Zone gehalten")
+	invalid.paused = false
+	invalid.dt = 0.4                    # a hitch of 0.4 s: one frame without a feed
+	env.update(invalid)
+	assert_eq(env.zone, "city", "Hänger: Zone gehalten")
+	invalid.dt = DT
+	for i in 30:
+		env.update(city)
+	assert_eq(env.tap_switches, switches, "keine Umstellung der Reflexionen")
+	for i in 90:
+		env.update(invalid)
+	assert_eq(env.zone, "open", "länger ohne Feed: im Freien")
+	_done(m)
+
+
 func test_env_snow_and_cover() -> void:
 	var m := _modern()
 	var env := m.env
@@ -231,17 +259,58 @@ func test_ambience_levels_and_speed_fade() -> void:
 	_amb_run(m, fast, 600)
 	var want := _num("ambience.beds.breeze.lufs") - _num("ambience.beds.breeze.slope_db") * _log10(130.0 / _num("ambience.speed.from_kmh"))
 	assert_near(b.lufs + linear_to_db(b.gain) + ref, want, 0.05, "Abblenden mit dem Tempo")
-	var paused := _frame(0.0, {"zone": "open"}, {"hour": 13.0})
-	paused.alive = false
-	paused.paused = true
-	_amb_run(m, paused, 900)
-	assert_near(b.lufs + linear_to_db(b.gain) + ref, _num("ambience.beds.breeze.lufs") + _num("ambience.pause_db"), 0.1,
-		"Pause: leiser, aber da")
 	var gone := _frame(0.0, {"zone": "open"})
 	gone.alive = false
 	gone.has_state = false
 	_amb_run(m, gone, 900)
 	assert_true(b.gain < 0.001, "ohne Etappe still")
+	_done(m)
+
+
+## The pause as ModernAudio.step() makes it (KRITIK AU-C2, finding 1: neither alive nor has_state while paused).
+func test_ambience_goes_on_in_the_pause() -> void:
+	var m := _modern()
+	var b: AmbienceAudio.Bed = m.ambience.beds["breeze"]
+	var ref := _num("ambience.ref_path_db")
+	for i in 600:
+		m.set_engine(0.0, 0.0, 230.0, true)
+		m.set_vehicle_state({"z": 0.0, "x": 0.0, "speed": 0.0, "hour": 13.0, "weather": "normal"})
+		m.clock_ms += 17
+		m.step(DT, false)
+	var before := b.lufs + linear_to_db(b.gain) + ref
+	assert_near(before, _num("ambience.beds.breeze.lufs"), 0.1, "im Stand wie geplant")
+	var calls := m.ambience.calls_played
+	for i in 600:
+		m.clock_ms += 17
+		m.step(DT, true)
+	assert_false(m.frame.alive or m.frame.has_state, "pausiert: weder alive noch Zustand")
+	assert_near(b.lufs + linear_to_db(b.gain) + ref, before + _num("ambience.pause_db"), 0.1, "Pause: leiser, aber da")
+	assert_eq(m.ambience.calls_played, calls, "in der Pause kein Ruf")
+	for i in 600:
+		m.set_engine(0.0, 0.0, 230.0, true)
+		m.set_vehicle_state({"z": 0.0, "x": 0.0, "speed": 0.0, "hour": 13.0, "weather": "normal"})
+		m.clock_ms += 17
+		m.step(DT, false)
+	assert_near(b.lufs + linear_to_db(b.gain) + ref, before, 0.1, "nach der Pause wie vorher")
+	# the stage ends: after hold_s without the session the beds fade out
+	for i in 600:
+		m.clock_ms += 17
+		m.step(DT, false)
+	assert_true(b.gain < 0.001, "Etappe vorbei: still")
+	_done(m)
+
+
+func test_ambience_tunnel_exit_is_quick() -> void:
+	var m := _modern()
+	var a := m.ambience
+	var inside := _frame(80.0, {"zone": "tunnel", "tunnel": true}, {"hour": 13.0}, true)
+	_amb_run(m, inside, 300)
+	assert_true((a.beds["tunnel_fans"] as AmbienceAudio.Bed).weight > 0.95, "im Tunnel: Lüfter")
+	var out := _frame(80.0, {"zone": "open"}, {"hour": 13.0})
+	_amb_run(m, out, 60)
+	assert_true((a.beds["tunnel_fans"] as AmbienceAudio.Bed).weight < 0.15,
+		"eine Sekunde nach der Ausfahrt sind die Lüfter fast weg (%.2f)" % (a.beds["tunnel_fans"] as AmbienceAudio.Bed).weight)
+	assert_true((a.beds["breeze"] as AmbienceAudio.Bed).weight > 0.85, "der Wind ist schon da")
 	_done(m)
 
 
@@ -329,12 +398,14 @@ func test_traffic_modern_sounds_and_levels() -> void:
 		t.update(_tframe([car], 120.0))
 	var v: TrafficAudio.Voice = t.model.voices[0] if t.model.voices[0].vehicle == 5 else t.model.voices[1]
 	assert_eq(v.vehicle, 5, "Stimme vergeben")
+	assert_near(v.fade, 1.0, 1.0e-6, "eingeblendet")
 	for k in 3:
 		var sname: String = v.sounds[k]
 		var s: TrafficAudio.Sound = t.model.sounds[sname]
 		var e := m.assets.entry("traffic", sname)
-		var amp := v.amp[k]
-		var lufs := e.lufs + 20.0 * _log10(amp) - 3.0103 + ref
+		# from the channel gains TrafficAudio hands to its players (not from the level formula): the manifest measures
+		# the file on both channels at gain 1
+		var lufs := e.lufs + 10.0 * _log10((v.gl[k] * v.gl[k] + v.gr[k] * v.gr[k]) / 2.0) + ref
 		var want := float(ConfigLoader.lookup(cfg(), "audio.modern.traffic.levels." + sname, -30.0))
 		var d_db := 20.0 * _log10(t.model.distance_gain(v.distance, t.model.ref_m, t.model.max_m,
 			TrafficAudio.AIR_ROLLOFF if k == 2 else t.model.rolloff))
@@ -413,6 +484,12 @@ func test_traffic_horn_after_collision() -> void:
 		t.update(_tframe([truck], 80.0))
 	assert_eq(t.horns_played - n0, 1, "der Lkw hupt nach der Reaktionszeit")
 	assert_eq(str(t.last_fx["id"]), "horn_truck", "Drucklufthorn")
+	var he := m.assets.entry("traffic", "horn_truck")
+	var hl := float((he.meta["lufs_m"] as Array)[int(t.last_fx["variant"])]) + float(t.last_fx["db"]) + _num("traffic.ref_path_db")
+	var hw := minf(_num("traffic.horns.truck_lufs") - 20.0 * _log10(_num("traffic.horns.near_m") / _num("traffic.horns.ref_m")),
+		_num("traffic.horns.max_lufs"))
+	assert_near(hl, hw, 0.05, "Lkw in 2 m: flach innerhalb near_m, höchstens max_lufs (%.1f LUFS)" % hl)
+	assert_true(hl <= _num("traffic.horns.max_lufs") + 0.01, "nie über max_lufs")
 	t.event("collision", {"speed_kmh": 40.0, "heavy": true, "side": 1})
 	for i in 60:
 		t.update(_tframe([truck], 80.0))
@@ -427,6 +504,28 @@ func test_traffic_horn_after_collision() -> void:
 	for i in 60:
 		t.update(_tframe([police], 80.0))
 	assert_eq(t.horns_played - n0, 1, "Polizei hupt nicht")
+	# the police is the nearest, a car further away: nobody honks (not the uninvolved car)
+	t.stop_all()
+	m.traffic._horn_wait = 0.0
+	var car := {"id": 14, "set": "traffic/sedan_red", "z": 6.0, "x": -3.5, "length": 4.7, "speed": 80.0}
+	for i in 5:
+		t.update(_tframe([police, car], 80.0))
+	t.event("collision", {"speed_kmh": 40.0, "heavy": false, "side": 1})
+	for i in 60:
+		t.update(_tframe([police, car], 80.0))
+	assert_eq(t.horns_played - n0, 1, "Polizei am nächsten: niemand hupt")
+	# a horn waiting for its reaction time is dropped when the game is paused
+	t.stop_all()
+	m.traffic._horn_wait = 0.0
+	for i in 5:
+		t.update(_tframe([truck], 80.0))
+	t.event("collision", {"speed_kmh": 40.0, "heavy": true, "side": 1})
+	var pf := _tframe([truck], 80.0)
+	pf.paused = true
+	t.update(pf)
+	for i in 60:
+		t.update(_tframe([truck], 80.0))
+	assert_eq(t.horns_played - n0, 1, "Pause: die wartende Hupe entfällt")
 	_done(m)
 
 

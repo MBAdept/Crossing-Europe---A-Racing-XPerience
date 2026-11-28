@@ -892,6 +892,9 @@ def build(out: str | None, wav_dir: str | None, log=print, only: list[str] | Non
             seam = qc_lib.loop_seam(played, 0, len(played), 0.1, SR)
             if max(seam["ratio"], seam["kink_ratio"]) <= 2.0 or max(seam["loop_ratio"], seam["loop_kink_ratio"]) <= 1.0:
                 break
+        else:
+            print(f"WARNUNG {sid}: Naht auch bei q{q:g} rauer als das Doppelte ihres Umfelds (Sprung "
+                  f"×{seam['ratio']:.2f}, Knick ×{seam['kink_ratio']:.2f}) – audio_qc.py prüft mit ×4", file=sys.stderr)
         if len(played) != n:
             raise ValueError(f"{sid}: Vorbis liefert {len(played)} statt {n} Frames")
         if repo:

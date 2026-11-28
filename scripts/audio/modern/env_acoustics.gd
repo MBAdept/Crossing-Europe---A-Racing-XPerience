@@ -66,6 +66,7 @@ var predelay_ms := 18.0
 var snow_tap_db := -4.0
 var snow_wet_k := 0.6
 var snow_damp_add := 0.2
+var hold_s := 0.75                  ## how long a zone is held while the feed is invalid outside a pause
 var car_width: AudioEffectReverb = null   ## the short room of the car on MCar (null: switched off or not live)
 
 var zone := "open"                 ## the preset in use
@@ -79,8 +80,10 @@ var tap_switches := 0              ## changes of the tap times (tests)
 var echo_switches := 0
 var snow := 0.0
 
-var _tap_phase := 0                ## 0 steady, 1 fading out for new times, 2 fading in
-var _echo_phase := 0
+var _tap_phase := 0                ## 0 steady, 1 fading out, 3 silent (switch next frame), 2 fading in
+var _echo_phase := 0               ## the same; 3 waits until the feedback line has run empty
+var _echo_wait := 0.0
+var _invalid_s := 0.0              ## seconds the feed has been invalid (a pause, a hitch, no stage)
 var _outside_zone := "open"        ## the last zone outside a tunnel (the car may be in a tunnel before the camera)
 var _fade_override := 0.0          ## > 0: the time constant of the current change (into or out of a tunnel)
 var _applied: Dictionary = {}
@@ -95,6 +98,7 @@ func _setup() -> void:
 	snow_tap_db = ctx.number("env.snow.tap_db", snow_tap_db)
 	snow_wet_k = clampf(ctx.number("env.snow.wet_k", snow_wet_k), 0.0, 1.0)
 	snow_damp_add = clampf(ctx.number("env.snow.damp_add", snow_damp_add), 0.0, 1.0)
+	hold_s = maxf(ctx.number("env.hold_s", hold_s), 0.0)
 	presets = {}
 	var over: Variant = ctx.value("env.presets", {})
 	for z: String in PRESETS:
@@ -134,13 +138,15 @@ func _setup_car_width() -> void:
 
 
 ## Preset name for this frame: the camera in a tunnel wins; a canopy over the car; else the feed's zone (a tunnel the
-## camera has not reached yet keeps the zone outside).
+## camera has not reached yet keeps the zone outside). The feed is invalid while the game is paused and for a frame
+## after a long hitch (docs "Fallen" 15): the zone in use is held then, and only hold_s without a feed (the stage is
+## over, a menu) count as the open.
 func zone_of(frame: ModernAudioFrame) -> String:
 	if frame.tunnel:
 		return "tunnel"
 	var f := frame.feed
 	if f == null or not f.valid:
-		return "open"
+		return zone if (frame.paused or _invalid_s < hold_s) else "open"
 	if f.cover != "":
 		return "cover"
 	if f.zone == "tunnel":
@@ -149,11 +155,13 @@ func zone_of(frame: ModernAudioFrame) -> String:
 
 
 func update(frame: ModernAudioFrame) -> void:
+	var valid := frame.feed != null and frame.feed.valid
+	_invalid_s = 0.0 if valid else _invalid_s + (0.0 if frame.paused else frame.dt)
 	var z := zone_of(frame)
 	if z != "tunnel" and z != "cover":
 		_outside_zone = z
-	var s := 0.0
-	if frame.feed != null and frame.feed.valid and not frame.tunnel:
+	var s := snow if (not valid and z == zone) else 0.0
+	if valid and not frame.tunnel:
 		s = clampf(frame.feed.snow, 0.0, 1.0)
 	if z != zone or absf(s - snow) > 0.001:
 		var into_tunnel := (z == "tunnel") != (zone == "tunnel")
@@ -190,6 +198,7 @@ func _snap() -> void:
 	echo_gate = 1.0
 	_tap_phase = 0
 	_echo_phase = 0
+	_echo_wait = 0.0
 	_fade_override = 0.0
 
 
@@ -210,9 +219,11 @@ func _step(dt: float) -> void:
 		1:
 			tap_gate = maxf(tap_gate - g_step, 0.0)
 			if tap_gate <= 0.0:
-				taps_ms = want
-				tap_switches += 1
-				_tap_phase = 2
+				_tap_phase = 3            # the silent level reaches the effect first; the times change next frame
+		3:
+			taps_ms = want
+			tap_switches += 1
+			_tap_phase = 2
 		2:
 			tap_gate = minf(tap_gate + g_step * 0.5, 1.0)
 			if tap_gate >= 1.0:
@@ -225,6 +236,13 @@ func _step(dt: float) -> void:
 		1:
 			echo_gate = maxf(echo_gate - g_step, 0.0)
 			if echo_gate <= 0.0:
+				# the feedback line is switched off now (level silent); what it holds still plays out for one
+				# echo time – its time changes only once it has run empty
+				_echo_wait = echo_ms / 1000.0 + 0.05
+				_echo_phase = 3
+		3:
+			_echo_wait -= dt
+			if _echo_wait <= 0.0:
 				echo_ms = want_echo
 				echo_switches += 1
 				_echo_phase = 2
@@ -256,10 +274,10 @@ func _apply(force: bool) -> void:
 		return
 	var tl := tap_level_db()
 	var pan := clampf(float(current["tap_pan"]), 0.0, 1.0)
+	_put(refl, "tap1_level_db", tl, 0.01, force)        # levels before times (a time changes only while silent)
+	_put(refl, "tap2_level_db", tl, 0.01, force)
 	_put(refl, "tap1_delay_ms", taps_ms.x, 0.01, force)
 	_put(refl, "tap2_delay_ms", taps_ms.y, 0.01, force)
-	_put(refl, "tap1_level_db", tl, 0.01, force)
-	_put(refl, "tap2_level_db", tl, 0.01, force)
 	_put(refl, "tap1_pan", -pan, 0.001, force)
 	_put(refl, "tap2_pan", pan, 0.001, force)
 	var el := echo_level_db()
@@ -268,8 +286,8 @@ func _apply(force: bool) -> void:
 		refl.feedback_active = on
 		_applied["fb_on"] = on
 	if on:
-		_put(refl, "feedback_delay_ms", echo_ms, 0.01, force)
 		_put(refl, "feedback_level_db", el, 0.01, force)
+		_put(refl, "feedback_delay_ms", echo_ms, 0.01, force)
 	_put(rev, "room_size", float(current["room"]), 0.0005, force)
 	_put(rev, "damping", float(current["damp"]), 0.0005, force)
 	_put(rev, "wet", float(current["wet"]), 0.0005, force)
@@ -286,6 +304,7 @@ func _put(fx: Object, prop: String, v: float, eps: float, force: bool) -> void:
 
 func stop_all() -> void:
 	_outside_zone = "open"
+	_invalid_s = hold_s
 	snow = 0.0
 	_set_zone("open")
 	_snap()

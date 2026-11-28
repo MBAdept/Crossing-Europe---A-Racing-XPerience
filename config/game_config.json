@@ -527,7 +527,7 @@
 				"wet": {"tires_car": "tires_car_wet", "tires_truck": "tires_truck_wet"},
 				"whoosh": {"max_m": 4.5, "heavy_max_m": 5.5, "min_kmh": 15.0, "own_min_kmh": 30.0, "ref_kmh": 80.0, "ref_m": 2.0, "slope_db": 20.0,
 					"car_lufs": -27.0, "heavy_lufs": -22.0, "floor_lufs": -50.0},
-				"horns": {"car_lufs": -24.0, "small_lufs": -25.0, "truck_lufs": -20.0, "ref_m": 10.0, "after_collision": 0.8,
+				"horns": {"car_lufs": -24.0, "small_lufs": -25.0, "truck_lufs": -20.0, "ref_m": 10.0, "near_m": 6.0, "max_lufs": -15.0, "after_collision": 0.8,
 					"close_pass": 0.25, "close_m": 1.8, "close_kmh": 30.0, "cooldown_s": 8.0, "delay_s": [0.3, 0.7]}}
 		}
 	},
