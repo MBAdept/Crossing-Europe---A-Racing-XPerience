@@ -49,7 +49,12 @@ func _process(delta: float) -> bool:
 		var p := _music_player()
 		var playing := false
 		var pos := -1.0
-		if p != null:
+		var md := _modern_music()
+		if md != null:   # Modern sound: the MusicDirector plays the title on MMusic (AU-E)
+			var st: Dictionary = md.call("debug_state")
+			playing = bool(st.get("playing", false))
+			pos = float(st.get("position", -1.0))
+		elif p != null:
 			playing = p.playing
 			pos = p.get_playback_position()
 		# the request flag is AudioManager-internal: a music source without it counts as requested
@@ -62,6 +67,30 @@ func _process(delta: float) -> bool:
 
 
 # --- helpers --------------------------------------------------------------------------------------
+
+## The music of the Modern sound profile: ModernAudio's MusicDirector (null with the Arcade profile). With it the title
+## plays on MMusic, and AudioManager's own player stays silent – sampling that one would let the check pass without
+## ever hearing the music (AU-E; docs/audio-modern.md §13).
+func _modern_music() -> Object:
+	var m: Variant = _audio.get("_modern")
+	if m == null or not is_instance_valid(m):
+		return null
+	var md: Variant = (m as Object).get("music")
+	return md as Object if md is Object and is_instance_valid(md) else null
+
+
+## Length of the music that plays (for the loop wrap): the MusicDirector's current player, else _music_player().
+func _music_length() -> float:
+	var md := _modern_music()
+	if md != null:
+		var players: Array = md.get("_players")
+		var cur := int(md.get("_cur"))
+		if cur >= 0 and cur < players.size() and (players[cur] as AudioStreamPlayer).stream != null:
+			return (players[cur] as AudioStreamPlayer).stream.get_length()
+		return 0.0
+	var p := _music_player()
+	return p.stream.get_length() if p != null and p.stream != null else 0.0
+
 
 ## The player of the title music: AudioManager's `_music`, else its first player on the Music bus (whatever the
 ## music source is called).
@@ -248,6 +277,12 @@ func _run() -> void:
 		muted_ok = muted_ok and AudioServer.is_bus_mute(AudioServer.get_bus_index(n))
 	var music_idx := AudioServer.get_bus_index("Music")
 	var music_bus_ok := music_idx < 0 or AudioServer.is_bus_mute(music_idx) == bool(mutes0.get("Music", false))
+	# Modern sound: its effects group follows the muted SFX bus (docs/audio-modern.md §6.6), its music bus plays on
+	var modern_ok := true
+	if _modern_music() != null:
+		var msfx := AudioServer.get_bus_index("MSfx")
+		var mmusic := AudioServer.get_bus_index("MMusic")
+		modern_ok = msfx >= 0 and AudioServer.is_bus_mute(msfx) and mmusic >= 0 and not AudioServer.is_bus_mute(mmusic)
 	var first := str((_am.get("current_scene") as Dictionary).get("id", ""))
 	await _wait(1.0)
 	var speed := float(race.get("vehicle").get("speed")) if has_race else 0.0
@@ -259,8 +294,9 @@ func _run() -> void:
 		and root.content_scale_aspect == aspect and speed > 20.0 and str(race.get("gfx")) == mode,
 		"Szene %s, Autopilot %.0f km/h, HUD reduziert, Modus %s, Seitenverhältnis %s" % [first, speed, str(race.get("gfx")) if has_race else "-",
 			"expand" if root.content_scale_aspect == Window.CONTENT_SCALE_ASPECT_EXPAND else "keep"])
-	_check("busse", muted_ok and music_bus_ok and (_am.call("effect_bus_names") as Array).size() >= 2,
-		"Effekt-Busse stumm %s, Music unverändert" % str((_am.call("effect_bus_names") as Array)))
+	_check("busse", muted_ok and music_bus_ok and modern_ok and (_am.call("effect_bus_names") as Array).size() >= 2,
+		"Effekt-Busse stumm %s, Music unverändert%s" % [str((_am.call("effect_bus_names") as Array)),
+			"; Modern-Klang: MSfx stumm, MMusic spielt" if _modern_music() != null else ""])
 
 	# ends by itself after demo_s
 	ok = await _wait_state(STATE_IDLE, 8.0)
@@ -374,8 +410,7 @@ func _check_music() -> void:
 				playing_from = i
 			var pos := float(m[2])
 			if prev >= 0.0 and pos < prev - 0.05:
-				var p := _music_player()
-				var length := p.stream.get_length() if p != null and p.stream != null else 0.0
+				var length := _music_length()
 				if length <= 0.0 or prev < length - 1.0:
 					jumps += 1   # back to an earlier position, not the loop wrap
 			prev = pos

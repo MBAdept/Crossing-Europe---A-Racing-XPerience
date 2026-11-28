@@ -9,6 +9,9 @@ extends SceneTree
 ##   godot --headless --path . -s res://tests/race/run_race.gd -- --race=kiel_nuernberg --autopilot \
 ##       --no-countdown [--pick=0|1] [--vehicle=limousine] [--hour=8] [--timescale=40] [--max-legs=60]
 ##       [--race-seed=<n>] (GameFlow: fixed race seed – reproducible race weather, e.g. snow on a leg)
+##       [--dwell=<s>] (stay that many game seconds on every screen before acting, as a player would – for
+##       recordings of the whole race with its menu music, tools/audio/record_race.sh) [--timeline] (one line
+##       "ZEIT <game s> <screen>" whenever the screen changes: the time axis of such a recording)
 ##       [--allow-tows] (a tow is no error, e.g. with --autopilot-refuel=never)
 ## Exit code 0 = race result reached and all checks passed.
 ## Note: autoload classes are accessed untyped (this script compiles before the autoloads exist).
@@ -31,6 +34,10 @@ var _setup_fuel := -1.0            ## start_fuel_l of the stage being driven (fr
 var _tows := 0
 var _refuels := 0
 var _liters := 0.0
+var _dwell := 0.0                  ## --dwell: game seconds on every screen before acting
+var _game_t := 0.0                 ## game seconds since the start (sum of the frame deltas)
+var _seen_screen := ""
+var _screen_since := 0.0
 
 
 func _initialize() -> void:
@@ -39,6 +46,7 @@ func _initialize() -> void:
 	Engine.time_scale = ts
 	Engine.physics_ticks_per_second = maxi(60, int(round(60.0 * ts)))
 	_pick = int(args.get("pick", 0))
+	_dwell = maxf(float(args.get("dwell", 0.0)), 0.0)
 	_max_legs = int(args.get("max-legs", 60))
 	_max_wall = float(args.get("max-seconds", 3000.0))
 	_pause_h = float(ConfigLoader.lookup(ConfigLoader.load_merged(), "time.stage_pause_hours", 12.0))
@@ -46,7 +54,7 @@ func _initialize() -> void:
 	_wall0 = Time.get_ticks_msec()
 
 
-func _process(_delta: float) -> bool:
+func _process(delta: float) -> bool:
 	if (Time.get_ticks_msec() - _wall0) / 1000.0 > _max_wall:
 		print("FEHLER: Zeitlimit überschritten im Zustand ", _state)
 		quit(1)
@@ -54,6 +62,13 @@ func _process(_delta: float) -> bool:
 	if _gf == null:
 		_gf = root.get_node_or_null("/root/GameFlow")
 		return false
+	_game_t += delta
+	var scr_now := str(_gf.call("current_screen_name"))
+	if scr_now != _seen_screen:
+		_seen_screen = scr_now
+		_screen_since = _game_t
+		if CliArgs.has("timeline"):
+			print("ZEIT %.3f %s" % [_game_t, scr_now])
 	var args := CliArgs.all()
 	match _state:
 		"start":
@@ -64,7 +79,8 @@ func _process(_delta: float) -> bool:
 			print("RENNEN ", _gf.get("race").get("race_id"), " Fahrzeug ", _gf.get("race").get("vehicle"))
 			_state = "flow"
 		"flow":
-			_flow_step()
+			if _game_t - _screen_since >= _dwell:
+				_flow_step()
 		"racing":
 			var r: Variant = _gf.get("last_result")
 			if r != null and not is_same(r, _last_result) and _gf.call("current_screen_name") == "result":

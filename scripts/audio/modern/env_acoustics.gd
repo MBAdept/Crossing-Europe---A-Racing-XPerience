@@ -51,8 +51,11 @@ const PRESETS := {
 		"room": 0.55, "damp": 0.5, "wet": 0.09, "hipass": 0.05, "pre_fb": 0.0},
 	"bridge": {"taps_ms": [17.0, 23.0], "tap_db": -23.0, "tap_pan": 0.2, "echo_ms": 0.0, "echo_db": -70.0,
 		"room": 0.25, "damp": 0.65, "wet": 0.015, "hipass": 0.06, "pre_fb": 0.0},
-	"tunnel": {"taps_ms": [11.0, 16.0], "tap_db": -7.0, "tap_pan": 0.5, "echo_ms": 0.0, "echo_db": -70.0,
-		"room": 0.86, "damp": 0.4, "wet": 0.3, "hipass": 0.03, "pre_fb": 0.2},
+	# AU-E: taps −7 → −10 dB, wet 0.3 → 0.22 – the tunnel made the whole mix 5.3 dB louder at 120 km/h (the taps 2.5,
+	# the reverb 1.1, road and fans 1.0 of it), now 3.7 dB (tests/race/check_audio_modern.gd "tunnel_lautheit");
+	# reverberation time 1.9 → 1.6 s
+	"tunnel": {"taps_ms": [11.0, 16.0], "tap_db": -10.0, "tap_pan": 0.5, "echo_ms": 0.0, "echo_db": -70.0,
+		"room": 0.86, "damp": 0.4, "wet": 0.22, "hipass": 0.03, "pre_fb": 0.2},
 	"cover": {"taps_ms": [9.0, 13.0], "tap_db": -9.0, "tap_pan": 0.4, "echo_ms": 0.0, "echo_db": -70.0,
 		"room": 0.4, "damp": 0.5, "wet": 0.11, "hipass": 0.04, "pre_fb": 0.0},
 }
