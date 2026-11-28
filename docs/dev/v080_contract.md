@@ -2105,3 +2105,26 @@ KRITIK-R / AU-R2)**
   Without the option the builder is unchanged (the Haussmann block re-exported byte-equal except its cache key).
 - The corner house's back and right wall now show the facade (8 far faces mapped, before 0); lod0 5,687 / lod1 3,430
   triangles (+12 each), atlas unchanged.
+
+**A-35 AU-C2: world, ambience, traffic, sirens (lead, wave 6)**
+- Formats (§4.7.3): the loops of the traffic (engines, tyres, air) are Ogg Vorbis from q5 like the noise loops of
+  `vehicle/` (AU-R) – as WAV the nine 3-s engine loops alone would take 2.4 MB of the 4.0 MB left in the sound budget
+  of §4.11. Each is encoded up from q5 until its seam is no rougher than twice its surroundings. The siren stays WAV
+  (tonal, with LOOP_GUARD frames), horns and whooshes are WAV one-shots. `audio_qc.py` accepts Ogg loops in
+  `traffic/`. The ambience calls are Ogg one-shots (the folder rule of §4.7.3: ambience Ogg q3–q4).
+- Traffic sounds: the frozen Arcade model (`traffic_synth.py` + `engine_synth.py`) imported by
+  `tools/audio/modern/traffic_modern.py`, rendered at its 32 kHz and resampled periodically to 44.1 kHz; classes, the
+  model map and the level targets are configuration (`audio.modern.traffic`), not a traffic_sounds.json.
+  `TrafficExtras.ModernTraffic` builds its sounds from the manifest (not `load_sounds()`, whose loader sets the loop
+  end to the end of the data). `traffic_audio.gd` stays byte-identical.
+- `AudioFeed` gains `water`, `style`, `climate`, `features` (read-only, from the track's segments and scenery_db).
+- Width of the car (motorsound.md 6.9): `EnvAcoustics` adds a short diffuse reverb on `MCar` (wet 0.3, input above
+  ~600 Hz); full-throttle loudness +0.4…0.6 dB, inside the plan's ±1.5 dB.
+- Not in v0.8.0: thunder (the game has no lightning event; the sound must not read the renderer, Rule 4) and
+  country-specific sirens (§1): one siren, Arcade's two-tone pattern with a new timbre.
+- Budget after AU-C2: sounds 22.23 MB of 23 MB (music 18.54 of 25).
+- Review findings fixed in the package (pause keeps the ambience and the zone, horns flat inside 6 m and at most −15
+  LUFS momentary, quick fades at tunnel portals). Tests adapted to the package (no behaviour of Arcade changed):
+  `check_modern_audio.gd` delegation checks that the rain call arrived (`st.rain`) – the rain bed is silent in a
+  tunnel like the session's rain; its race scenario expects traffic voices in both runs (the Modern sounds load
+  without playback too); `test_modern_audio.gd` reads the rain bed and the Modern traffic classes.
