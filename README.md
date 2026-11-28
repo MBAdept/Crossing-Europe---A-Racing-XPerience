@@ -1,4 +1,4 @@
-# Wiederaufnahme (zuletzt aktualisiert 28.11.2026 ~05:10 UTC)
+# Wiederaufnahme (zuletzt aktualisiert 28.11.2026 ~06:50 UTC)
 
 Haltung des Nutzers: Qualität vor Tempo, keine Prüfungen/Nacharbeit streichen; Lackflackern pausiert (A-21);
 „bitte ohne meine Testergebnisse erst einmal weitermachen“. Nutzer schreibt Deutsch; Tags/Releases macht der Nutzer.
@@ -168,6 +168,13 @@ Haltung des Nutzers: Qualität vor Tempo, keine Prüfungen/Nacharbeit streichen;
    NÄCHSTES: AU-C2 (Welt, Ambiente, Verkehr, Sirenen) – Vertrag Welle-6-Eintrag, D25–D30, §4.7; audio-modern.md
    §4.1/§13/§15; Bericht AU-C1. Platzhalter: ambience_audio.gd, traffic_extras.gd, env_acoustics.gd,
    assets/audio/modern/ambience/platzhalter_bed.ogg. Arbeitsordner m1/AUC2, Bericht deliver/AUC2.
+   28.11. ~06:50 AU-C2 (#139) IN ARBEIT, Arbeitsordner m1/AUC2 (PLAN.md, env.sh, tools/: drive_c2.gd Probefahrt,
+   worst_case2.gd, scenes.py, deliver.py, bausteine.py, bench.gd), Commits 18279dc/…/(3/n) auf wip/v080-welle6.
+   Fertig: Generatoren ambience_synth.py/traffic_modern.py (deterministisch, 22,23/23 MB), Bausteine env/ambience/
+   traffic, AudioFeed water/style/climate/features, Tests test_world_audio (146/0 audio_modern), QC OK, Breite
+   auf MCar (wet 0,3), Hörproben deliver/AUC2 (rundfahrt_alle_szenen.mp3, klangbausteine.mp3, je Szene).
+   Läuft/offen: unabhängige Code-Prüfung (Agent), Befunde einarbeiten, Doku-Entwurf m1/AUC2/doc_16.md in
+   docs/audio-modern.md (§16 + Tabellen §4.1/§9/§10/§12/§13), Vertrag A-35, Bericht deliver/AUC2/bericht.md, Tore.
    Nach Neustart: queue_ablmp.sh (A/B, Vorher-Bilder für N6) neu starten (überspringt Fertiges).
    (alt) Nach Neustart: queue_r5.sh, gates2.sh und queue_ablmp.sh neu starten (L2, R4, ab_c1/c2 FERTIG) (setsid nohup bash …); sie überspringen Fertiges.
    Rückstau Modellarbeit (A-29) danach: Sportwagen-Bremsband/Mittelbremslicht, GT-Silber nachts, Limousine Dämmerung,

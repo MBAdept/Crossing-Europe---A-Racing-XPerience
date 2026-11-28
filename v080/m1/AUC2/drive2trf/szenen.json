@@ -1,0 +1,181 @@
+[
+	{
+		"file": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AUC2/drive2trf/tunnel.wav",
+		"snapshot": {
+			"ambience": {
+				"beds": {
+					"tunnel_fans": -20.16
+				},
+				"calls": 0,
+				"city": 0.0,
+				"night": 0.0,
+				"rain": 0.0,
+				"water": 0.0
+			},
+			"env": {
+				"blend": 0.999999999913068,
+				"car_width": 0.300000011920929,
+				"echo_db": -70.0,
+				"echo_ms": 0.0,
+				"reflections_db": -7.96910013106334,
+				"room": 0.859999999951318,
+				"snow": 0.0,
+				"tap_switches": 1,
+				"taps_ms": [
+					11.0,
+					16.0
+				],
+				"wet": 0.299999999975659,
+				"zone": "tunnel"
+			},
+			"events": {
+				"pass_object": 1,
+				"tunnel_in": 1,
+				"tunnel_out": 1
+			},
+			"feed": {
+				"city": false,
+				"climate": "north",
+				"cover": "",
+				"scenery": "north_plain",
+				"style": "plain",
+				"water": false,
+				"wet": 0.0,
+				"zone": "open"
+			},
+			"traffic": {
+				"horns": 0,
+				"modern": true,
+				"ok": true,
+				"siren": 0.0,
+				"slots": 8,
+				"voices": 3,
+				"wet": false,
+				"whooshes": 1
+			}
+		},
+		"title": "Elbtunnel mit 80 km/h: Lkw rechts, ein Pkw überholt",
+		"tunnel": {
+			"end_km": 7.3,
+			"name": "Elbtunnel",
+			"start_km": 4.0
+		}
+	},
+	{
+		"file": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AUC2/drive2trf/autobahn.wav",
+		"snapshot": {
+			"ambience": {
+				"beds": {
+					"breeze": -27.0,
+					"leaves": -39.24
+				},
+				"calls": 0,
+				"city": 0.0,
+				"night": 0.0,
+				"rain": 0.0,
+				"water": 0.0
+			},
+			"env": {
+				"blend": 0.000000000000000260208521396521,
+				"car_width": 0.300000011920929,
+				"echo_db": -70.0,
+				"echo_ms": 0.0,
+				"reflections_db": -19.3742649794062,
+				"room": 0.300000000000001,
+				"snow": 0.0,
+				"tap_switches": 2,
+				"taps_ms": [
+					17.0,
+					23.0
+				],
+				"wet": 0.0200000000000001,
+				"zone": "open"
+			},
+			"events": {
+				"pass_object": 13,
+				"tunnel_in": 1,
+				"tunnel_out": 1
+			},
+			"feed": {
+				"city": false,
+				"climate": "north",
+				"cover": "",
+				"scenery": "heath",
+				"style": "plain",
+				"water": false,
+				"wet": 0.0,
+				"zone": "open"
+			},
+			"traffic": {
+				"horns": 0,
+				"modern": true,
+				"ok": true,
+				"siren": 0.0,
+				"slots": 8,
+				"voices": 2,
+				"wet": false,
+				"whooshes": 4
+			}
+		},
+		"title": "Heide, 140 km/h: Lkw überholt (Luftstoß), Pkw überholt uns, Polizei mit Martinshorn fährt vorbei"
+	},
+	{
+		"file": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AUC2/drive2trf/unfall.wav",
+		"snapshot": {
+			"ambience": {
+				"beds": {
+					"breeze": -25.32,
+					"leaves": -37.55
+				},
+				"calls": 2,
+				"city": 0.0,
+				"night": 0.0,
+				"rain": 0.0,
+				"water": 0.0
+			},
+			"env": {
+				"blend": 0.000000000000000198254111540207,
+				"car_width": 0.300000011920929,
+				"echo_db": -70.0,
+				"echo_ms": 0.0,
+				"reflections_db": -19.3742649794062,
+				"room": 0.300000000000001,
+				"snow": 0.0,
+				"tap_switches": 2,
+				"taps_ms": [
+					17.0,
+					23.0
+				],
+				"wet": 0.0200000000000001,
+				"zone": "open"
+			},
+			"events": {
+				"collision": 1,
+				"pass_object": 15,
+				"tunnel_in": 1,
+				"tunnel_out": 1
+			},
+			"feed": {
+				"city": false,
+				"climate": "north",
+				"cover": "",
+				"scenery": "heath",
+				"style": "plain",
+				"water": false,
+				"wet": 0.0,
+				"zone": "open"
+			},
+			"traffic": {
+				"horns": 1,
+				"modern": true,
+				"ok": true,
+				"siren": 0.0,
+				"slots": 8,
+				"voices": 1,
+				"wet": false,
+				"whooshes": 4
+			}
+		},
+		"title": "Auffahrunfall mit 30 km/h Unterschied: der andere hupt"
+	}
+]

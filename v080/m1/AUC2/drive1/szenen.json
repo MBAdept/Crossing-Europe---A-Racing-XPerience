@@ -1,0 +1,527 @@
+[
+	{
+		"file": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AUC2/drive1/hamburg.wav",
+		"snapshot": {
+			"ambience": {
+				"beds": {
+					"breeze": -22.07,
+					"leaves": -34.31
+				},
+				"calls": 3,
+				"city": 0.0,
+				"night": 0.0,
+				"rain": 0.0,
+				"water": 0.0
+			},
+			"env": {
+				"blend": 0.0,
+				"echo_db": -70.0,
+				"echo_ms": 0.0,
+				"reflections_db": -19.3742649794062,
+				"room": 0.3,
+				"snow": 0.0,
+				"tap_switches": 0,
+				"taps_ms": [
+					17.0,
+					23.0
+				],
+				"wet": 0.02,
+				"zone": "open"
+			},
+			"events": {
+				"pass_object": 2
+			},
+			"feed": {
+				"city": false,
+				"climate": "north",
+				"cover": "",
+				"scenery": "north_plain",
+				"style": "plain",
+				"water": false,
+				"wet": 0.0,
+				"zone": "open"
+			},
+			"traffic": {
+				"horns": 0,
+				"modern": true,
+				"ok": true,
+				"siren": 0.0,
+				"slots": 8,
+				"voices": 2,
+				"wet": false,
+				"whooshes": 1
+			}
+		},
+		"title": "Hamburg, Zentrum am Hafen, 9:30 Uhr: Stand am Start, dann 45 km/h"
+	},
+	{
+		"file": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AUC2/drive1/tunnel.wav",
+		"snapshot": {
+			"ambience": {
+				"beds": {
+					"tunnel_fans": -20.16
+				},
+				"calls": 4,
+				"city": 0.0,
+				"night": 0.0,
+				"rain": 0.0,
+				"water": 0.0
+			},
+			"env": {
+				"blend": 0.999999999910966,
+				"echo_db": -70.0,
+				"echo_ms": 0.0,
+				"reflections_db": -7.96910013108711,
+				"room": 0.859999999950141,
+				"snow": 0.0,
+				"tap_switches": 1,
+				"taps_ms": [
+					11.0,
+					16.0
+				],
+				"wet": 0.29999999997507,
+				"zone": "tunnel"
+			},
+			"events": {
+				"pass_object": 3,
+				"tunnel_in": 1,
+				"tunnel_out": 1
+			},
+			"feed": {
+				"city": false,
+				"climate": "north",
+				"cover": "",
+				"scenery": "north_plain",
+				"style": "plain",
+				"water": false,
+				"wet": 0.0,
+				"zone": "open"
+			},
+			"traffic": {
+				"horns": 0,
+				"modern": true,
+				"ok": true,
+				"siren": 0.0,
+				"slots": 8,
+				"voices": 3,
+				"wet": false,
+				"whooshes": 1
+			}
+		},
+		"title": "Elbtunnel mit 80 km/h: Lkw rechts, ein Pkw überholt",
+		"tunnel": {
+			"end_km": 7.3,
+			"name": "Elbtunnel",
+			"start_km": 4.0
+		}
+	},
+	{
+		"file": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AUC2/drive1/autobahn.wav",
+		"snapshot": {
+			"ambience": {
+				"beds": {
+					"breeze": -27.0,
+					"leaves": -39.24
+				},
+				"calls": 4,
+				"city": 0.0,
+				"night": 0.0,
+				"rain": 0.0,
+				"water": 0.0
+			},
+			"env": {
+				"blend": 0.000000000000000260208521396521,
+				"echo_db": -70.0,
+				"echo_ms": 0.0,
+				"reflections_db": -19.3742649794062,
+				"room": 0.300000000000001,
+				"snow": 0.0,
+				"tap_switches": 2,
+				"taps_ms": [
+					17.0,
+					23.0
+				],
+				"wet": 0.0200000000000001,
+				"zone": "open"
+			},
+			"events": {
+				"pass_object": 15,
+				"tunnel_in": 1,
+				"tunnel_out": 1
+			},
+			"feed": {
+				"city": false,
+				"climate": "north",
+				"cover": "",
+				"scenery": "heath",
+				"style": "plain",
+				"water": false,
+				"wet": 0.0,
+				"zone": "open"
+			},
+			"traffic": {
+				"horns": 0,
+				"modern": true,
+				"ok": true,
+				"siren": 0.0,
+				"slots": 8,
+				"voices": 2,
+				"wet": false,
+				"whooshes": 4
+			}
+		},
+		"title": "Heide, 140 km/h: Lkw überholt (Luftstoß), Pkw überholt uns, Polizei mit Martinshorn fährt vorbei"
+	},
+	{
+		"file": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AUC2/drive1/unfall.wav",
+		"snapshot": {
+			"ambience": {
+				"beds": {
+					"breeze": -25.32,
+					"leaves": -37.55
+				},
+				"calls": 5,
+				"city": 0.0,
+				"night": 0.0,
+				"rain": 0.0,
+				"water": 0.0
+			},
+			"env": {
+				"blend": 0.000000000000000210644993511469,
+				"echo_db": -70.0,
+				"echo_ms": 0.0,
+				"reflections_db": -19.3742649794062,
+				"room": 0.300000000000001,
+				"snow": 0.0,
+				"tap_switches": 2,
+				"taps_ms": [
+					17.0,
+					23.0
+				],
+				"wet": 0.0200000000000001,
+				"zone": "open"
+			},
+			"events": {
+				"collision": 1,
+				"pass_object": 17,
+				"tunnel_in": 1,
+				"tunnel_out": 1
+			},
+			"feed": {
+				"city": false,
+				"climate": "north",
+				"cover": "",
+				"scenery": "heath",
+				"style": "plain",
+				"water": false,
+				"wet": 0.0,
+				"zone": "open"
+			},
+			"traffic": {
+				"horns": 0,
+				"modern": true,
+				"ok": true,
+				"siren": 0.0,
+				"slots": 8,
+				"voices": 1,
+				"wet": false,
+				"whooshes": 4
+			}
+		},
+		"title": "Auffahrunfall mit 30 km/h Unterschied: der andere hupt"
+	},
+	{
+		"file": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AUC2/drive1/wald.wav",
+		"snapshot": {
+			"ambience": {
+				"beds": {
+					"breeze": -28.27,
+					"crickets": -23.54,
+					"leaves": -16.07
+				},
+				"calls": 6,
+				"city": 0.0,
+				"night": 0.603182521620391,
+				"rain": 0.0,
+				"water": 0.0
+			},
+			"env": {
+				"blend": 0.14285714285714,
+				"echo_db": -70.0,
+				"echo_ms": 0.0,
+				"reflections_db": -15.6445798922693,
+				"room": 0.449999999999997,
+				"snow": 0.0,
+				"tap_switches": 3,
+				"taps_ms": [
+					13.0,
+					21.0
+				],
+				"wet": 0.0599999999999993,
+				"zone": "forest"
+			},
+			"events": {
+				"collision": 1,
+				"pass_object": 22,
+				"tunnel_in": 1,
+				"tunnel_out": 1
+			},
+			"feed": {
+				"city": false,
+				"climate": "continental",
+				"cover": "",
+				"scenery": "forest_hills",
+				"style": "forest",
+				"water": false,
+				"wet": 0.0,
+				"zone": "forest"
+			},
+			"traffic": {
+				"horns": 0,
+				"modern": true,
+				"ok": true,
+				"siren": 0.0,
+				"slots": 8,
+				"voices": 0,
+				"wet": false,
+				"whooshes": 4
+			}
+		},
+		"title": "Wald bei Kassel, 6:24 Uhr (Morgenchor), 25 km/h"
+	},
+	{
+		"file": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AUC2/drive1/nacht.wav",
+		"snapshot": {
+			"ambience": {
+				"beds": {
+					"breeze": -28.27,
+					"leaves": -16.07,
+					"rain": -11.35
+				},
+				"calls": 6,
+				"city": 0.0,
+				"night": 1.0,
+				"rain": 0.999664537372098,
+				"water": 0.0
+			},
+			"env": {
+				"blend": 0.142857142857142,
+				"echo_db": -70.0,
+				"echo_ms": 0.0,
+				"reflections_db": -15.6445798922692,
+				"room": 0.449999999999999,
+				"snow": 0.0,
+				"tap_switches": 4,
+				"taps_ms": [
+					13.0,
+					21.0
+				],
+				"wet": 0.0599999999999999,
+				"zone": "forest"
+			},
+			"events": {
+				"collision": 1,
+				"pass_object": 22,
+				"tunnel_in": 1,
+				"tunnel_out": 1
+			},
+			"feed": {
+				"city": false,
+				"climate": "continental",
+				"cover": "",
+				"scenery": "forest_hills",
+				"style": "forest",
+				"water": false,
+				"wet": 1.0,
+				"zone": "forest"
+			},
+			"traffic": {
+				"horns": 0,
+				"modern": true,
+				"ok": true,
+				"siren": 0.0,
+				"slots": 8,
+				"voices": 0,
+				"wet": true,
+				"whooshes": 4
+			}
+		},
+		"title": "Hessisches Bergland, 23:30 Uhr im Stand, nach 18 s Regen"
+	},
+	{
+		"file": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AUC2/drive1/mittelmeer.wav",
+		"snapshot": {
+			"ambience": {
+				"beds": {
+					"breeze": -21.56,
+					"cicadas": -11.73,
+					"leaves": -33.8
+				},
+				"calls": 8,
+				"city": 0.0,
+				"night": 0.0,
+				"rain": 0.00000614585628760906,
+				"water": 0.0
+			},
+			"env": {
+				"blend": 0.000000000000949612412513647,
+				"echo_db": -70.0,
+				"echo_ms": 0.0,
+				"reflections_db": -19.3742649793812,
+				"room": 0.300000000000997,
+				"snow": 0.0,
+				"tap_switches": 5,
+				"taps_ms": [
+					17.0,
+					23.0
+				],
+				"wet": 0.0200000000002659,
+				"zone": "open"
+			},
+			"events": {
+				"collision": 1,
+				"pass_object": 26,
+				"tunnel_in": 1,
+				"tunnel_out": 1
+			},
+			"feed": {
+				"city": false,
+				"climate": "mediterranean",
+				"cover": "",
+				"scenery": "mediterranean",
+				"style": "hills",
+				"water": false,
+				"wet": 0.0,
+				"zone": "open"
+			},
+			"traffic": {
+				"horns": 0,
+				"modern": true,
+				"ok": true,
+				"siren": 0.0,
+				"slots": 8,
+				"voices": 0,
+				"wet": false,
+				"whooshes": 4
+			}
+		},
+		"title": "Bei Montpellier, 14 Uhr, 40 km/h"
+	},
+	{
+		"file": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AUC2/drive1/tal.wav",
+		"snapshot": {
+			"ambience": {
+				"beds": {
+					"breeze": -25.78,
+					"leaves": -29.92
+				},
+				"calls": 9,
+				"city": 0.0,
+				"night": 0.0,
+				"rain": 0.000000000484075810255897,
+				"water": 0.0
+			},
+			"env": {
+				"blend": 0.0755215406936903,
+				"echo_db": -23.8077770773037,
+				"echo_ms": 380.0,
+				"reflections_db": -17.9579211668216,
+				"room": 0.588539685234034,
+				"snow": 0.0,
+				"tap_switches": 8,
+				"taps_ms": [
+					19.0,
+					29.0
+				],
+				"wet": 0.0411460313942333,
+				"zone": "valley"
+			},
+			"events": {
+				"collision": 1,
+				"pass_object": 41,
+				"tunnel_in": 1,
+				"tunnel_out": 1
+			},
+			"feed": {
+				"city": false,
+				"climate": "alpine",
+				"cover": "",
+				"scenery": "alps",
+				"style": "alps",
+				"water": false,
+				"wet": 0.0,
+				"zone": "valley"
+			},
+			"traffic": {
+				"horns": 0,
+				"modern": true,
+				"ok": true,
+				"siren": 0.0,
+				"slots": 8,
+				"voices": 0,
+				"wet": false,
+				"whooshes": 4
+			}
+		},
+		"title": "Alpen zwischen Bern und Mailand, 90 km/h"
+	},
+	{
+		"file": "/tmp/claude-0/-home-user-crossing-europe---a-racing-xperience/3a945943-d653-5a54-8279-676b9bc6f9e5/scratchpad/v080/m1/AUC2/drive1/tankstelle.wav",
+		"snapshot": {
+			"ambience": {
+				"beds": {
+					"breeze": -20.31,
+					"crickets": -25.18,
+					"leaves": -32.53
+				},
+				"calls": 9,
+				"city": 0.0,
+				"night": 1.0,
+				"rain": 0.000000000000582931895235454,
+				"water": 0.0
+			},
+			"env": {
+				"blend": 0.0000000419215655369073,
+				"echo_db": -70.0,
+				"echo_ms": 0.0,
+				"reflections_db": -19.374264192662,
+				"room": 0.300000160166692,
+				"snow": 0.0,
+				"tap_switches": 9,
+				"taps_ms": [
+					17.0,
+					23.0
+				],
+				"wet": 0.0200000117380384,
+				"zone": "open"
+			},
+			"events": {
+				"collision": 1,
+				"pass_object": 41,
+				"tunnel_in": 1,
+				"tunnel_out": 1
+			},
+			"feed": {
+				"city": false,
+				"climate": "north",
+				"cover": "",
+				"scenery": "north_plain",
+				"style": "plain",
+				"water": false,
+				"wet": 0.0,
+				"zone": "open"
+			},
+			"traffic": {
+				"horns": 0,
+				"modern": true,
+				"ok": true,
+				"siren": 0.0,
+				"slots": 8,
+				"voices": 0,
+				"wet": false,
+				"whooshes": 4
+			}
+		},
+		"title": "Tankstelle bei Kiel, 21 Uhr, im Stand unter dem Dach"
+	}
+]
