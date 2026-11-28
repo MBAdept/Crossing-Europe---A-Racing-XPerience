@@ -752,6 +752,9 @@ MODELS.update({
         weights=dict(roof=0.35, away=0.25), floors=dict(z=(10.2,), upper=0.75, objects=("phc_body",)),
         openings=dict(reveal_color="#cfc2a6", sill_color="#e8dcc4", bars={"shop": (1, [0.8])}, shop_depth=0.35,
                       cover_skip=("phc_rail",), chamfer=True),
+        # K8 (KRITIK-5a2): the back and the right wall were bare render - the cut corner makes the front and the left
+        # wall 4.2 m shorter than the walls opposite them; they now read those walls, the last 4.2 m shifted
+        far_shift=True,
         gutters=False),
 })
 # F-04 (after ZS2 - the player keeps the "lively" night look of the AS5b houses): at night the AS5a houses showed

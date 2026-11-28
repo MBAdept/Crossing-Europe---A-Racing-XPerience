@@ -1403,12 +1403,16 @@ def _base_name(name):
     return mt.group(1) if mt else name
 
 
-def _far_split(objs, bake_names, stats):
+def _far_split(objs, bake_names, stats, shift=False):
     """Finds the vertical faces of baked materials that look away from the road (+x) or to the back (+y) and the wall
     of the same material that faces them from the other side (-x / -y; the same plane coordinates: a mirror image) -
     a wall that is not covered by another volume. Such far faces are moved into objects of their own (no texels;
     their atlas coordinates are set after the packing from the opposite wall's chart, far_uvs()). Returns
-    (far objects, matches: [(far object name, near object name, axis, sample (u, z))])."""
+    (far objects, matches: [(far object name, near object name, axis, sample (u, z), shift du)]).
+    shift (K8, spec `far_shift`): a far wall longer than the wall opposite it (the Haussmann corner house: the cut
+    corner shortens the front and the left wall by 4.2 m, the back and the right wall keep their length) is cut where
+    the opposite wall ends; the part beyond takes the opposite wall shifted along it by du - the smallest shift whose
+    two edges run through plain wall on every storey (no window or shop cut at the seam or at the corner)."""
     import bmesh
     import bpy
     from cesprites import meshutil as MU
@@ -1467,6 +1471,116 @@ def _far_split(objs, bake_names, stats):
         tol = eps / max(1e-6, math.sqrt(abs(den)))
         return l1 >= -tol and l2 >= -tol and l3 >= -tol
 
+    def inside_any(pts, ts):
+        """inside_tri for many points (P, 2) against many triangles: (P,) bool, the same tolerance."""
+        tri = np.array([c[1] for c in ts], dtype=np.float64)
+        a_, b_, c_ = tri[:, 0], tri[:, 1], tri[:, 2]
+        den = (b_[:, 1] - c_[:, 1]) * (a_[:, 0] - c_[:, 0]) + (c_[:, 0] - b_[:, 0]) * (a_[:, 1] - c_[:, 1])
+        ok = np.abs(den) >= 1e-12
+        den = np.where(ok, den, 1.0)
+        px = pts[:, 0][:, None] - c_[:, 0][None, :]
+        pz = pts[:, 1][:, None] - c_[:, 1][None, :]
+        l1 = ((b_[:, 1] - c_[:, 1])[None, :] * px + (c_[:, 0] - b_[:, 0])[None, :] * pz) / den[None, :]
+        l2 = ((c_[:, 1] - a_[:, 1])[None, :] * px + (a_[:, 0] - c_[:, 0])[None, :] * pz) / den[None, :]
+        l3 = 1.0 - l1 - l2
+        tol = (2e-3 / np.sqrt(np.maximum(np.abs(den), 1e-12)))[None, :]
+        hit = (l1 >= -tol) & (l2 >= -tol) & (l3 >= -tol) & ok[None, :]
+        return hit.any(axis=1)
+
+    def far_face(f, mats, mw, nm):
+        """(axis, world corners, base material name) of a candidate far face, or None."""
+        m = mats[f.material_index] if f.material_index < len(mats) else None
+        if m is None or m.name not in bake_names or m.get("ce_filler"):
+            return None
+        nrm = nm @ np.array(f.normal, dtype=np.float64)
+        nrm /= max(1e-12, np.linalg.norm(nrm))
+        if abs(nrm[2]) > 0.1:
+            return None
+        ax = 0 if nrm[0] > FAR_MIN_N else (1 if nrm[1] > FAR_MIN_N else -1)
+        if ax < 0:
+            return None
+        pts = np.array([tuple(v.co) for v in f.verts], dtype=np.float64) @ mw[:3, :3].T + mw[:3, 3]
+        return ax, pts, _base_name(m.name)
+
+    def opposite(bname, ax, pts):
+        """[(plane, {object name: uncovered near triangles})] of the walls opposite a far face, farthest first."""
+        cands = near.get((bname, ax), [])
+        planes = sorted({round(c[2], 3) for c in cands if c[2] < float(pts[:, ax].mean()) - 0.05})
+        out = []
+        for pl in planes:
+            tris = [c for c in cands if abs(c[2] - pl) < 2e-3 and not is_covered(c, ax)]
+            per_ob = {}
+            for c in tris:
+                per_ob.setdefault(c[0], []).append(c)
+            if per_ob:
+                out.append((pl, per_ob))
+        return out
+
+    if shift:
+        # cut a far face where the wall opposite it ends (both far faces of a storey band share the cut edge)
+        for (ob, mw, nm, mats) in infos:
+            bm = bmesh.new()
+            bm.from_mesh(ob.data)
+            bm.faces.ensure_lookup_table()
+            cuts = {}
+            for f in bm.faces:
+                ff = far_face(f, mats, mw, nm)
+                if ff is None:
+                    continue
+                ax, pts, bname = ff
+                flo, fhi = float(pts[:, 1 - ax].min()), float(pts[:, 1 - ax].max())
+                for (_pl, per_ob) in opposite(bname, ax, pts)[:1]:
+                    for oname in sorted(per_ob):
+                        us = np.concatenate([c[1][:, 0] for c in per_ob[oname]])
+                        nlo, nhi = float(us.min()), float(us.max())
+                        if min(fhi, nhi) - max(flo, nlo) < 0.5:
+                            continue
+                        for u in (nlo, nhi):
+                            if flo + 0.1 < u < fhi - 0.1:
+                                cuts.setdefault((ax, round(u, 4)), set()).add(f)
+            for (ax, u) in sorted(cuts, key=lambda k: (k[0], k[1])):
+                fs = [f for f in cuts[(ax, u)] if f.is_valid]
+                if not fs:
+                    continue
+                pw = np.zeros(3)
+                pw[1 - ax] = u
+                nw = np.zeros(3)
+                nw[1 - ax] = 1.0
+                inv = np.linalg.inv(mw)
+                pl_co = (inv @ np.append(pw, 1.0))[:3]
+                pl_no = mw[:3, :3].T @ nw
+                geom = list({e for f in fs for e in f.edges}) + list({v for f in fs for v in f.verts}) + fs
+                bmesh.ops.bisect_plane(bm, geom=geom, plane_co=tuple(pl_co), plane_no=tuple(pl_no / np.linalg.norm(pl_no)))
+                bm.faces.ensure_lookup_table()
+                stats["far_cuts"] = stats.get("far_cuts", 0) + 1
+            bm.to_mesh(ob.data)
+            bm.free()
+            ob.data.update()
+
+    def shifted_match(m, ax, pts, uz, ctr, samples):
+        """(near object, sample (u, z), du) for a far face that lies beyond the end of the wall opposite it, or None."""
+        flo, fhi = float(uz[:, 0].min()), float(uz[:, 0].max())
+        zlo, zhi = float(uz[:, 1].min()), float(uz[:, 1].max())
+        zs = np.arange(zlo + 0.05, zhi - 0.05 + 1e-9, 0.1)
+        for (_pl, per_ob) in opposite(_base_name(m.name), ax, pts):
+            for oname in sorted(per_ob):
+                ts = per_ob[oname]
+                us = np.concatenate([c[1][:, 0] for c in ts])
+                lo, hi = float(us.min()) - flo + 0.03, float(us.max()) - fhi - 0.03
+                if lo > hi:
+                    continue
+                cand = sorted(set(np.round(np.arange(lo, hi + 1e-9, 0.05), 3).tolist() + [round(lo, 3), round(hi, 3)]),
+                              key=lambda s: (abs(s), s))
+                smp = np.array(samples, dtype=np.float64)
+                for du in cand:
+                    if not inside_any(smp + np.array([du, 0.0]), ts).all():
+                        continue
+                    edges = np.concatenate([np.stack([np.full(len(zs), uu), zs], axis=1)
+                                            for uu in (flo + du + 0.03, fhi + du - 0.03)])
+                    if inside_any(edges, ts).all():
+                        return (oname, (float(ctr[0]), float(ctr[1])), float(du))
+        return None
+
     far_objs = []
     matches = []
     n_far = n_kept = 0
@@ -1511,6 +1625,8 @@ def _far_split(objs, bake_names, stats):
                         break
                 if found:
                     break
+            if found is None and shift:
+                found = shifted_match(m, ax, pts, uz, ctr, samples)
             if found is None:
                 n_kept += 1
                 continue
@@ -1552,7 +1668,7 @@ def _far_split(objs, bake_names, stats):
         for ax in sorted(axes):
             for (f_, a_, found) in picked:
                 if a_ == ax:
-                    matches.append((fo.name, found[0], ax, found[1]))
+                    matches.append((fo.name, found[0], ax, found[1], found[2] if len(found) > 2 else 0.0))
         n_far += len(picked)
     bpy.context.view_layer.update()
     stats["far_faces"] = n_far
@@ -1607,8 +1723,9 @@ def far_uvs(charts, far_objs, matches, size):
 
     n = 0
     by_far = {}
-    for (fname, oname, ax, pt) in matches:
-        by_far.setdefault(fname, []).append((oname, ax, pt))
+    for mt in matches:
+        fname, oname, ax, pt = mt[:4]
+        by_far.setdefault(fname, []).append((oname, ax, pt, mt[4] if len(mt) > 4 else 0.0))
     for fo in far_objs:
         me = fo.data
         if BK.UV_NAME not in me.uv_layers:
@@ -1629,14 +1746,16 @@ def far_uvs(charts, far_objs, matches, size):
             if not refs_ax:
                 continue
             ref = min(refs_ax, key=lambda r: (r[2][0] - ctr[0]) ** 2 + (r[2][1] - ctr[1]) ** 2)
-            M_ = chart_of(ref[0], ax, ctr)
+            # du: a face beyond the end of the opposite wall reads that wall shifted along it (_far_split shift)
+            du = np.array([ref[3], 0.0])
+            M_ = chart_of(ref[0], ax, ctr + du)
             if M_ is None:
-                M_ = chart_of(ref[0], ax, np.array(ref[2]))
+                M_ = chart_of(ref[0], ax, np.array(ref[2]) + du)
             if M_ is None:
                 continue
             for li in poly.loop_indices:
                 v = co[me.loops[li].vertex_index]
-                uv[li] = np.array([v[1 - ax], v[2], 1.0]) @ M_
+                uv[li] = np.array([v[1 - ax] + du[0], v[2], 1.0]) @ M_
             n += 1
         lay.data.foreach_set("uv", uv.reshape(-1))
         me.update()
@@ -2359,7 +2478,7 @@ def _finish_city(model_id, spec3d, rig, info, sspec, objs, stats, t0, patches, s
         # the walls of the log (and their filler copies) only: roofs, crowns and trims bake as before
         walls = {e["material"] for e in log}
         far_names = {m.name for m in bake_mats if m.name not in rail_names and _base_name(m.name) in walls}
-        far_objs, matches = _far_split(bake_objs, far_names, stats)
+        far_objs, matches = _far_split(bake_objs, far_names, stats, shift=bool(spec3d.get("far_shift")))
         if far_objs:
             far = (far_objs, matches)
     size = tuple(spec3d.get("atlas", (1024, 1024)))
