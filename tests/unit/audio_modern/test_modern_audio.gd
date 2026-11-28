@@ -195,7 +195,7 @@ func test_rain_skid_and_siren_rules() -> void:
 		_steps(m, 1)
 	assert_near(m.frame.rain, 1.0, 1.0e-6, "Regen aus dem HUD-Hinweis")
 	assert_near(m.frame.skid, 0.6, 1.0e-6, "Quietschen aus dem HUD-Hinweis")
-	assert_true(m.ambience.rain.level > 0.05, "Regenschleife blendet ein")
+	assert_true((m.ambience.beds["rain"] as AmbienceAudio.Bed).weight > 0.05, "Regenbett blendet ein")
 	assert_true(m.road.skid.level > 0.05, "Quietschen blendet ein")
 	# explicit calls win for a second
 	m.set_rain(0.0)
@@ -620,8 +620,16 @@ func test_traffic_runs_on_eight_modern_voices() -> void:
 	assert_true(arcade.load_sounds(TRAFFIC, false), "Fixture-Klänge")
 	var m := _modern({}, {"arcade_traffic": arcade})
 	assert_eq(m.traffic.model.voices.size(), 8, "acht Stimmen (MTrafficV0–7)")
-	assert_true(m.traffic.model.ok, "Klänge vom Arcade-Objekt übernommen")
-	assert_true(m.traffic.model.sounds == arcade.sounds, "dieselben Klänge, keine Kopie")
+	assert_true(m.traffic.model.ok, "Verkehrsklänge bereit")
+	if m.traffic.modern_sounds:
+		# AU-C2: the Modern traffic sounds and classes (config audio.modern.traffic), the Arcade object untouched
+		assert_false(m.traffic.model.sounds == arcade.sounds, "eigene Modern-Klänge")
+		assert_true(m.traffic.model.sounds.has("car_petrol") and m.traffic.model.sounds.has("tires_car_wet"),
+			"Modern-Klänge aus dem Manifest")
+		assert_eq((m.traffic.model.classes["car"] as TrafficAudio.VClass).engines.size(), 5, "fünf Pkw-Motoren")
+		assert_true(arcade.sounds.has("car_petrol") and not arcade.sounds.has("tires_car_wet"), "Arcade-Klänge unverändert")
+	else:
+		assert_true(m.traffic.model.sounds == arcade.sounds, "dieselben Klänge, keine Kopie")
 	var cars: Array = []
 	for i in 10:
 		cars.append({"id": i + 1, "set": "traffic/sedan_blue", "z": 20.0 + i * 9.0, "x": -1.9 if i % 2 == 0 else 1.9, "length": 4.7, "speed": 110.0})

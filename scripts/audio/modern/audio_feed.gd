@@ -23,6 +23,8 @@ extends RefCounted
 ##                           within cutting_window_m behind the car), "forest", "valley" (mountains) or "open"
 ##   tunnel, bridge, cover   the car is in a tunnel / on a bridge of this type / under a canopy ("border", "fuel")
 ##   road, scenery, city, guardrail, lanes, depth_m (distance to the nearer end of the tunnel or bridge it is in)
+##   water, style, climate, features   (AU-C2, for the ambience) the segment lies on a bridge over water; background
+##                           style, climate and background features of the scenery (data/scenery.json)
 ##   events                  what the car passed since the last update, in order:
 ##                           {"name": "tunnel_in" | "tunnel_out" | "bridge_in" | "bridge_out" | "cover_in" | "cover_out", "z", "kind"}
 ##                           {"name": "joint", "z", "kind": "bridge_end" | "bridge", "deck"}  expansion joints of a bridge
@@ -109,6 +111,10 @@ var city := false
 var guardrail := false
 var lanes := 3.0
 var fuel_lane := 0.0             ## share of the fuel lane on the right of the segment at the car (0 = none)
+var water := false               ## AU-C2: the segment at the car lies on a bridge over water
+var style := ""                  ## AU-C2: background style of the scenery (data/scenery.json: plain, hills, forest, …)
+var climate := ""                ## AU-C2: climate of the scenery (north, continental, default, alpine, mediterranean)
+var features := PackedStringArray()   ## AU-C2: background features of the scenery (cranes, spires, turbines, …)
 var events: Array[Dictionary] = []
 
 var _structures: Array[Dictionary] = []   ## {kind: "tunnel"|"bridge"|"cover", type, z0, z1}, sorted by z0
@@ -121,6 +127,8 @@ var _shoulder_w := 2.5
 var _concrete: Dictionary = {}   ## section index -> bool (cached decision)
 var _cobbles: Dictionary = {}    ## block index -> bool
 var _rock_z := [-1.0e9, -1.0e9]  ## z of the last rock / cliff close to the left / right edge
+var _scenery_read := ""           ## the scenery whose style, climate and features were read last
+var _scenery_known := false       ## _scenery_read is valid
 
 
 func setup(modern: Dictionary) -> void:
@@ -220,6 +228,11 @@ func _reset_values() -> void:
 	guardrail = false
 	lanes = 3.0
 	fuel_lane = 0.0
+	water = false
+	style = ""
+	climate = ""
+	features = PackedStringArray()
+	_scenery_known = false
 	_rock_z = [-1.0e9, -1.0e9]
 
 
@@ -347,6 +360,9 @@ func _update_segment(state: Dictionary) -> void:
 		lanes = float(seg.get("lanes"))
 		var fl: Variant = seg.get("fuel_lane")
 		fuel_lane = float(fl) if (fl is float or fl is int) else 0.0
+		water = bool(seg.get("water")) if seg.get("water") != null else false
+		if not _scenery_known or scenery != _scenery_read:
+			_read_scenery()
 	var w := str(state.get("weather", "normal"))
 	wet = 1.0 if (w == "rain" and not tunnel) else 0.0
 	snow = 1.0 if (w == "snow" and not tunnel) else 0.0
@@ -671,6 +687,28 @@ func _update_zone() -> void:
 				zone = str(STYLE_ZONES.get(str((bg as Dictionary).get("style", "")), "open"))
 
 
+## Style, climate and features of the scenery at the car (data/scenery.json through the track's scenery_db; AU-C2:
+## the ambience chooses its beds and calls from them). Read once per scenery change.
+func _read_scenery() -> void:
+	_scenery_read = scenery
+	_scenery_known = true
+	style = ""
+	climate = ""
+	features = PackedStringArray()
+	var db: Variant = track.get("scenery_db") if track != null else null
+	if not (db is Dictionary and (db as Dictionary).get(scenery, null) is Dictionary):
+		return
+	var sc: Dictionary = (db as Dictionary)[scenery]
+	climate = str(sc.get("climate", ""))
+	var bg: Variant = sc.get("background", {})
+	if bg is Dictionary:
+		style = str((bg as Dictionary).get("style", ""))
+		var fe: Variant = (bg as Dictionary).get("features", [])
+		if fe is Array:
+			for f: Variant in fe:
+				features.append(str(f))
+
+
 func _update_surfaces(state: Dictionary) -> void:
 	var left := float(state.get("road_left", -5.625))
 	var right := float(state.get("road_right", 5.625))
@@ -812,4 +850,5 @@ func state() -> Dictionary:
 	return {"valid": valid, "z": z, "x": x, "surface_l": surface_l, "surface_r": surface_r, "paving": paving,
 		"deck": deck, "rumble_road": rumble_road, "wet": wet, "snow": snow, "zone": zone, "tunnel": tunnel,
 		"bridge": bridge, "cover": cover, "depth_m": depth_m, "road": road, "scenery": scenery, "city": city,
-		"guardrail": guardrail, "lanes": lanes, "fuel_lane": fuel_lane, "events": events.size()}
+		"guardrail": guardrail, "lanes": lanes, "fuel_lane": fuel_lane, "water": water, "style": style,
+		"climate": climate, "features": Array(features), "events": events.size()}

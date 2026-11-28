@@ -115,8 +115,9 @@ def write_wav_import(path: str, loop: tuple[int, int] | None) -> None:
               "edit/loop_begin=%d" % (loop[0] if loop else 0),
               "edit/loop_end=%d" % (loop[1] if loop else -1),
               "compress/mode=0"]
+    head = _import_head(path, "wav", "AudioStreamWAV")     # read before the file is opened for writing (AU-C2)
     with open(path + ".import", "w", encoding="utf-8") as fh:
-        fh.write(_import_head(path, "wav", "AudioStreamWAV") + "\n\n[params]\n\n" + "\n".join(params) + "\n")
+        fh.write(head + "\n\n[params]\n\n" + "\n".join(params) + "\n")
 
 
 def write_ogg_import(path: str, loop_offset_s: float | None, bpm: float = 0.0, beats: int = 0, bar_beats: int = 4) -> None:
@@ -125,8 +126,9 @@ def write_ogg_import(path: str, loop_offset_s: float | None, bpm: float = 0.0, b
     params = ["loop=%s" % ("true" if loop_offset_s is not None else "false"),
               "loop_offset=%s" % (f"{loop_offset_s:g}" if loop_offset_s is not None else "0"),
               "bpm=%s" % f"{bpm:g}", "beat_count=%d" % beats, "bar_beats=%d" % bar_beats]
+    head = _import_head(path, "oggvorbisstr", "AudioStreamOggVorbis")   # read before opening for writing (AU-C2)
     with open(path + ".import", "w", encoding="utf-8") as fh:
-        fh.write(_import_head(path, "oggvorbisstr", "AudioStreamOggVorbis") + "\n\n[params]\n\n" + "\n".join(params) + "\n")
+        fh.write(head + "\n\n[params]\n\n" + "\n".join(params) + "\n")
 
 
 # --- manifest -----------------------------------------------------------------------------------------------------

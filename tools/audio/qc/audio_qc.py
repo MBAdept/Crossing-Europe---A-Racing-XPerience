@@ -112,9 +112,11 @@ def check_sound(folder: str, sid: str, e: dict, base: str, with_import: bool, re
             errs.append(f"{name} fehlt")
             continue
         # --- format rules (noise loops of the car may be Ogg Vorbis – AU-R: contract §4.7.3 names WAV for tonal loops,
-        # and the long per-side loops of road and wind would not fit the sound budget as PCM)
+        # and the long per-side loops of road and wind would not fit the sound budget as PCM; AU-C2: the loops of the
+        # traffic too – nine engines, four tyres and the air as WAV would take most of the budget left, A-35)
         want_ext = {"bank": ("i16",), "music": ("ogg",)}.get(kind, ("ogg",) if folder == "ambience" else
-                                                             (("wav", "ogg") if (folder == "vehicle" and kind == "loop") else ("wav",)))
+                                                             (("wav", "ogg") if (folder in ("vehicle", "traffic") and kind == "loop")
+                                                              else ("wav",)))
         if ext not in want_ext:
             errs.append(f"{name}: Art {kind} in {folder} erwartet .{'/.'.join(want_ext)}")
             continue

@@ -317,8 +317,9 @@ func _scenario_delegation(_g: String) -> void:
 	var slots: Dictionary = st["slots"]
 	var modern_rpm := float((_am.call("engine_state") as Dictionary)["rpm"])
 	var traffic: Dictionary = _am.call("traffic_state")
+	# rain: the call arrived (frame) – since AU-C2 the rain bed itself is silent in a tunnel, like the session's rain
 	var reached := bool(st["alive"]) and modern_rpm > 1000.0 and str(slots["engine"]["vehicle"]) == "gran_turismo" \
-		and float(slots["road"]["wind"]) > 0.05 and float(slots["road"]["skid"]) > 0.05 and float(slots["ambience"]["rain"]) > 0.05 \
+		and float(slots["road"]["wind"]) > 0.05 and float(slots["road"]["skid"]) > 0.05 and float(st["rain"]) > 0.05 \
 		and float(st["siren"]) > 0.5 and bool(st["tunnel"]) and float(slots["env"]["blend"]) > 0.0 \
 		and int((st["plays"] as Dictionary).get("crash", 0)) + int((st["dropped"] as Dictionary).get("crash", 0)) == 1 \
 		and int((slots["impact"]["events"] as Dictionary).get("collision", 0)) == 1 and int((st["plays"] as Dictionary).get("ui_ok", 0)) == 1 \
@@ -642,10 +643,12 @@ func _scenario_race(_g: String) -> void:
 	var music: Dictionary = st["slots"]["music"]
 	await _end_stage()
 	var modern_diff := _arcade_diff()   # the Arcade buses after a race with Modern: exactly as in v0.7.0
+	# traffic voices: since AU-C2 the Modern traffic sounds load without playback too, so the model assigns voices in
+	# both runs (before: the Arcade sounds of the AudioManager, which exist only with playback)
 	var hooks := int(events.get("stage_start", 0)) >= 1 and int(events.get("go", 0)) >= 1 and bool(feed["valid"]) \
 		and int(events.get("tunnel_in", 0)) == 1 and int(events.get("tunnel_out", 0)) == 1 \
 		and int(mod["tunnel_frames"]) > 0 and float(mod["max_rpm"]) > 1500.0 and int(mod["alive_frames"]) > int(mod["frames"]) * 0.9 \
-		and ((int(mod["max_voices"]) >= 1) == _plays) and int((st["plays"] as Dictionary).get("go", 0)) == 1
+		and int(mod["max_voices"]) >= 1 and int((st["plays"] as Dictionary).get("go", 0)) == 1
 	# the race piece (since AU-D1 a real one – a placeholder never takes its turn) plays from "stage_start" on
 	var music_ok := str(music["context"]) == "race" and str(music["key"]).begins_with("race/") \
 		and str(music.get("race_phase", "")) == "playing" and bool(st["placeholders"])
