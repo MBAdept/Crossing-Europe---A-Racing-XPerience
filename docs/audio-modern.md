@@ -127,13 +127,13 @@ Inhalt der Datei und behält beides.
 
 | Baustein | Datei · Klasse | Busse | Platzhalter in Welle 0 | ersetzt durch |
 |---|---|---|---|---|
-| `env` | `env_acoustics.gd` · `EnvAcoustics` | Effekte auf `MEnv` | heutiger Raumklang: zwei frühe Reflexionen, Tunnelhall (`RoomAudio` nur als Rechenmodell) | AU-C2 |
+| `env` | `env_acoustics.gd` · `EnvAcoustics` | Effekte auf `MEnv` | heutiger Raumklang: zwei frühe Reflexionen, Tunnelhall (`RoomAudio` nur als Rechenmodell) | AU-C2 – **erledigt**: Voreinstellungen je Zone (offen, Wald, Tal mit Echo, Einschnitt, Stadt, Brücke, Tunnel, Dach), Schnee, Breite des Autos auf `MCar` (Abschnitt 16) |
 | `engine` | `engine_audio3.gd` · `EngineAudio3` | `MEngine` | Arcade-Zyklenbank über die unveränderten Klassen `EngineAudio` / `EngineBank` / `EngineGearbox`, im Hauptthread, mit dem Breiten-Hall des Arcade-Motorbusses | AU-B – **erledigt**: Motor v3 (Stereobank `EngineBank2`, Mischer-Thread `EngineMixThread`, kein Hall auf dem Bus; [motorsound.md](motorsound.md) 6) |
 | `layers` | `vehicle_layers.gd` · `VehicleLayers` | `MEngineFx` | still (die Arcade-Bank trägt ihr Turbopfeifen selbst) | AU-B – **erledigt**: Lader, Antriebsheulen, Gasannahme, Lastwechselschlag, Schubumluft |
 | `road` | `road_audio.gd` · `RoadAudio` | `MRoad`, `MWind` | Wind und Reifenquietschen mit den Arcade-Formeln | AU-C1 – **erledigt**: Reifen je Belag und Seite, Nässe, Schnee, Fugen, Rüttelstreifen, Vorbeifahrten, Quietschen, Wind (Abschnitt 15) |
 | `impact` | `impact_audio.gd` · `ImpactAudio` | `MImpact` | `crash` und `rail` als Einmalklänge mit den Arcade-Pegeln | AU-C1 – **erledigt**: beansprucht `collision` und `rail_hit`; Schichten nach Tempo und Partner, Leitplanke mit Schleifen, Leitpfosten (Abschnitt 15) |
-| `ambience` | `ambience_audio.gd` · `AmbienceAudio` | `MAmb` | Regenschleife | AU-C2 |
-| `traffic` | `traffic_extras.gd` · `TrafficExtras` | `MTrafficV0`–`7`, `MSiren` | das Arcade-Modell `TrafficAudio` unverändert (Unterklasse, die nur auf die Modern-Busse ausgibt), acht Stimmen, Arcade-Klänge | AU-C2 |
+| `ambience` | `ambience_audio.gd` · `AmbienceAudio` | `MAmb` | Regenschleife | AU-C2 – **erledigt**: zehn Betten nach Ort, Stunde, Klima und Wetter, zufällige Rufe (Vögel, Stadt, Hafen, Nacht) (Abschnitt 16) |
+| `traffic` | `traffic_extras.gd` · `TrafficExtras` | `MTrafficV0`–`7`, `MSiren` | das Arcade-Modell `TrafficAudio` unverändert (Unterklasse, die nur auf die Modern-Busse ausgibt), acht Stimmen, Arcade-Klänge | AU-C2 – **erledigt**: Modern-Klänge und -Klassen, Pegel als Ziel am Master, nasse Reifen, Luftstoß, Hupen, Martinshorn (Abschnitt 16) |
 | `music` | `music_director.gd` · `MusicDirector` | `MMusic` | je Kontext ein Stück in Schleife, Überblenden mit zwei Playern | AU-D1 – **erledigt**: Titel-Remaster, Rennstück mit Einzähler, Schleife und Schluss über `AudioStreamInteractive`; AU-D2 – **erledigt**: drei Rennstücke reihum, Zwischenspiel, Schluss-Varianten, Ziel-Schlag, Stinger (Abschnitt 14) |
 | `sfx` | `sfx_bank.gd` · `SfxBank` | `MUI`, `MSfx` | alle übrigen Einmalklänge; nimmt eine Modern-Datei, sobald ein Manifest sie nennt, sonst den `SfxSynth`-Klang | bleibt (Klänge: AU-C1; die Menüklänge in `ui/`: AU-D2, Abschnitt 14.9) |
 
@@ -424,7 +424,9 @@ Formate (D-Formate des Vertrags §4.7.3): Musik Ogg Vorbis q5, Ambiente Ogg Vorb
 Einmalklänge 16-Bit-WAV, alles 44,1 kHz; Motorbänke `<auto>.json` + `<auto>.i16` (rohes verschachteltes int16,
 32 kHz Stereo). Seit AU-R sind die Rausch-Schleifen des Autos in `vehicle/` (Rollen, Nässe, Schnee, Wind – je
 Seite eine eigene Schleife von 4–7,6 s) Ogg Vorbis q5 (q8, wo die Naht es braucht): als WAV hätten 13 Paare
-langer Schleifen das Budget überschritten. `audio_qc.py` lässt Ogg für Schleifen in `vehicle/` zu. `*.i16` kommt mit KERN in den Export-Filter und in `.gitattributes`; bis zu dessen Merge erkennt
+langer Schleifen das Budget überschritten. Seit AU-C2 gilt das auch für die Schleifen des Verkehrs in `traffic/`
+(Motoren, Reifen, Fahrtwind; A-35); das Martinshorn bleibt WAV. `audio_qc.py` lässt Ogg für Schleifen in `vehicle/`
+und `traffic/` zu. `*.i16` kommt mit KERN in den Export-Filter und in `.gitattributes`; bis zu dessen Merge erkennt
 Git die Datei von selbst als binär.
 
 **Platzhalter** (`"placeholder": true`): Stellvertreter, bis der echte Klang da ist. Im Spiel klingt nie einer –
@@ -447,6 +449,8 @@ ein kaputtes ist ein Fehler im Log) und die Streams beim ersten Gebrauch.
 | `tools/audio/modern/make_arcade_golden.sh` | schreibt die Fingerabdrücke des Arcade-Klangs aus dem Tag v0.7.0 neu (nur nach einem Engine-Update) |
 | `tools/audio/modern/vehicle_loops.py` | die Schleifen von Reifen, Fahrbahn, Wind und Leitplanke (AU-C1; seit AU-R je Seite eine eigene, an die Klangfarbe von AU-C1 angeglichen: 31 Einträge, `assets/audio/modern/vehicle`, Abschnitt 15.2; `--out`, `--wav`) |
 | `tools/audio/modern/sfx_modern.py` | die 17 Einmalklänge von Fugen, Vorbeifahrten, Kollisionen, Leitplanke, Leitpfosten (AU-C1; seit AU-R Glas, Kleinteile, Lkw-Schlag je vier Varianten; `assets/audio/modern/sfx`, Abschnitt 15.2) |
+| `tools/audio/modern/ambience_synth.py` | AU-C2: zehn Betten und 15 Ruf-Arten (28 Varianten) des Ambientes (`assets/audio/modern/ambience`, Abschnitt 16.2; `--out`, `--wav`, `--only`) |
+| `tools/audio/modern/traffic_modern.py` | AU-C2: Verkehrsschleifen aus dem Arcade-Modell (32 → 44,1 kHz), Elektroauto, nasse Reifen, Martinshorn, Hupen, Luftstöße (`assets/audio/modern/traffic`, Abschnitt 16.2; `--out`, `--wav`) |
 | `tools/audio/modern/calibrate_concrete.gd` | AU-R: die Schwelle je Land für die Betonabschnitte (`audio.modern.feed.concrete_threshold`) über alle Etappen; gibt sie als JSON-Zeile aus – neu laufen lassen, wenn Etappen dazukommen oder sich ein Anteil ändert (`godot --headless --path . -s res://tools/audio/modern/calibrate_concrete.gd -- --graphics=arcade`) |
 | `tools/audio/music/music_lib.py` | Musik-Kette (AU-D1): moderne Produktionsschicht über `music_synth.py`, Mixer, Master, Vorbis mit Messung nach der Kodierung (Abschnitt 14.2) |
 | `tools/audio/music/title_remaster.py`, `linke_spur.py`, `nachtfahrt.py`, `rueckenwind.py`, `zwischenspiel.py` | die Generatoren des Titel-Remasters, der drei Rennstücke (mit Schlüssen und Stingern, über `race_lib.py`) und des Zwischenspiels (`--out`, `--wav`, Skizzen) |
@@ -564,6 +568,7 @@ Fahrt; mit `--placeholders` das Platzhalter-Stück); `--mute-bus=MEnv` lässt nu
 | `test_modern_audio.gd` | `ModernAudio` ohne Szenenbaum: Lebenszyklus, Frame-Semantik, Einmalklänge und Ereignisse (50 ms), Mischung, Musik-Kontexte, Stummschaltung |
 | `test_modern_checks.gd` | startet `check_modern_audio.gd` zweimal (ohne und mit Wiedergabe) und `check_arcade_lean.gd` als eigene Prozesse |
 | `test_engine3_bank.gd`, `test_engine3_mix.gd`, `test_engine3_slot.gd`, `test_engine3_checks.gd` | Motor v3 (AU-B): Bank-Lader, Mischer (Knackser an den Zyklusgrenzen, Leistung beim Überblenden, Kanalabgleich, Monosumme), Baustein und Fahrzeugebenen, `check_engine3.gd` als eigene Prozesse (Thread-Bank mit sechs Hängern von 400 ms, Profilwechsel, Beenden) – [motorsound.md](motorsound.md) 6.7 |
+| `test_world_audio.gd` | AU-C2, ohne Szenenbaum: Zonen auf `MEnv` (Tap-Zeiten nur stumm umgestellt, Tal-Echo, Tunnel erst mit der Kamera, Schnee, Dach), Gewichte der Betten und Raten der Rufe nach Ort, Klima, Stunde und Wetter, Pegel gegen die Manifest-Lautheit und Abblenden mit dem Tempo, Rufe zufällig und im Pegelband, keine über 140 km/h; Modern-Verkehrsklänge und Pegelplan je Ebene (auf 0,05 dB), nasse Reifen, Luftstoß nach Tempo und Abstand (keiner von stehenden Autos), Hupe nach Kollision mit Pause, keine Polizei-Hupe, Martinshorn-Pegel – Abschnitt 16 |
 | `test_music_director.gd`, `test_music_checks.gd` | Musik (AU-D1, AU-D2): Zustandsmaschine des `MusicDirector` ohne Szenenbaum (Rotation, Zwischenspiel, Schluss-Varianten, Ziel-Schlag, Stinger); `check_music.gd` als eigene Prozesse (Schleife und Schlüsse aller Rennstücke offline gemischt, Naht des Zwischenspiels, Rennen mit Countdown und Ducking, Arcade ohne Neues, Beenden mit Musik) – Abschnitt 14.12 |
 
 `check_modern_audio.gd` prüft im laufenden Spiel: Start mit Arcade und Busliste wie in v0.7.0 · die neue API tut
@@ -600,18 +605,17 @@ Die Fingerabdrücke sind für eine Maschine und einen Engine-Stand exakt. Nach e
   Movie-Maker-Szenarien) stimmen sie ab. Mit `MSfx` auf 0 dB spielt alles Übrige unter `MSfx` 3 dB lauter als in
   Welle 0 (Wind, Reifen, Kollisionen, Verkehr, Ambiente, Menü- und Countdown-Klänge) – diese Platzhalter waren
   gegen den alten Wert nie abgestimmt; ihr Verhältnis zum Motor ist Sache der genannten Pakete.
-- **Schleifen ohne Fortsetzung** (Falle 13): Die Platzhalter-Schleifen (`make_placeholders.py`) und jede künftige
-  WAV-Schleife von AU-C2 brauchen Frames hinter `loop_end`, sonst knackt die Naht leise und `--audio-sync` ist
-  nicht reproduzierbar (die Schleifen von AU-B und AU-C1 tragen sie). Am saubersten in `modern_lib.py` (eine Stelle
-  für alle Generatoren) und als Regel in `audio_qc.py` („hinter dem Schleifenende liegen Daten“). Für die
-  Schleifen, die der eingefrorene Arcade-Code zur Laufzeit baut, ist das nicht untersucht.
-- **`modern_lib.write_wav_import()` / `write_ogg_import()` verlieren den Kopf der `.import`-Datei**: Sie öffnen
-  die Datei zum Schreiben, bevor `_import_head()` sie liest. Nach jedem erneuten Erzeugen fehlen uid und
-  Importpfad, und das Spiel meldet „Failed loading resource“, bis `godot --import` gelaufen ist (dann mit neuer
-  uid). `engine_synth3.py` umgeht das mit `write_wav_import_keep()`; die Korrektur gehört in `modern_lib.py`.
+- **Schleifen ohne Fortsetzung** (Falle 13): Die Platzhalter-Schleifen (`make_placeholders.py`) brauchen Frames
+  hinter `loop_end`, sonst knackt die Naht leise und `--audio-sync` ist nicht reproduzierbar (die Schleifen von AU-B,
+  AU-C1 und die WAV-Schleife von AU-C2, das Martinshorn, tragen sie; die übrigen Schleifen von AU-C2 sind Ogg und
+  laufen bis zum Dateiende). Eine Regel in `audio_qc.py` („hinter dem Schleifenende liegen Daten“) fehlt noch. Für
+  die Schleifen, die der eingefrorene Arcade-Code zur Laufzeit baut, ist das nicht untersucht.
+- **`modern_lib.write_wav_import()` / `write_ogg_import()` verloren den Kopf der `.import`-Datei**: erledigt mit
+  AU-C2 – der Kopf wird gelesen, bevor die Datei zum Schreiben geöffnet wird (uid und Importpfad bleiben).
+  `write_wav_import_keep()` in `engine_synth3.py` / `vehicle_loops.py` ist damit überflüssig, aber unschädlich.
 - **Breite des Motors**: Der Motor v3 ist trocken; bei Kompakt, Kombi und Limousine sitzt er in der Mitte
-  (Kanalkorrelation im Spiel 0,97–1,00, der Arcade-Motor mit seinem Hall 0,80–0,99). Raum und Breite sind Sache
-  von `env` (AU-C2) – siehe [motorsound.md](motorsound.md) 6.9.
+  (Kanalkorrelation im Spiel 0,97–1,00, der Arcade-Motor mit seinem Hall 0,80–0,99). Seit AU-C2 gibt `env` dem
+  ganzen Auto einen kurzen Raum oberhalb von etwa 600 Hz (Abschnitt 16.3); im Leerlauf bleibt es mittig.
 
 ## 14. Musik (Pakete AU-D1, AU-D2)
 
