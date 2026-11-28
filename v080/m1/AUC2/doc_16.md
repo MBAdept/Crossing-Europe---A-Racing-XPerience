@@ -71,12 +71,16 @@ Panoramas:
 | Dach | 9 / 13 | −9 dB | – | 0,40 / 0,50 / 0,11 |
 
 Die Zone kommt aus dem Feed; der Tunnel aus der Kamera (`frame.tunnel`, wie in Arcade) – fährt das Auto schon in die
-Röhre, die Kamera aber noch nicht, gilt die Zone davor. Die Werte gleiten zu ihrer Voreinstellung (0,7 s; in den und
-aus dem Tunnel 0,35 s). Schnee: Taps −4 dB, Hall × 0,6, Dämpfung +0,2.
+Röhre, die Kamera aber noch nicht, gilt die Zone davor. In der Pause und bei einem Hänger (der Feed ist dann ungültig)
+bleibt die Zone; erst 0,75 s ohne Feed außerhalb der Pause (Etappe vorbei) gelten als offen (`env.hold_s`). Die
+Werte gleiten zu ihrer Voreinstellung (0,7 s; in den und aus dem Tunnel 0,35 s). Schnee: Taps −4 dB, Hall × 0,6,
+Dämpfung +0,2.
 
 Godot setzt Tap-Zeiten, die Rückkopplungszeit und das Predelay des Halls ohne Rampe (der Lesezeiger springt – im
-Quelltext nachgelesen, Abschnitt 16.8). Die Taps wechseln ihre Zeiten deshalb nur stumm: 80 ms ausblenden, umstellen,
-160 ms einblenden (geprüft: beim Umstellen höchstens −60 dB); das Predelay steht für alle Zonen fest (18 ms).
+Quelltext nachgelesen, Abschnitt 16.8). Die Taps wechseln ihre Zeiten deshalb nur stumm: 80 ms ausblenden, ein Bild
+später umstellen (der stumme Pegel ist dann sicher beim Effekt), 160 ms einblenden (geprüft: beim Umstellen höchstens
+−60 dB); das Echo wechselt seine Zeit erst, wenn seine Rückkopplung abgeschaltet und eine Echozeit lang leergelaufen
+ist. Das Predelay steht für alle Zonen fest (18 ms).
 
 **Breite des Autos** ([motorsound.md](motorsound.md) 6.9): ein kurzer Raum auf `MCar` (Raum 0,1, Dämpfung 0,7,
 Eingang ab etwa 600 Hz, Anteil 0,3, `env.car_width`). Gemessen mit `capture_mix.gd` (Fahrt ohne Feed, Zone offen):
@@ -114,8 +118,10 @@ Pegel: jedes Bett als Lautheit am Master bei Gewicht 1 im Stand (`ambience.beds.
 Grillen −37, Zikaden −34, Stadt −33 / −37, Wasser −35, Tunnellüfter −34, Brummen −38, Regen −29 LUFS), jede Ruf-Art
 als Momentanlautheit (`ambience.calls.<cat>.lufs_m`, −31 bis −42), je Ruf 0 bis −8 dB Entfernung. Über 30 km/h
 werden Betten und Rufe leiser (8–12 dB je Dekade, Regen 3, höchstens 12 dB): Bei Reisetempo deckt das Auto sie
-ohnehin zu, sie sollen dort nichts verschmieren. Pause: die Betten laufen 6 dB leiser weiter (der Mischzustand
-`pause` dämpft `MAmb`), kein neuer Ruf.
+ohnehin zu, sie sollen dort nichts verschmieren. Pause: die Betten laufen mit ihren Gewichten 6 dB leiser weiter (der
+Mischzustand `pause` dämpft `MAmb`), kein neuer Ruf; erst 0,75 s ohne Sitzung außerhalb der Pause blenden sie aus.
+In den und aus dem Tunnel blenden die Betten zwei Sekunden lang schnell (0,5 s statt 1,5 s). Vier Stimmen für Rufe:
+zuerst eine freie, sonst die mit dem kürzesten Rest (eine Glocke wird nicht vom nächsten Spatzen abgeschnitten).
 
 ### 16.5 Verkehr (`TrafficExtras`)
 
@@ -129,12 +135,14 @@ unter derselben Datei auf beiden Kanälen, wie das Manifest sie misst. Gemessen 
 
 Luftstoß: ein Fahrzeug mit mindestens 30 km/h, das den Hörer mit mindestens 15 km/h Unterschied und höchstens 4,5 m
 (Lkw/Bus 5,5 m) seitlich passiert; Pegel nach seinem eigenen Tempo (die Luft, die es schiebt; 20 dB je Dekade über
-80 km/h) und 1 / Abstand, Tonhöhe nach dem Unterschied. Ein stehendes Auto wirft nichts.
+80 km/h) und 1 / Abstand (flach innerhalb 2 m), Tonhöhe nach dem Unterschied. Ein stehendes Auto wirft nichts.
 
-Hupen: nach `collision` das nächste Fahrzeug innerhalb 15 m mit Wahrscheinlichkeit 0,8 nach 0,3–0,7 s; beim knappen
-Vorbeiziehen (≤ 1,8 m, ≥ 30 km/h schneller) mit 0,25 zweimal kurz; höchstens eine Hupe je 8 s; −24 LUFS momentan in
-10 m (Lkw −20), mit der Stimme mitgeführt (Seite, Doppler). Das Fahrzeug muss beim Hupen noch seine Stimme haben –
-sonst hupt niemand aus dem Nichts.
+Hupen: nach `collision` das nächste Fahrzeug innerhalb 15 m mit Wahrscheinlichkeit 0,8 nach 0,3–0,7 s; ist das nächste
+die Polizei, hupt niemand. Beim knappen Vorbeiziehen (≤ 1,8 m, ≥ 30 km/h schneller) mit 0,25 zweimal kurz; höchstens
+eine Hupe je 8 s; −24 LUFS momentan in 10 m (Lkw −20), näher lauter, aber flach innerhalb 6 m und nie über −15 LUFS
+(`horns.near_m`, `max_lufs`; ohne Grenze hätte ein Lkw in 2 m −6 LUFS erreicht und den Begrenzer um 5 dB gedrückt);
+mit der Stimme mitgeführt (Seite, Doppler). Das Fahrzeug muss beim Hupen noch seine Stimme haben – sonst hupt niemand
+aus dem Nichts; eine wartende Hupe entfällt, wenn das Spiel pausiert.
 
 Martinshorn: `siren_lufs` −17 LUFS innerhalb `siren_ref_m` (30 m), das Entfernungsgesetz von Arcade (Abfall 0,6,
 mindestens 0,3); ohne Polizeiauto in der Liste mittig mit dem Pegel der Sitzung × diesem Bezug.
@@ -144,11 +152,30 @@ mindestens 0,3); ohne Polizeiauto in der Liste mittig mit dem Pegel der Sitzung 
 Probefahrt (`<scratch>/v080/m1/AUC2/tools/drive_c2.gd`: die Aufrufe der Rennsitzung auf echten Etappen, Verkehr
 gesetzt, Limousine; Hörproben `deliver/AUC2/`):
 
-MESS_TABELLE
+| Szene | Spielmix: integriert / Kurzzeit höchstens (LUFS) | nur Ambiente (LUFS) | nur Verkehr: Momentan höchstens (LUFS) |
+|---|---|---|---|
+| Hamburg, Zentrum am Hafen, 9:30 Uhr: im Stand, dann 45 km/h | −20,2 / −17,6 | −33,0 | – |
+| Elbtunnel, 80 km/h: Lkw rechts, ein Pkw überholt | −16,8 / −16,3 | −36,9 | −20,4 |
+| Heide, 140 km/h: Lkw überholt, Pkw überholt uns, Polizei mit Martinshorn fährt vorbei | −15,8 / −13,9 | −45,6 | −14,7 |
+| Auffahrunfall (30 km/h Unterschied), der andere hupt | −20,3 / −19,2 | −45,2 | −24,3 |
+| Wald bei Kassel, 6:24 Uhr (Morgenchor), 25 km/h | −20,9 / −20,1 | −35,9 | – |
+| Bergland, 23:30 Uhr im Stand, nach 18 s Regen | −23,4 / −22,0 | −31,5 | – |
+| Bei Montpellier, 14 Uhr, 40 km/h | −21,7 / −21,1 | −33,8 | – |
+| Alpen, 90 km/h | −17,1 / −16,7 | −41,6 | – |
+| Tankstelle, 21 Uhr, im Stand unter dem Dach | −24,8 / −24,4 | −37,1 | – |
+
+Im Stand liegt das Ambiente 7–13 dB unter dem Spielmix (Leerlauf ≈ −24 LUFS), bei Autobahntempo 25–30 dB darunter
+(gewollt: dort deckt das Auto es zu). Ein überholter Lkw erreicht kurz die Lautheit des eigenen Autos, das
+vorbeifahrende Martinshorn −15 LUFS momentan. In keiner Szene erreicht der Begrenzer seine Obergrenze länger als einen
+Frame.
 
 Der schlimmste Fall (Abschnitt 15.5; Tunnel, zwei Lkw und ein Pkw dicht, Polizei 12 m hinten mit Martinshorn,
 Rennmusik, Gran Turismo 230 km/h, schwerer Aufprall auf einen Lkw, Leitplanke, zweiter Aufprall): nach dem Begrenzer
-MESS_WORST.
+**−3,58 dBTP** (Plan ≤ −0,5), bei Gesamtlautstärke 1,0 **−1,50 dBTP**. Vor dem Begrenzer +1,36 dBFS (313 Frames über
+−0,8 dBFS), bei 1,0 +3,41 dBFS; ohne den Verkehr −0,44 dBFS. Zum Vergleich mit den Platzhaltern (Abschnitt 15.5):
++4,1 dBFS vor dem Begrenzer bei Standardreglern, +6,0 dBFS bei 1,0. In dieser Szene arbeitet der Begrenzer schon vor
+dem Aufprall fast durchgehend um 2–4 dB: Tunnelhall und Reflexionen heben dort alles um 3–5 dB (Martinshorn allein
+aus 12 m im Tunnel −15,8 LUFS, die zwei Lkw allein −13,8 LUFS, gemessen vor der Anhebung des Martinshorns).
 
 ### 16.7 Rechenzeit
 
@@ -167,6 +194,10 @@ dazu (Arcade gemessen < 0,3 ms je Bild).
    Unexpected NUL character“ ins Log.
 5. **Eine Methode `_set(…)` in einem Skript** überschreibt `Object._set(StringName, Variant)` und bricht das Laden
    mit „function signature doesn't match the parent“ ab.
+6. **In der Pause meldet `ModernAudio` weder `frame.alive` noch `frame.has_state`** (und der Feed ist ungültig): Ein
+   Baustein, der in der Pause weiterklingen soll, muss sich den Zustand vor der Pause merken – ein Test mit einem
+   Bild „pausiert, aber mit Zustand“ prüft einen Zustand, den das Spiel nie erzeugt (so geschehen, gefunden von der
+   unabhängigen Prüfung).
 
 ### 16.9 Offene Punkte
 

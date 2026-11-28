@@ -1,10 +1,10 @@
 Rundfahrt AU-C2 (Spielmix: Auto, Verkehr, Ambiente, Raumklang; ohne Musik). Zeiten:
 0:00.0  Hamburg, Zentrum am Hafen, 9:30 Uhr: Stand am Start, dann 45 km/h
 0:17.9  Elbtunnel mit 80 km/h: Lkw rechts, ein Pkw überholt
-0:33.5  Heide, 140 km/h: Lkw überholt (Luftstoß), Pkw überholt uns, Polizei mit Martinshorn fährt vorbei
-1:05.1  Auffahrunfall mit 30 km/h Unterschied: der andere hupt
-1:12.3  Wald bei Kassel, 6:24 Uhr (Morgenchor), 25 km/h
-1:34.2  Hessisches Bergland, 23:30 Uhr im Stand, nach 18 s Regen
-2:04.0  Bei Montpellier, 14 Uhr, 40 km/h
-2:21.9  Alpen zwischen Bern und Mailand, 90 km/h
-2:35.8  Tankstelle bei Kiel, 21 Uhr, im Stand unter dem Dach
+0:33.4  Heide, 140 km/h: Lkw überholt (Luftstoß), Pkw überholt uns, Polizei mit Martinshorn fährt vorbei
+1:04.8  Auffahrunfall mit 30 km/h Unterschied: der andere hupt
+1:12.1  Wald bei Kassel, 6:24 Uhr (Morgenchor), 25 km/h
+1:33.9  Hessisches Bergland, 23:30 Uhr im Stand, nach 18 s Regen
+2:03.5  Bei Montpellier, 14 Uhr, 40 km/h
+2:21.4  Alpen zwischen Bern und Mailand, 90 km/h
+2:35.5  Tankstelle bei Kiel, 21 Uhr, im Stand unter dem Dach

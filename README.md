@@ -1,4 +1,4 @@
-# Wiederaufnahme (zuletzt aktualisiert 28.11.2026 ~06:50 UTC)
+# Wiederaufnahme (zuletzt aktualisiert 28.11.2026 ~07:25 UTC)
 
 Haltung des Nutzers: Qualität vor Tempo, keine Prüfungen/Nacharbeit streichen; Lackflackern pausiert (A-21);
 „bitte ohne meine Testergebnisse erst einmal weitermachen“. Nutzer schreibt Deutsch; Tags/Releases macht der Nutzer.
@@ -175,6 +175,11 @@ Haltung des Nutzers: Qualität vor Tempo, keine Prüfungen/Nacharbeit streichen;
    auf MCar (wet 0,3), Hörproben deliver/AUC2 (rundfahrt_alle_szenen.mp3, klangbausteine.mp3, je Szene).
    Läuft/offen: unabhängige Code-Prüfung (Agent), Befunde einarbeiten, Doku-Entwurf m1/AUC2/doc_16.md in
    docs/audio-modern.md (§16 + Tabellen §4.1/§9/§10/§12/§13), Vertrag A-35, Bericht deliver/AUC2/bericht.md, Tore.
+   28.11. ~07:25 AU-C2: Code fertig (Prüf-Befunde 1–11 behoben, Commit 17bda1c), Doku §16 + Vertrag A-35, Bericht
+   deliver/AUC2/bericht.md (nur TORE_AUC2 offen), Hörproben final. Tore laufen: m1/AUC2/gates.sh (setsid; check,
+   modern KEEP, run_tests, qc_det, render_all; .done-Dateien in m1/AUC2/gates) -> "GATES AUC2 DONE" in
+   m1/AUC2/logs/gates.log. Nach Neustart: gates.sh neu starten (überspringt Fertiges). Dann TORE eintragen,
+   Archiv, Task #139 schließen, Nutzer berichten.
    Nach Neustart: queue_ablmp.sh (A/B, Vorher-Bilder für N6) neu starten (überspringt Fertiges).
    (alt) Nach Neustart: queue_r5.sh, gates2.sh und queue_ablmp.sh neu starten (L2, R4, ab_c1/c2 FERTIG) (setsid nohup bash …); sie überspringen Fertiges.
    Rückstau Modellarbeit (A-29) danach: Sportwagen-Bremsband/Mittelbremslicht, GT-Silber nachts, Limousine Dämmerung,
