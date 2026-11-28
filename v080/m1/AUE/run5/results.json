@@ -1,0 +1,48 @@
+{
+  "master_gain": 0.80000000228364,
+  "mix_rate": 48000.0,
+  "results": [
+    {
+      "balance_after_db": 5.57107222452582,
+      "balance_before_db": 10.9459184285649,
+      "doppler_corr": 0.515684008803722,
+      "doppler_ratio": 0.869816252556953,
+      "name": "vorbeifahrt_links",
+      "ok": true,
+      "t_pass": 3.38333333333333
+    },
+    {
+      "balance_after_db": -5.46024544470573,
+      "balance_before_db": -10.2419231077208,
+      "doppler_corr": 0.499918488978897,
+      "doppler_ratio": 0.871067945163931,
+      "name": "vorbeifahrt_rechts",
+      "ok": true,
+      "t_pass": 3.38333333333333
+    },
+    {
+      "name": "tunnelhall",
+      "ok": true,
+      "open_rt60_s": 0.069,
+      "tunnel_rt60_s": 1.893
+    },
+    {
+      "events": {
+        "collision": 2,
+        "escaped": 46,
+        "go": 5,
+        "pass_object": 6,
+        "stage_start": 5,
+        "tunnel_out": 1
+      },
+      "full_scale_samples": 0,
+      "lufs": -12.278906309442,
+      "momentary_max": -10.6371870040894,
+      "name": "schlimmster_fall",
+      "ok": true,
+      "sample_peak_db": -1.99998133910522,
+      "true_peak_dbtp": -3.81236226516459,
+      "true_peak_dbtp_master1": -1.87416202979777
+    }
+  ]
+}

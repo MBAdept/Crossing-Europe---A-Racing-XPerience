@@ -1,0 +1,24 @@
+{
+  "master_gain": 0.80000000228364,
+  "mix_rate": 48000.0,
+  "results": [
+    {
+      "balance_after_db": 1.10799672366426,
+      "balance_before_db": 3.41699117186716,
+      "doppler_corr": 0.503250683982478,
+      "doppler_ratio": 1.08931185626941,
+      "name": "vorbeifahrt_links",
+      "ok": false,
+      "t_pass": 3.38333333333333
+    },
+    {
+      "balance_after_db": -0.721356429293238,
+      "balance_before_db": -2.89490013398786,
+      "doppler_corr": 0.476445809567584,
+      "doppler_ratio": 0.874235823532347,
+      "name": "vorbeifahrt_rechts",
+      "ok": false,
+      "t_pass": 3.38333333333333
+    }
+  ]
+}

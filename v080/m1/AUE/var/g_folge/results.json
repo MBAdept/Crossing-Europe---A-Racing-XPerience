@@ -1,0 +1,90 @@
+{
+  "master_gain": 0.80000000228364,
+  "mix_rate": 48000.0,
+  "results": [
+    {
+      "end_kmh": 270.0,
+      "full_throttle_lufs": -15.2069525320809,
+      "idle_lufs": -23.0916599264429,
+      "name": "vollgas_gran_turismo",
+      "ok": false,
+      "short_term_max": -14.2416429519653,
+      "short_term_median": -14.9302062988281,
+      "speaker_full_throttle_lufs": -15.6730712531076,
+      "speaker_idle_lufs": -30.3959326482599,
+      "top_kmh": 270.0,
+      "top_speed_lufs": -13.0666367077204
+    },
+    {
+      "duck_after_stop_db": -0.0061626900120082,
+      "duck_full_throttle_db": -4.45103158381207,
+      "duck_idle_db": -0.00242943978724952,
+      "mix_full_throttle_lufs": -15.5677758594157,
+      "music_full_throttle_lufs": -24.2065851343746,
+      "music_pre_lufs": -14.2732240947805,
+      "name": "ducking",
+      "ok": true,
+      "stopped_s": 20.85
+    },
+    {
+      "balance_after_db": 5.60804878725693,
+      "balance_before_db": 10.9045998241568,
+      "doppler_corr": 0.51700488138944,
+      "doppler_ratio": 0.869848143530152,
+      "name": "vorbeifahrt_links",
+      "ok": true,
+      "t_pass": 3.38333333333333
+    },
+    {
+      "balance_after_db": -5.42313669207993,
+      "balance_before_db": -10.2945835785651,
+      "doppler_corr": 0.512969926786421,
+      "doppler_ratio": 0.869945418651378,
+      "name": "vorbeifahrt_rechts",
+      "ok": true,
+      "t_pass": 3.38333333333333
+    },
+    {
+      "name": "tunnelhall",
+      "ok": true,
+      "open_rt60_s": 0.069,
+      "tunnel_rt60_s": 1.593
+    },
+    {
+      "enter_s": 5.7,
+      "groups": {
+        "MAmb": [
+          -42.3,
+          -35.7
+        ],
+        "MCar": [
+          -20.1,
+          -20.4
+        ],
+        "MImpact": [
+          -70.0,
+          -70.0
+        ],
+        "MMusic": [
+          -70.0,
+          -70.0
+        ],
+        "MWorld": [
+          -70.0,
+          -70.0
+        ]
+      },
+      "inside_lufs": -18.7774105072021,
+      "inside_max": -17.8891887664795,
+      "lift_db": 3.83798980712891,
+      "limiter": {
+        "max_db": 0.594647213815151,
+        "share_1db": 0.0,
+        "share_3db": 0.0
+      },
+      "name": "tunnel_lautheit",
+      "ok": true,
+      "outside_lufs": -22.6154003143311
+    }
+  ]
+}

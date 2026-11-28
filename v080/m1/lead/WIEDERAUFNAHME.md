@@ -1,4 +1,4 @@
-# Wiederaufnahme (zuletzt aktualisiert 28.11.2026 ~07:25 UTC)
+# Wiederaufnahme (zuletzt aktualisiert 28.11.2026 ~10:20 UTC)
 
 Haltung des Nutzers: Qualität vor Tempo, keine Prüfungen/Nacharbeit streichen; Lackflackern pausiert (A-21);
 „bitte ohne meine Testergebnisse erst einmal weitermachen“. Nutzer schreibt Deutsch; Tags/Releases macht der Nutzer.
@@ -180,6 +180,21 @@ Haltung des Nutzers: Qualität vor Tempo, keine Prüfungen/Nacharbeit streichen;
    modern KEEP, run_tests, qc_det, render_all; .done-Dateien in m1/AUC2/gates) -> "GATES AUC2 DONE" in
    m1/AUC2/logs/gates.log. Nach Neustart: gates.sh neu starten (überspringt Fertiges). Dann TORE eintragen,
    Archiv, Task #139 schließen, Nutzer berichten.
+   28.11. ~10:20 AU-C2 Tore: check/modern/run_tests 876/0/qc_det grün; render_all läuft noch (gates.sh, Wächter
+   bjt6y7mrm). Danach TORE_AUC2 in deliver/AUC2/bericht.md, Task #139 schließen.
+   AU-E (#140) IN ARBEIT (Welle 7; danach R8 #141, UI2 #142, QA2 #143), Arbeitsordner m1/AUE (PLAN.md, env.sh,
+   tools/variants.sh = ein Szenario mit Konfig-Overrides in eigenem user-Ordner, tools/race_timeline.py =
+   Auswertung ganzer Rennen mit ffmpeg ebur128). NICHT committet, im Arbeitsbaum: tests/race/audio_meter.gd,
+   tests/race/check_audio_modern.gd (Movie Maker, Xvfb, --graphics=arcade --sound=modern --audio-sync; Szenarien
+   vollgas_<auto>+Höchsttempo, ducking, vorbeifahrt_links/rechts, tunnelhall, tunnel_lautheit, schlimmster_fall
+   (Gotthard)), tests/unit/audio_modern/test_audio_meter.gd (5/5), tools/run_render_checks.sh Gruppe audio +
+   "## render-check-godot:", tests/race/run_race.gd --dwell/--timeline, tools/audio/record_race.sh,
+   tests/race/check_attract.gd (Modern-Musik über MusicDirector, MSfx stumm), env_acoustics.gd Tunnel
+   tap −7→−10 dB, wet 0.3→0.22 (Tunnel +5,3 → +3,7 dB). Befunde: Movie Maker headless stürzt ab; Blitzer starten
+   in Testfahrten eine Jagd (Szenen nehmen die Radare aus dem Plan); Doppler braucht 0,5-s-Fenster.
+   Nächstes: voller Lauf m1/AUE/full1 (logs/full1.log) auswerten, dann ganzes Rennen je Profil
+   (tools/audio/record_race.sh, Platz knapp: 64×36), Doku audio-modern §17, Vertrag A-36, Bericht deliver/AUE,
+   unabhängige Prüfung, Tore.
    Nach Neustart: queue_ablmp.sh (A/B, Vorher-Bilder für N6) neu starten (überspringt Fertiges).
    (alt) Nach Neustart: queue_r5.sh, gates2.sh und queue_ablmp.sh neu starten (L2, R4, ab_c1/c2 FERTIG) (setsid nohup bash …); sie überspringen Fertiges.
    Rückstau Modellarbeit (A-29) danach: Sportwagen-Bremsband/Mittelbremslicht, GT-Silber nachts, Limousine Dämmerung,

@@ -1,0 +1,136 @@
+{
+  "master_gain": 0.80000000228364,
+  "mix_rate": 48000.0,
+  "results": [
+    {
+      "end_kmh": 230.0,
+      "full_throttle_lufs": -14.9656703030026,
+      "idle_lufs": -23.7505215494394,
+      "name": "vollgas_kompakt",
+      "ok": false,
+      "short_term_max": -13.9562063217163,
+      "short_term_median": -14.8906230926514,
+      "speaker_full_throttle_lufs": -16.6525154804531,
+      "speaker_idle_lufs": -31.4021285756608,
+      "top_kmh": 230.0,
+      "top_road": [
+        "concrete/concrete open km 37.6",
+        "concrete/concrete open km 38.8",
+        "concrete/concrete open km 40.1"
+      ],
+      "top_speed_lufs": -13.9827317774784
+    },
+    {
+      "end_kmh": 235.0,
+      "full_throttle_lufs": -15.6277604096995,
+      "idle_lufs": -22.875601119825,
+      "name": "vollgas_kombi",
+      "ok": false,
+      "short_term_max": -14.5886688232422,
+      "short_term_median": -15.8159093856812,
+      "speaker_full_throttle_lufs": -17.7856583914786,
+      "speaker_idle_lufs": -24.2055922428669,
+      "top_kmh": 235.0,
+      "top_road": [
+        "concrete/concrete open km 36.0",
+        "concrete/concrete open km 37.3",
+        "concrete/concrete open km 38.6"
+      ],
+      "top_speed_lufs": -13.3349600919002
+    },
+    {
+      "end_kmh": 244.990061972638,
+      "full_throttle_lufs": -16.1221457376808,
+      "idle_lufs": -23.261488217974,
+      "name": "vollgas_limousine",
+      "ok": false,
+      "short_term_max": -14.6571140289307,
+      "short_term_median": -16.0996952056885,
+      "speaker_full_throttle_lufs": -16.795672862925,
+      "speaker_idle_lufs": -31.0855280871041,
+      "top_kmh": 245.0,
+      "top_road": [
+        "concrete/concrete open km 36.9",
+        "concrete/concrete open km 38.3",
+        "concrete/concrete open km 39.6"
+      ],
+      "top_speed_lufs": -13.6218120318006
+    },
+    {
+      "end_kmh": 255.0,
+      "full_throttle_lufs": -14.765236679943,
+      "idle_lufs": -22.7793540015695,
+      "name": "vollgas_sportwagen",
+      "ok": false,
+      "short_term_max": -13.8250846862793,
+      "short_term_median": -14.7307033538818,
+      "speaker_full_throttle_lufs": -15.2508419442836,
+      "speaker_idle_lufs": -27.1859894447668,
+      "top_kmh": 255.0,
+      "top_road": [
+        "concrete/concrete open km 38.4",
+        "concrete/concrete open km 39.8",
+        "concrete/concrete open km 41.3"
+      ],
+      "top_speed_lufs": -13.2031180204038
+    },
+    {
+      "end_kmh": 270.0,
+      "full_throttle_lufs": -15.0849297172558,
+      "idle_lufs": -23.1020858974513,
+      "name": "vollgas_gran_turismo",
+      "ok": false,
+      "short_term_max": -13.8509559631348,
+      "short_term_median": -15.0070381164551,
+      "speaker_full_throttle_lufs": -15.5535678834028,
+      "speaker_idle_lufs": -30.1029470501595,
+      "top_kmh": 270.0,
+      "top_road": [
+        "concrete/concrete open km 37.8",
+        "concrete/concrete open km 39.3",
+        "concrete/concrete open km 40.8"
+      ],
+      "top_speed_lufs": -13.0670218422586
+    },
+    {
+      "enter_s": 5.7,
+      "groups": {
+        "MAmb": [
+          -42.7,
+          -35.7
+        ],
+        "MCar": [
+          -20.2,
+          -20.0
+        ],
+        "MEnv": [
+          -20.8,
+          -14.2
+        ],
+        "MImpact": [
+          -70.0,
+          -70.0
+        ],
+        "MMusic": [
+          -70.0,
+          -70.0
+        ],
+        "MWorld": [
+          -70.0,
+          -70.0
+        ]
+      },
+      "inside_lufs": -15.6765880584717,
+      "inside_max": -15.1869239807129,
+      "lift_db": 7.32657527923584,
+      "limiter": {
+        "max_db": 0.86260259703911,
+        "share_1db": 0.0,
+        "share_3db": 0.0
+      },
+      "name": "tunnel_lautheit",
+      "ok": false,
+      "outside_lufs": -23.0031633377075
+    }
+  ]
+}

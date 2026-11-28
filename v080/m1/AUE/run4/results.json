@@ -1,0 +1,46 @@
+{
+  "master_gain": 0.80000000228364,
+  "mix_rate": 48000.0,
+  "results": [
+    {
+      "end_kmh": 231.115218761338,
+      "full_throttle_lufs": -15.2069525320809,
+      "idle_lufs": -23.0916599264429,
+      "name": "vollgas_gran_turismo",
+      "ok": true,
+      "short_term_max": -14.2416429519653,
+      "short_term_median": -14.9302062988281,
+      "speaker_full_throttle_lufs": -15.6730712531076,
+      "speaker_idle_lufs": -30.3959326482599
+    },
+    {
+      "duck_after_stop_db": -0.00618701599181115,
+      "duck_full_throttle_db": -4.45130212423991,
+      "duck_idle_db": -0.00243983303609951,
+      "mix_full_throttle_lufs": -15.5023496671144,
+      "music_full_throttle_lufs": -24.2068710603463,
+      "music_pre_lufs": -14.2732240947805,
+      "name": "ducking",
+      "ok": true,
+      "stopped_s": 20.85
+    },
+    {
+      "balance_after_db": 5.66979439296905,
+      "balance_before_db": 10.8733464434519,
+      "doppler_corr": 0.535499306603463,
+      "doppler_ratio": 1.0912479587366,
+      "name": "vorbeifahrt_links",
+      "ok": false,
+      "t_pass": 3.38333333333333
+    },
+    {
+      "balance_after_db": -5.44128812218426,
+      "balance_before_db": -10.2543564341694,
+      "doppler_corr": 0.562859375869606,
+      "doppler_ratio": 0.932844849764514,
+      "name": "vorbeifahrt_rechts",
+      "ok": true,
+      "t_pass": 3.38333333333333
+    }
+  ]
+}

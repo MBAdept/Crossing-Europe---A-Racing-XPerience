@@ -1,0 +1,17 @@
+{
+  "master_gain": 0.80000000228364,
+  "mix_rate": 48000.0,
+  "results": [
+    {
+      "end_kmh": 231.115218761338,
+      "full_throttle_lufs": -14.9939504044215,
+      "idle_lufs": -23.0916599264429,
+      "name": "vollgas_gran_turismo",
+      "ok": true,
+      "short_term_max": -14.1200876235962,
+      "short_term_median": -14.6580476760864,
+      "speaker_full_throttle_lufs": -15.431888886195,
+      "speaker_idle_lufs": -30.3959326482599
+    }
+  ]
+}

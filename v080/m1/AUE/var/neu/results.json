@@ -1,0 +1,24 @@
+{
+  "master_gain": 0.80000000228364,
+  "mix_rate": 48000.0,
+  "results": [
+    {
+      "name": "tunnelhall",
+      "ok": true,
+      "open_rt60_s": 0.069,
+      "tunnel_rt60_s": 1.593
+    },
+    {
+      "collisions": 2,
+      "frames_outside_tunnel": 0,
+      "full_scale_samples": 0,
+      "lufs": -12.626789756879,
+      "momentary_max": -11.7185411453247,
+      "name": "schlimmster_fall",
+      "ok": true,
+      "sample_peak_db": -1.99988813668598,
+      "true_peak_dbtp": -3.86254922881341,
+      "true_peak_dbtp_master1": -1.92434899344659
+    }
+  ]
+}

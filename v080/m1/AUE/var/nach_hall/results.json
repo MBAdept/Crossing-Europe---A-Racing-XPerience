@@ -1,0 +1,26 @@
+{
+  "master_gain": 0.80000000228364,
+  "mix_rate": 48000.0,
+  "results": [
+    {
+      "name": "tunnelhall",
+      "ok": true,
+      "open_rt60_s": 0.069,
+      "tunnel_rt60_s": 1.593
+    },
+    {
+      "enter_s": 5.7,
+      "inside_lufs": -19.4980735778809,
+      "inside_max": -18.8275051116943,
+      "lift_db": 2.21376991271973,
+      "limiter": {
+        "max_db": 0.773370010703715,
+        "share_1db": 0.0,
+        "share_3db": 0.0
+      },
+      "name": "tunnel_lautheit",
+      "ok": true,
+      "outside_lufs": -21.7118434906006
+    }
+  ]
+}

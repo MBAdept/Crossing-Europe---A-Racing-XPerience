@@ -1,0 +1,35 @@
+{
+  "master_gain": 0.80000000228364,
+  "mix_rate": 48000.0,
+  "results": [
+    {
+      "duck_after_stop_db": -0.573851074763281,
+      "duck_full_throttle_db": -4.79634582898948,
+      "duck_idle_db": -0.00048939682378446,
+      "mix_full_throttle_lufs": -15.4109338800045,
+      "music_full_throttle_lufs": -24.4963959334908,
+      "music_pre_lufs": -14.7971353878193,
+      "name": "ducking",
+      "ok": true,
+      "stopped_s": 20.85
+    },
+    {
+      "balance_after_db": 1.11447099586558,
+      "balance_before_db": 3.41616930839173,
+      "doppler_corr": 0.495431283713234,
+      "doppler_ratio": 1.08903580698428,
+      "name": "vorbeifahrt_links",
+      "ok": false,
+      "t_pass": 3.38333333333333
+    },
+    {
+      "balance_after_db": -0.726070494196697,
+      "balance_before_db": -2.88081883426807,
+      "doppler_corr": 0.473992101242335,
+      "doppler_ratio": 0.872507321137926,
+      "name": "vorbeifahrt_rechts",
+      "ok": false,
+      "t_pass": 3.38333333333333
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "master_gain": 0.80000000228364,
+  "mix_rate": 48000.0,
+  "results": [
+    {
+      "enter_s": 5.7,
+      "inside_lufs": -18.3805999755859,
+      "inside_max": -18.1906776428223,
+      "lift_db": 4.20463371276855,
+      "name": "tunnel_lautheit",
+      "ok": false,
+      "outside_lufs": -22.5852336883545
+    }
+  ]
+}

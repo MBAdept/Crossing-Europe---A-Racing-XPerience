@@ -1,6 +1,6 @@
 # AU-C2 – Welt, Ambiente, Verkehr, Martinshorn (Bericht der Leitung)
 
-Stand: BERICHT_STAND. Zweig wip-v080-welle6 (origin wip/v080-welle6). Gehört hat es niemand – alles ist gemessen;
+Stand: 28.11.2026, Kopf 17bda1c. Zweig wip-v080-welle6 (origin wip/v080-welle6). Gehört hat es niemand – alles ist gemessen;
 das Urteil über den Klang liegt bei dir. Hörproben liegen in diesem Ordner.
 
 ## Kurzfassung
@@ -99,12 +99,26 @@ Rückfall auf Arcade-Klänge mit Arcade-Pegel, die Verkehrspegel-Tests rechnen j
 
 ## 5. Prüfungen
 
-TORE_AUC2
+Alle Prüfläufe auf dem Kopf 17bda1c (28.11., 07:09–10:28 Uhr):
+
+| Prüfung | Ergebnis |
+|---|---|
+| Arcade-Bilder (`golden.sh check`) | 20 von 20 und Menüs 17 von 17 identisch – Arcade unverändert |
+| Modern-Bilder (`golden.sh modern-check`) | 6 von 6 identisch; OpenGL ES gegen OpenGL höchstens 2/255 (PSNR 73,2 dB) |
+| ganze Testsuite (`run_tests.sh`) | 876 Tests, 0 fehlgeschlagen; alle Prüfungen in Ordnung (darunter die Arcade-Fingerabdrücke des Klangs) |
+| Klangprüfung (`audio_qc.py --determinism`) | 143 Klänge, 0 Fehler; jeder der 12 Generatoren zweimal gleich; Klänge 22,23 von 23 MB, Musik 18,54 von 25 MB |
+| Render-Prüfungen (`run_render_checks.sh all`) | 33 von 33 Dateien in Ordnung |
+
+Ehrlich angemerkt: Nach der 33. Datei brach das Prüfskript selbst mit einem Syntaxfehler ab – ich hatte es für das
+nächste Paket (AU-E) geändert, während es noch lief, und Bash liest Skripte stückweise. Alle 33 Einzelurteile waren
+da schon „in Ordnung“; die Datei selbst ist fehlerfrei. Die Prüfungen von AU-E laufen ohnehin noch einmal über alles.
 
 ## 6. Offen
 
 - **Hören** – alles oben ist gemessen, nicht gehört.
-- Tunnel insgesamt eher laut (siehe schlimmster Fall); Ambiente-Pegel und Rufraten sind Startwerte (in der
+- Tunnel insgesamt eher laut (siehe schlimmster Fall) – **in AU-E schon nachgestellt**: frühe Reflexionen −10 statt
+  −7 dB, Hallanteil 0,22 statt 0,30; bei 120 km/h macht der Tunnel die Mischung jetzt 3,7 statt 5,3 dB lauter. Die
+  Hörproben in diesem Ordner sind noch mit den Werten von AU-C2; Ambiente-Pegel und Rufraten sind Startwerte (in der
   Konfiguration `audio.modern.ambience`, `traffic`, `env`) und gehören in die Gesamtabstimmung AU-E.
 - Platz: noch 0,77 MB für weitere Klänge.
 - Donner und Martinshörner je Land: später, wenn gewünscht.

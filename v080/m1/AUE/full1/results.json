@@ -1,0 +1,127 @@
+{
+  "master_gain": 0.80000000228364,
+  "mix_rate": 48000.0,
+  "results": [
+    {
+      "end_kmh": 224.424004503544,
+      "full_throttle_lufs": -14.9656703030026,
+      "idle_lufs": -23.7505215494394,
+      "name": "vollgas_kompakt",
+      "ok": true,
+      "short_term_max": -13.9562063217163,
+      "short_term_median": -14.8906230926514,
+      "speaker_full_throttle_lufs": -16.6525154804531,
+      "speaker_idle_lufs": -31.4021285756608
+    },
+    {
+      "end_kmh": 182.622716630442,
+      "full_throttle_lufs": -15.5828588843599,
+      "idle_lufs": -22.847441993588,
+      "name": "vollgas_kombi",
+      "ok": true,
+      "short_term_max": -14.2603139877319,
+      "short_term_median": -15.9425525665283,
+      "speaker_full_throttle_lufs": -17.6637696929705,
+      "speaker_idle_lufs": -24.0950458926657
+    },
+    {
+      "end_kmh": 210.760266674023,
+      "full_throttle_lufs": -15.8044284738016,
+      "idle_lufs": -23.0722863676154,
+      "name": "vollgas_limousine",
+      "ok": true,
+      "short_term_max": -14.2688426971436,
+      "short_term_median": -15.7702188491821,
+      "speaker_full_throttle_lufs": -16.4766789091481,
+      "speaker_idle_lufs": -30.7560464307677
+    },
+    {
+      "end_kmh": 242.868820123829,
+      "full_throttle_lufs": -14.7759392219953,
+      "idle_lufs": -22.467553261031,
+      "name": "vollgas_sportwagen",
+      "ok": true,
+      "short_term_max": -13.3900499343872,
+      "short_term_median": -14.9871644973755,
+      "speaker_full_throttle_lufs": -15.2563615783138,
+      "speaker_idle_lufs": -26.7707495314739
+    },
+    {
+      "end_kmh": 231.115218761338,
+      "full_throttle_lufs": -15.1034644256331,
+      "idle_lufs": -23.130149629506,
+      "name": "vollgas_gran_turismo",
+      "ok": true,
+      "short_term_max": -14.0340805053711,
+      "short_term_median": -14.88440990448,
+      "speaker_full_throttle_lufs": -15.5697480180488,
+      "speaker_idle_lufs": -30.1621728432234
+    },
+    {
+      "duck_after_stop_db": -0.00614570106115941,
+      "duck_full_throttle_db": -4.44975888389391,
+      "duck_idle_db": -0.00242943978724242,
+      "mix_full_throttle_lufs": -15.6915309250864,
+      "music_full_throttle_lufs": -24.205240070007,
+      "music_pre_lufs": -14.2732240947805,
+      "name": "ducking",
+      "ok": true,
+      "stopped_s": 20.85
+    },
+    {
+      "balance_after_db": 5.5872393069469,
+      "balance_before_db": 10.932231646735,
+      "doppler_corr": 0.516170664354734,
+      "doppler_ratio": 0.8700863803346,
+      "name": "vorbeifahrt_links",
+      "ok": true,
+      "t_pass": 3.38333333333333
+    },
+    {
+      "balance_after_db": -5.47874651456027,
+      "balance_before_db": -10.2298261717316,
+      "doppler_corr": 0.501084683595735,
+      "doppler_ratio": 0.871077479586417,
+      "name": "vorbeifahrt_rechts",
+      "ok": true,
+      "t_pass": 3.38333333333333
+    },
+    {
+      "name": "tunnelhall",
+      "ok": true,
+      "open_rt60_s": 0.069,
+      "tunnel_rt60_s": 1.593
+    },
+    {
+      "enter_s": 5.7,
+      "inside_lufs": -16.0061569213867,
+      "inside_max": -15.1308250427246,
+      "lift_db": 6.63438034057617,
+      "limiter": {
+        "max_db": 0.480713085458987,
+        "share_1db": 0.0,
+        "share_3db": 0.0
+      },
+      "name": "tunnel_lautheit",
+      "ok": false,
+      "outside_lufs": -22.6405372619629
+    },
+    {
+      "collisions": 2,
+      "frames_outside_tunnel": 0,
+      "full_scale_samples": 0,
+      "limiter": {
+        "max_db": 2.54839622496934,
+        "share_1db": 0.162962962962963,
+        "share_3db": 0.0
+      },
+      "lufs": -12.2731766378893,
+      "momentary_max": -10.6736135482788,
+      "name": "schlimmster_fall",
+      "ok": true,
+      "sample_peak_db": -1.99998720502519,
+      "true_peak_dbtp": -3.87366682135332,
+      "true_peak_dbtp_master1": -1.9354665859865
+    }
+  ]
+}
