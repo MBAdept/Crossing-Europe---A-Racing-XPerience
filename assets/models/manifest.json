@@ -6872,7 +6872,7 @@
     {
      "name": "lod0",
      "max_dist_m": 60,
-     "tris": 5675,
+     "tris": 5687,
      "parts": [
       {
        "node": "body",
@@ -6884,7 +6884,7 @@
     {
      "name": "lod1",
      "max_dist_m": 100000,
-     "tris": 3418,
+     "tris": 3430,
      "parts": [
       {
        "node": "body",
@@ -6898,8 +6898,8 @@
    "roughness": 0.86,
    "auto_lod": false,
    "tags": ["prop", "building", "city", "mirror_left", "paris", "center"],
-   "bytes": 428655,
-   "hash": "400acb1e7b4a977ee99051e2a3658291893b1474"
+   "bytes": 467725,
+   "hash": "ebb7f7745d5498fc569771c767edbe9c8e878232"
   },
   "props/city_paris_haussmann": {
    "kind": "building",

@@ -1806,8 +1806,9 @@ Noch nicht gut: Die Modelle flimmern in Bewegung 2- bis 5-mal so stark wie ihre 
 Haussmann bis 1,2 % gegen 0,2 %); der Wechsel lod0 → lod1 bei 60 m ändert 8–18 % der Pixel (Überblenden ist Sache des
 Renderers, R7). In lod1 überwiegen bei 200–250 m die weißen Rahmen und Ringe des Atlas das dunkle Glas: die
 Fensterreihen wirken heller als im Sprite (in der Prüfszene deutlich, im Rennen bei Paris nicht auffällig). Die
-Rückseite des Haussmann-Eckhauses (abgeschrägter Grundriss: keine gespiegelte Gegenwand gefunden) und die rechte Flanke
-des Halsgiebelhauses sind blinde Wände wie im Generator – zu sehen nur in Kurven. Gartenbäume und Oleander sind
+Rückseite des Haussmann-Eckhauses (abgeschrägter Grundriss: keine gespiegelte Gegenwand gefunden; seit K8 mit
+Fassade, Abschnitt 27) und die rechte Flanke des Halsgiebelhauses sind blinde Wände wie im Generator – zu sehen nur in
+Kurven. Gartenbäume und Oleander sind
 dezimierte Kugelkronen, keine AS3-Bäume. Keine Wandlampen (die Generatoren haben keine). Die Tönung der Reihenhäuser
 im Ruhrgebiet fehlt, bis R7 sie aufträgt.
 
@@ -2322,6 +2323,36 @@ belebter, ohne dass jedes Fenster brennt. Im weiten Maß liegen die AS5a-Städte
 
 Wo die Lücke bleibt, liegt es nicht an der Zahl der Fenster: In Paris (Bild 2) steht in Arcade ein einzelnes, sehr
 nahes Sprite mit großen Schaufenstern im Bild; in Lyon zeigt Bild 2 vor allem einen allgemeinen Wohnblock und einen
-Laden (keine AS5a-Modelle), und an der nahen Fassade des Stadthauses in Bild 1 leuchtet keine neue Atlasstelle. Erleuchtete Fenster sind in Modern im Mittel 5–10 % dunkler als in Arcade (Helligkeit
-der warmen Pixel 176–190 gegen 186–208) – derselbe Abstand wie bei AS5b; `PANE_LIGHT_K` (0,55) ist seit AS4R gegen
-Arcade abgeglichen und gilt für alle Häuser.
+Laden (keine AS5a-Modelle), und an der nahen Fassade des Stadthauses in Bild 1 leuchtet keine neue Atlasstelle.
+Erleuchtete Fenster sind in Modern im Mittel 5–10 % dunkler als in Arcade (Helligkeit der warmen Pixel 176–190
+gegen 186–208) – derselbe Abstand wie bei AS5b; `PANE_LIGHT_K` (0,55) ist seit AS4R gegen Arcade abgeglichen und gilt
+für alle Häuser.
+
+## 27. Rück- und rechte Wand des Haussmann-Eckhauses (K8, nach Welle 6)
+
+**Warum.** Der Bauer `city` gibt einer Wand, die von der Straße weg (+x) oder nach hinten (+y) schaut, keine eigenen
+Texel: Sie liest die Wand gegenüber (−x / −y, gleiche Ebenenkoordinaten – ein Spiegelbild; `_far_split`,
+`far_uvs`). Beim Eckhaus fand er keine: Die abgeschrägte Ecke (4,2 m) macht Front und linke Wand um 4,2 m kürzer als
+Rück- und rechte Wand. Beide blieben blanker Putz mit 9–12 px/m (KRITIK-5a2 K8).
+
+**Was geändert ist** (`cities3d._far_split(shift)`, Katalog-Option **`far_shift`**, nur `city_paris_corner`):
+
+- Eine Fernwand, die über das Ende ihrer Gegenwand hinausreicht, wird dort geschnitten (`bisect_plane`, beide
+  Geschossbänder an derselben Stelle). Das Stück innerhalb liest die Gegenwand wie bisher.
+- Das Stück dahinter liest die Gegenwand um du verschoben: die kleinste Verschiebung, bei der seine Ecken und Mitte
+  auf der Gegenwand liegen und seine beiden Kanten auf jedem Geschoss durch glatte Wand laufen (in Schritten von
+  10 cm geprüft gegen die geschnittenen Fenster der Gegenwand). So schneidet weder die Naht noch die Hausecke ein
+  Fenster oder einen Laden. `far_uvs` addiert du je Fläche (sonst 0).
+- Ohne `far_shift` unverändert: der Haussmann-Block (vier Fernwände) neu exportiert ist byte-gleich bis auf den
+  Cache-Schlüssel.
+
+**Ergebnis.** Fernwände 0 → 8 zugeordnet, 2 Schnitte; Dreiecke lod0 5 675 → 5 687, lod1 3 418 → 3 430; Datei 429 →
+468 kB; Atlas unverändert 2048 × 1024 (49 px/m). Rückwand mit fünf Fensterachsen und fünf Bogenläden, rechte Wand mit
+vier Achsen und vier Läden, regelmäßig und ohne angeschnittene Fenster – bei Tag wie die Front, nachts mit denselben
+erleuchteten Fenstern und Auslagen. Angesehen in `prop_scene --mode=dist --yaw=0/90/180/270` bei 12 und 22 Uhr
+(20/45/100 m).
+
+Grenze: Die Rückseite ist ein Spiegelbild der Front ohne deren Balkone und Gesimsvorsprünge (die Gesimse laufen als
+Geometrie rundum); Sockel und Läden lesen sich gleich. Die rechte Flanke des Halsgiebelhauses bleibt blind wie im
+Generator.
+

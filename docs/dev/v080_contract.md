@@ -2097,3 +2097,11 @@ KRITIK-R / AU-R2)**
 - Measured (warm window pixels Modern / Arcade, six city positions at 22:00, two pictures each): median 0.75 → 0.80
   (strict rule), 0.79 → 0.90 (wide rule); AS5b 0.96 / 0.87; the Hanse house in Hamburg 0.47 → 1.41. Lit windows in
   Modern stay 5–10 % darker than Arcade's (`PANE_LIGHT_K` 0.55 for all houses, AS4R) – not changed here.
+
+**A-34 Far walls longer than the wall opposite them (K8: the Haussmann corner house)**
+- Catalog option `far_shift` (builder `city`, only `city_paris_corner`): a far wall (+x / +y) that reaches beyond the
+  end of its opposite wall is cut there; the part beyond reads the opposite wall shifted along it by the smallest du
+  whose corners lie on that wall and whose two edges run through plain wall on every storey (no window or shop cut).
+  Without the option the builder is unchanged (the Haussmann block re-exported byte-equal except its cache key).
+- The corner house's back and right wall now show the facade (8 far faces mapped, before 0); lod0 5,687 / lod1 3,430
+  triangles (+12 each), atlas unchanged.
